@@ -9,6 +9,10 @@ import SwiftUI
 
 struct EmptyRecordView: View {
     let onAddRecord: () -> Void
+    
+    init(onAddRecord: @escaping () -> Void) {
+        self.onAddRecord = onAddRecord
+    }
 
     var body: some View {
         GeometryReader { geometry in

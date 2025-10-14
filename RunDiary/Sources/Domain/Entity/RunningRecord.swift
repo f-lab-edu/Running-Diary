@@ -10,10 +10,10 @@ import Foundation
 struct RunningRecord: Identifiable {
     let id: UUID
     let date: Date
-    let distance: Double? // km
-    let averagePace: String? // min/km
-    let averageHeartRate: Int? // bpm
-    let averageCadence: Int? // steps/min
+    let distance: Double?           // km
+    let averagePace: String?        // min/km
+    let averageHeartRate: Int?      // bpm
+    let averageCadence: Int?        // steps/min
     let painAreas: [String]
     let runningStyle: String?
     let condition: RunningCondition

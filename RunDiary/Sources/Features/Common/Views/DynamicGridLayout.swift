@@ -13,17 +13,41 @@ struct DynamicGridLayout<Data: RandomAccessCollection, Content: View>: View wher
     let content: (Data.Element) -> Content
 
     @State private var totalHeight: CGFloat = 0
+    
+    init(items: Data, content: @escaping (Data.Element) -> Content) {
+        self.items = items
+        self.content = content
+    }
 
     var body: some View {
         VStack {
             GeometryReader { geometry in
-                self.generateContent(in: geometry)
+                GridContent(
+                    items: items,
+                    content: content,
+                    geometry: geometry,
+                    totalHeight: $totalHeight
+                )
             }
         }
         .frame(height: totalHeight)
     }
+}
 
-    private func generateContent(in geometry: GeometryProxy) -> some View {
+private struct GridContent<Data: RandomAccessCollection, Content: View>: View where Data.Element: Hashable {
+    let items: Data
+    let content: (Data.Element) -> Content
+    let geometry: GeometryProxy
+    @Binding var totalHeight: CGFloat
+    
+    init(items: Data, content: @escaping (Data.Element) -> Content, geometry: GeometryProxy, totalHeight: Binding<CGFloat>) {
+        self.items = items
+        self.content = content
+        self.geometry = geometry
+        self._totalHeight = totalHeight
+    }
+    
+    var body: some View {
         var width = CGFloat.zero
         var height = CGFloat.zero
 
@@ -54,16 +78,24 @@ struct DynamicGridLayout<Data: RandomAccessCollection, Content: View>: View wher
                     }
             }
         }
-        .background(viewHeightReader($totalHeight))
+        .background(HeightReader(totalHeight: $totalHeight))
     }
+}
 
-    private func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
-        return GeometryReader { geometry -> Color in
-            let rect = geometry.frame(in: .local)
-            DispatchQueue.main.async {
-                binding.wrappedValue = rect.size.height
-            }
-            return .clear
+private struct HeightReader: View {
+    @Binding var totalHeight: CGFloat
+    
+    init(totalHeight: Binding<CGFloat>) {
+        self._totalHeight = totalHeight
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            Color.clear
+                .onAppear {
+                    let rect = geometry.frame(in: .local)
+                    totalHeight = rect.size.height
+                }
         }
     }
 }

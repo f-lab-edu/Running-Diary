@@ -9,6 +9,10 @@ import SwiftUI
 
 struct RecordView: View {
     let record: RunningRecord
+    
+    init(record: RunningRecord) {
+        self.record = record
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -120,6 +124,11 @@ struct RecordView: View {
 private struct RecordRowView: View {
     let title: String
     let value: String
+    
+    init(title: String, value: String) {
+        self.title = title
+        self.value = value
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -138,6 +147,11 @@ private struct RecordRowView: View {
 private struct DetailRowView: View {
     let title: String
     let value: String
+    
+    init(title: String, value: String) {
+        self.title = title
+        self.value = value
+    }
 
     var body: some View {
         HStack {

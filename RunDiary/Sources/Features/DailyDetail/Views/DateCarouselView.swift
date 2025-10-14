@@ -10,6 +10,11 @@ import SwiftUI
 struct DateCarouselView: View {
     let dates: [Date]
     @Binding var selectedDate: Date
+    
+    init(dates: [Date], selectedDate: Binding<Date>) {
+        self.dates = dates
+        self._selectedDate = selectedDate
+    }
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -43,6 +48,11 @@ struct DateCarouselView: View {
 private struct DateItemView: View {
     let date: Date
     let isSelected: Bool
+    
+    init(date: Date, isSelected: Bool) {
+        self.date = date
+        self.isSelected = isSelected
+    }
 
     private var dayOfWeek: String {
         let formatter = DateFormatter()
