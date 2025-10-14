@@ -8,8 +8,24 @@
 import Foundation
 import Observation
 
+// MARK: - Protocol
+
+protocol DailyDetailViewModelProtocol: Observable {
+    var selectedDate: Date { get set }
+    var dates: [Date] { get }
+    var runningRecord: RunningRecord? { get set }
+    var isLoading: Bool { get set }
+    var errorMessage: String? { get set }
+    
+    func selectDate(_ date: Date)
+    func fetchRunningRecord(for date: Date) async
+    func showAddRecordView()
+}
+
+// MARK: - Production Implementation
+
 @Observable
-final class DailyDetailViewModel {
+final class DailyDetailViewModel: DailyDetailViewModelProtocol {
     var selectedDate: Date
     var dates: [Date] = []
     var runningRecord: RunningRecord?
@@ -23,7 +39,7 @@ final class DailyDetailViewModel {
         setupDates()
     }
 
-    func setupDates() {
+    private func setupDates() {
         let calendar = Calendar.current
         var dateArray: [Date] = []
 
@@ -64,5 +80,51 @@ final class DailyDetailViewModel {
     func showAddRecordView() {
         // TODO: 기록 추가 화면으로 이동
         print("러닝 기록 입력 화면 열기")
+    }
+}
+
+// MARK: - Preview Implementation
+
+@Observable
+final class PreviewDailyDetailViewModel: DailyDetailViewModelProtocol {
+    var selectedDate: Date
+    var dates: [Date] = []
+    var runningRecord: RunningRecord?
+    var isLoading: Bool = false
+    var errorMessage: String?
+    
+    init(mockRecord: RunningRecord? = nil) {
+        let calendar = Calendar.current
+        self.selectedDate = calendar.startOfDay(for: Date())
+        self.runningRecord = mockRecord
+        setupDates()
+    }
+    
+    private func setupDates() {
+        let calendar = Calendar.current
+        var dateArray: [Date] = []
+
+        // 오늘 기준 전후 2주씩 생성
+        for offset in -14...14 {
+            if let date = calendar.date(byAdding: .day, value: offset, to: Date()) {
+                dateArray.append(calendar.startOfDay(for: date))
+            }
+        }
+
+        dates = dateArray
+    }
+    
+    func selectDate(_ date: Date) {
+        selectedDate = date
+        // 프리뷰에서는 fetch하지 않음
+    }
+    
+    @MainActor
+    func fetchRunningRecord(for date: Date) async {
+        // 프리뷰에서는 기존 데이터 유지, fetch하지 않음
+    }
+    
+    func showAddRecordView() {
+        print("프리뷰: 러닝 기록 입력 화면 열기")
     }
 }

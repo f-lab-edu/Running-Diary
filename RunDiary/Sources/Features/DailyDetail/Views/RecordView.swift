@@ -1,5 +1,5 @@
 //
-//  RunningRecordDetailView.swift
+//  RecordView.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct RunningRecordDetailView: View {
+struct RecordView: View {
     let record: RunningRecord
 
     var body: some View {
@@ -20,21 +20,21 @@ struct RunningRecordDetailView: View {
 
                     HStack(spacing: 20) {
                         if let distance = record.distance {
-                            MetricView(title: "거리", value: String(format: "%.2f km", distance))
+                            RecordRowView(title: "거리", value: String(format: "%.2f km", distance))
                         }
 
                         if let pace = record.averagePace {
-                            MetricView(title: "평균 페이스", value: pace)
+                            RecordRowView(title: "평균 페이스", value: pace)
                         }
                     }
 
                     HStack(spacing: 20) {
                         if let heartRate = record.averageHeartRate {
-                            MetricView(title: "평균 심박수", value: "\(heartRate) bpm")
+                            RecordRowView(title: "평균 심박수", value: "\(heartRate) bpm")
                         }
 
                         if let cadence = record.averageCadence {
-                            MetricView(title: "평균 케이던스", value: "\(cadence) spm")
+                            RecordRowView(title: "평균 케이던스", value: "\(cadence) spm")
                         }
                     }
                 }
@@ -48,7 +48,7 @@ struct RunningRecordDetailView: View {
                     Text("통증 부위")
                         .font(.headline)
 
-                    FlowLayout(items: record.painAreas) { item in
+                    DynamicGridLayout(items: record.painAreas) { item in
                         Text(item)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -117,7 +117,7 @@ struct RunningRecordDetailView: View {
     }
 }
 
-struct MetricView: View {
+private struct RecordRowView: View {
     let title: String
     let value: String
 
@@ -135,7 +135,7 @@ struct MetricView: View {
     }
 }
 
-struct DetailRowView: View {
+private struct DetailRowView: View {
     let title: String
     let value: String
 

@@ -40,7 +40,7 @@ struct DateCarouselView: View {
     }
 }
 
-struct DateItemView: View {
+private struct DateItemView: View {
     let date: Date
     let isSelected: Bool
 

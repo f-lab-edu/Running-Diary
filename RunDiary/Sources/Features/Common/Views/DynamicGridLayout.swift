@@ -1,5 +1,5 @@
 //
-//  FlowLayout.swift
+//  DynamicGridLayout.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -7,7 +7,8 @@
 
 import SwiftUI
 
-struct FlowLayout<Data: RandomAccessCollection, Content: View>: View where Data.Element: Hashable {
+/// 항목들이 가로로 배치되다가 공간이 부족하면 자동으로 다음 줄로 넘어가는 동적 그리드 레이아웃
+struct DynamicGridLayout<Data: RandomAccessCollection, Content: View>: View where Data.Element: Hashable {
     let items: Data
     let content: (Data.Element) -> Content
 

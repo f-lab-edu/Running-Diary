@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct DailyDetailView: View {
-    @State private var viewModel: DailyDetailViewModel
+    @State private var viewModel: any DailyDetailViewModelProtocol
 
-    init(viewModel: DailyDetailViewModel) {
+    init(viewModel: any DailyDetailViewModelProtocol) {
         self.viewModel = viewModel
     }
 
@@ -30,16 +30,16 @@ struct DailyDetailView: View {
 
             // 러닝 기록 또는 빈 상태
             ScrollView {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .padding()
-                } else if let record = viewModel.runningRecord {
-                    RunningRecordDetailView(record: record)
-                        .padding()
-                } else {
-                    EmptyRecordView(onAddRecord: viewModel.showAddRecordView)
-                        .padding()
+                Group {
+                    if viewModel.isLoading {
+                        ProgressView()
+                    } else if let record = viewModel.runningRecord {
+                        RecordView(record: record)
+                    } else {
+                        EmptyRecordView(onAddRecord: viewModel.showAddRecordView)
+                    }
                 }
+                .padding()
             }
         }
         .task {
@@ -55,10 +55,7 @@ struct DailyDetailView: View {
 }
 
 #Preview("With Record") {
-    let viewModel = DailyDetailViewModel()
-
-    // 임시 데이터 주입
-    viewModel.runningRecord = RunningRecord(
+    let mockRecord = RunningRecord(
         date: Date(),
         distance: 5.2,
         averagePace: "5'30\"",
@@ -75,6 +72,7 @@ struct DailyDetailView: View {
         shoes: "Nike Pegasus 40",
         hasMap: true
     )
-
+    
+    let viewModel = PreviewDailyDetailViewModel(mockRecord: mockRecord)
     return DailyDetailView(viewModel: viewModel)
 }
