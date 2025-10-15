@@ -17,6 +17,7 @@ final class PreviewDailyDetailViewModel: DailyDetailViewModelProtocol {
     var runningRecord: RunningRecord?
     var isLoading: Bool = false
     var errorMessage: String?
+    var isShowingAddRecord: Bool = false
 
     init(mockRecord: RunningRecord? = nil) {
         let calendar = Calendar.current
@@ -50,6 +51,6 @@ final class PreviewDailyDetailViewModel: DailyDetailViewModelProtocol {
     }
 
     func showAddRecordView() {
-        AppLogger.dailyDetail.info("프리뷰: 러닝 기록 입력 화면 열기")
+        isShowingAddRecord = true
     }
 }

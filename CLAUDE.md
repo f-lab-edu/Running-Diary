@@ -86,17 +86,20 @@
 
 - OpenWeatherMap 또는 기상청 API 고려 (TBD)
 
-### 데이터 저장 [미정]
+### 데이터 저장
 
-1. **Local DB**: CoreData / SwiftData / Realm
-2. **Remote DB + API**: 자체 백엔드 구현
+#### SwiftData (로컬 DB)
 
-> **선택 전까지 Mock 데이터 사용하고, Repository 인터페이스만 정의**
+- iOS 17+ 네이티브 솔루션
+- Repository 패턴으로 추상화
+- iCloud 동기화 옵션 (개인 기기 간)
+
+> 구현 전략: Repository 인터페이스로 추상화하여 추후 백엔드 추가 시 교체 용이하게 설계
 
 ## 구현 시 고려사항
 
 - **HealthKit 권한**: 앱 초기 실행 시 요청, 거부 시 수동 입력만 가능
-- **DB 미결정**: Repository 패턴으로 추상화하여 추후 교체 용이하게 설계
+- **DB 아키텍처**: Repository 패턴으로 추상화하여 추후 교체 용이하게 설계
 - **API 의존성**: 신발 API, 날씨 API 실패 시 Graceful Degradation 적용
 
 ## 개발 우선순위
@@ -111,7 +114,10 @@
    - 러닝 데이터 Fetch
 4. ⏳ 기록 추가 화면
 5. ⏳ 캘린더 뷰
-6. ⏳ 데이터 저장 (DB 선택 후 구현)
+6. ⏳ 데이터 저장
+  - SwiftData 모델 정의
+  - Repository 구현
+  - ViewModel과 연동
 7. ⏳ 외부 API 연동 (신발, 날씨)
 8. ⏳ 로그인 기능 (미정)
 

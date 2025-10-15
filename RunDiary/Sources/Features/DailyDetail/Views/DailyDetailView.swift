@@ -9,42 +9,71 @@ import SwiftUI
 
 struct DailyDetailView: View {
     @State private var viewModel: any DailyDetailViewModelProtocol
+    @Environment(\.modelContext) private var modelContext
 
     init(viewModel: any DailyDetailViewModelProtocol) {
         self.viewModel = viewModel
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 상단 날짜 캐러셀
-            DateCarouselView(
-                dates: viewModel.dates,
-                selectedDate: Binding(
-                    get: { viewModel.selectedDate },
-                    set: { viewModel.selectDate($0) }
+        NavigationStack {
+            VStack(spacing: 0) {
+                // 상단 날짜 캐러셀
+                DateCarouselView(
+                    dates: viewModel.dates,
+                    selectedDate: Binding(
+                        get: { viewModel.selectedDate },
+                        set: { viewModel.selectDate($0) }
+                    )
                 )
-            )
-            .padding(.vertical, 16)
+                .padding(.vertical, 16)
 
-            Divider()
+                Divider()
 
-            // 러닝 기록 또는 빈 상태
-            ScrollView {
-                Group {
-                    if viewModel.isLoading {
-                        ProgressView()
-                    } else if let record = viewModel.runningRecord {
-                        RecordView(record: record)
-                    } else {
-                        EmptyRecordView(onAddRecord: viewModel.showAddRecordView)
+                // 러닝 기록 또는 빈 상태
+                ScrollView {
+                    Group {
+                        if viewModel.isLoading {
+                            ProgressView()
+                        } else if let record = viewModel.runningRecord {
+                            RecordView(record: record)
+                        } else {
+                            EmptyRecordView(onAddRecord: viewModel.showAddRecordView)
+                        }
                     }
+                    .padding()
                 }
-                .padding()
+            }
+            .navigationDestination(isPresented: Binding(
+                get: { viewModel.isShowingAddRecord },
+                set: { viewModel.isShowingAddRecord = $0 }
+            )) {
+                createAddRecordView()
+            }
+            .task {
+                await viewModel.fetchRunningRecord(for: viewModel.selectedDate)
             }
         }
-        .task {
-            await viewModel.fetchRunningRecord(for: viewModel.selectedDate)
-        }
+    }
+
+    @ViewBuilder
+    private func createAddRecordView() -> some View {
+        let healthKitManager = HealthKitManager()
+        let weatherManager = MockWeatherManager() // TODO: KMAWeatherManager로 교체
+        let repository = SwiftDataRunningRecordRepository(modelContext: modelContext)
+        let shoeManager = ShoeManager(modelContext: modelContext)
+
+        let addRecordViewModel = AddRecordViewModel(
+            mode: viewModel.runningRecord == nil ? .add : .edit,
+            date: viewModel.selectedDate,
+            existingRecord: viewModel.runningRecord,
+            healthKitManager: healthKitManager,
+            weatherManager: weatherManager,
+            repository: repository,
+            shoeManager: shoeManager
+        )
+
+        AddRecordView(viewModel: addRecordViewModel)
     }
 }
 

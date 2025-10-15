@@ -14,6 +14,7 @@ protocol DailyDetailViewModelProtocol: Observable {
     var runningRecord: RunningRecord? { get set }
     var isLoading: Bool { get set }
     var errorMessage: String? { get set }
+    var isShowingAddRecord: Bool { get set }
 
     func selectDate(_ date: Date)
     func fetchRunningRecord(for date: Date) async

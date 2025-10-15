@@ -77,19 +77,14 @@ struct RecordView: View {
                     .font(.headline)
 
                 if let sleep = record.condition.sleep {
-                    DetailRowView(title: "수면", value: sleep)
+                    DetailRowView(title: "수면", value: "\(sleep)시간")
                 }
 
-                if let meal = record.condition.meal {
-                    DetailRowView(title: "식사", value: meal)
-                }
+                DetailRowView(title: "식사", value: record.condition.meal ? "O" : "X")
+                DetailRowView(title: "음주", value: record.condition.alcohol ? "O" : "X")
 
-                if let alcohol = record.condition.alcohol {
-                    DetailRowView(title: "음주", value: alcohol)
-                }
-
-                if let custom = record.condition.custom {
-                    DetailRowView(title: "메모", value: custom)
+                if let memo = record.condition.memo {
+                    DetailRowView(title: "메모", value: memo)
                 }
             }
 

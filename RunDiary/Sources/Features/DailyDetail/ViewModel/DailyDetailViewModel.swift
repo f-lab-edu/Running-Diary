@@ -17,11 +17,15 @@ final class DailyDetailViewModel: DailyDetailViewModelProtocol {
     var runningRecord: RunningRecord?
     var isLoading: Bool = false
     var errorMessage: String?
+    var isShowingAddRecord: Bool = false
 
-    init() {
+    private let repository: RunningRecordRepositoryProtocol?
+
+    init(repository: RunningRecordRepositoryProtocol? = nil) {
         // 오늘 날짜를 초기 선택 날짜로 설정 (시간 정보는 제거하고 날짜만)
         let calendar = Calendar.current
         self.selectedDate = calendar.startOfDay(for: Date())
+        self.repository = repository
         setupDates()
     }
 
@@ -48,23 +52,25 @@ final class DailyDetailViewModel: DailyDetailViewModelProtocol {
 
     @MainActor
     func fetchRunningRecord(for date: Date) async {
-        // TODO: UseCase 및 Repository 구현 후 데이터 fetch 로직 추가
-        // - 서버 API 연동 vs 로컬 DB 저장 방식 결정 필요
-        // - UseCase: FetchRunningRecordUseCase
-        // - Repository: RunningRecordRepository (protocol)
-        // - DataSource: LocalRunningRecordDataSource / RemoteRunningRecordDataSource
+        guard let repository = repository else {
+            runningRecord = nil
+            return
+        }
 
         isLoading = true
         errorMessage = nil
 
-        // 임시: 빈 상태 반환
-        runningRecord = nil
+        do {
+            runningRecord = try await repository.fetch(for: date)
+        } catch {
+            errorMessage = "기록을 불러올 수 없습니다: \(error.localizedDescription)"
+            runningRecord = nil
+        }
 
         isLoading = false
     }
 
     func showAddRecordView() {
-        // TODO: 기록 추가 화면으로 이동
-        AppLogger.dailyDetail.info("러닝 기록 입력 화면 열기")
+        isShowingAddRecord = true
     }
 }
