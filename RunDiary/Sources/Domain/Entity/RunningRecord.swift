@@ -18,6 +18,9 @@ struct RunningRecord: Identifiable {
     let runningStyle: String?
     let condition: RunningCondition
     let shoes: String?
+    let weather: Weather?
+    let satisfaction: Int?          // 1-5
+    let routeData: Data?            // HealthKit route data
     let hasMap: Bool
 
     var distanceInMiles: Double? {
@@ -35,6 +38,9 @@ struct RunningRecord: Identifiable {
         runningStyle: String? = nil,
         condition: RunningCondition = RunningCondition(),
         shoes: String? = nil,
+        weather: Weather? = nil,
+        satisfaction: Int? = nil,
+        routeData: Data? = nil,
         hasMap: Bool = false
     ) {
         self.id = id
@@ -47,25 +53,44 @@ struct RunningRecord: Identifiable {
         self.runningStyle = runningStyle
         self.condition = condition
         self.shoes = shoes
+        self.weather = weather
+        self.satisfaction = satisfaction
+        self.routeData = routeData
         self.hasMap = hasMap
     }
 }
 
 struct RunningCondition {
-    let sleep: String?
-    let meal: String?
-    let alcohol: String?
-    let custom: String?
+    let sleep: Int?                 // 수면 시간
+    let meal: Bool                  // 식사 여부
+    let alcohol: Bool               // 음주 여부
+    let memo: String?               // 기타 메모
 
     init(
-        sleep: String? = nil,
-        meal: String? = nil,
-        alcohol: String? = nil,
-        custom: String? = nil
+        sleep: Int? = nil,
+        meal: Bool = false,
+        alcohol: Bool = false,
+        memo: String? = nil
     ) {
         self.sleep = sleep
         self.meal = meal
         self.alcohol = alcohol
-        self.custom = custom
+        self.memo = memo
+    }
+}
+
+struct Weather {
+    let temperature: Double         // 기온 (°C)
+    let humidity: Int               // 습도 (%)
+    let windSpeed: Double           // 풍속 (m/s)
+
+    init(
+        temperature: Double,
+        humidity: Int,
+        windSpeed: Double
+    ) {
+        self.temperature = temperature
+        self.humidity = humidity
+        self.windSpeed = windSpeed
     }
 }
