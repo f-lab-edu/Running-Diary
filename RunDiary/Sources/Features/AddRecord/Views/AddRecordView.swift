@@ -19,19 +19,39 @@ struct AddRecordView: View {
         NavigationStack {
             Form {
                 // HealthKit 데이터 섹션
-                healthKitSection
+                HealthKitSectionView(
+                    distance: $viewModel.distance,
+                    averagePace: $viewModel.averagePace,
+                    averageHeartRate: $viewModel.averageHeartRate,
+                    averageCadence: $viewModel.averageCadence,
+                    isDataLoaded: viewModel.isHealthKitDataLoaded
+                )
 
                 // 통증 부위 섹션
-                painAreasSection
+                PainAreasSectionView(
+                    selectedPainAreas: $viewModel.selectedPainAreas,
+                    painAreaOptions: viewModel.painAreaOptions
+                )
 
                 // 주법/스타일 섹션
-                runningStyleSection
+                RunningStyleSectionView(
+                    selectedStyle: $viewModel.selectedRunningStyle,
+                    styleOptions: viewModel.runningStyleOptions
+                )
 
                 // 컨디션 섹션
-                conditionSection
+                ConditionSectionView(
+                    sleepHours: $viewModel.sleepHours,
+                    hadMeal: $viewModel.hadMeal,
+                    hadAlcohol: $viewModel.hadAlcohol,
+                    memo: $viewModel.memo
+                )
 
                 // 신발 섹션
-                shoesSection
+                ShoesSectionView(
+                    selectedShoe: $viewModel.selectedShoe,
+                    shoes: viewModel.shoes
+                )
             }
             .navigationTitle(viewModel.mode == .add ? "기록 추가" : "기록 수정")
             .navigationBarTitleDisplayMode(.inline)
@@ -97,18 +117,38 @@ struct AddRecordView: View {
         }
     }
 
-    // MARK: - Health Kit Section
+    // MARK: - Helper Methods
 
-    private var healthKitSection: some View {
+    private func saveSatisfactionAndDismiss() {
+        Task {
+            await viewModel.saveSatisfaction { success in
+                if success {
+                    dismiss()
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Section Views
+
+private struct HealthKitSectionView: View {
+    @Binding var distance: String
+    @Binding var averagePace: String
+    @Binding var averageHeartRate: String
+    @Binding var averageCadence: String
+    let isDataLoaded: Bool
+
+    var body: some View {
         Section("주요 지표") {
             HStack {
                 Text("거리")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0.00", text: $viewModel.distance)
+                TextField("0.00", text: $distance)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!viewModel.isHealthKitDataLoaded)
+                    .allowsHitTesting(!isDataLoaded)
                 Text("km")
                     .foregroundColor(.gray)
             }
@@ -117,19 +157,19 @@ struct AddRecordView: View {
                 Text("평균 페이스")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0'00\"", text: $viewModel.averagePace)
+                TextField("0'00\"", text: $averagePace)
                     .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!viewModel.isHealthKitDataLoaded)
+                    .allowsHitTesting(!isDataLoaded)
             }
 
             HStack {
                 Text("평균 심박수")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0", text: $viewModel.averageHeartRate)
+                TextField("0", text: $averageHeartRate)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!viewModel.isHealthKitDataLoaded)
+                    .allowsHitTesting(!isDataLoaded)
                 Text("bpm")
                     .foregroundColor(.gray)
             }
@@ -138,32 +178,35 @@ struct AddRecordView: View {
                 Text("평균 케이던스")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0", text: $viewModel.averageCadence)
+                TextField("0", text: $averageCadence)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!viewModel.isHealthKitDataLoaded)
+                    .allowsHitTesting(!isDataLoaded)
                 Text("spm")
                     .foregroundColor(.gray)
             }
         }
     }
+}
 
-    // MARK: - Pain Areas Section
+private struct PainAreasSectionView: View {
+    @Binding var selectedPainAreas: Set<String>
+    let painAreaOptions: [String]
 
-    private var painAreasSection: some View {
+    var body: some View {
         Section("통증 부위") {
             Menu {
-                ForEach(viewModel.painAreaOptions, id: \.self) { area in
+                ForEach(painAreaOptions, id: \.self) { area in
                     Button(action: {
-                        if viewModel.selectedPainAreas.contains(area) {
-                            viewModel.selectedPainAreas.remove(area)
+                        if selectedPainAreas.contains(area) {
+                            selectedPainAreas.remove(area)
                         } else {
-                            viewModel.selectedPainAreas.insert(area)
+                            selectedPainAreas.insert(area)
                         }
                     }) {
                         HStack {
                             Text(area)
-                            if viewModel.selectedPainAreas.contains(area) {
+                            if selectedPainAreas.contains(area) {
                                 Image(systemName: "checkmark")
                             }
                         }
@@ -171,8 +214,8 @@ struct AddRecordView: View {
                 }
             } label: {
                 HStack {
-                    Text(viewModel.selectedPainAreas.isEmpty ? "선택하세요" : viewModel.selectedPainAreas.joined(separator: ", "))
-                        .foregroundColor(viewModel.selectedPainAreas.isEmpty ? .gray : .primary)
+                    Text(selectedPainAreas.isEmpty ? "선택하세요" : selectedPainAreas.joined(separator: ", "))
+                        .foregroundColor(selectedPainAreas.isEmpty ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
                         .foregroundColor(.gray)
@@ -180,21 +223,24 @@ struct AddRecordView: View {
             }
         }
     }
+}
 
-    // MARK: - Running Style Section
+private struct RunningStyleSectionView: View {
+    @Binding var selectedStyle: String?
+    let styleOptions: [String]
 
-    private var runningStyleSection: some View {
+    var body: some View {
         Section("주법/스타일") {
             Menu {
-                ForEach(viewModel.runningStyleOptions, id: \.self) { style in
+                ForEach(styleOptions, id: \.self) { style in
                     Button(style) {
-                        viewModel.selectedRunningStyle = style
+                        selectedStyle = style
                     }
                 }
             } label: {
                 HStack {
-                    Text(viewModel.selectedRunningStyle ?? "선택하세요")
-                        .foregroundColor(viewModel.selectedRunningStyle == nil ? .gray : .primary)
+                    Text(selectedStyle ?? "선택하세요")
+                        .foregroundColor(selectedStyle == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
                         .foregroundColor(.gray)
@@ -202,16 +248,21 @@ struct AddRecordView: View {
             }
         }
     }
+}
 
-    // MARK: - Condition Section
+private struct ConditionSectionView: View {
+    @Binding var sleepHours: String
+    @Binding var hadMeal: Bool
+    @Binding var hadAlcohol: Bool
+    @Binding var memo: String
 
-    private var conditionSection: some View {
+    var body: some View {
         Section("컨디션") {
             HStack {
                 Text("수면 시간")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0", text: $viewModel.sleepHours)
+                TextField("0", text: $sleepHours)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
                 Text("시간")
@@ -222,54 +273,45 @@ struct AddRecordView: View {
                 Text("식사 여부")
                     .foregroundColor(.gray)
                 Spacer()
-                CheckboxView(isChecked: $viewModel.hadMeal)
+                CheckboxView(isChecked: $hadMeal)
             }
 
             HStack {
                 Text("음주 여부")
                     .foregroundColor(.gray)
                 Spacer()
-                CheckboxView(isChecked: $viewModel.hadAlcohol)
+                CheckboxView(isChecked: $hadAlcohol)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("기타 메모")
                     .foregroundColor(.gray)
-                TextEditor(text: $viewModel.memo)
+                TextEditor(text: $memo)
                     .frame(minHeight: 100)
             }
         }
     }
+}
 
-    // MARK: - Shoes Section
+private struct ShoesSectionView: View {
+    @Binding var selectedShoe: String?
+    let shoes: [ShoeModel]
 
-    private var shoesSection: some View {
+    var body: some View {
         Section("착용 신발") {
             Menu {
-                ForEach(viewModel.shoes, id: \.id) { shoe in
+                ForEach(shoes, id: \.id) { shoe in
                     Button(shoe.name) {
-                        viewModel.selectedShoe = shoe.name
+                        selectedShoe = shoe.name
                     }
                 }
             } label: {
                 HStack {
-                    Text(viewModel.selectedShoe ?? "선택하세요")
-                        .foregroundColor(viewModel.selectedShoe == nil ? .gray : .primary)
+                    Text(selectedShoe ?? "선택하세요")
+                        .foregroundColor(selectedShoe == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
                         .foregroundColor(.gray)
-                }
-            }
-        }
-    }
-
-    // MARK: - Helper Methods
-
-    private func saveSatisfactionAndDismiss() {
-        Task {
-            await viewModel.saveSatisfaction { success in
-                if success {
-                    dismiss()
                 }
             }
         }
