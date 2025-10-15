@@ -16,7 +16,7 @@
 - **일자 선택 Carousel**
   - 수평 스크롤 가능한 날짜 선택기
   - 선택된 날짜에 따라 하단 기록 표시
-  
+
 - **기록 상세 정보** (세로 스크롤)
   - HealthKit 연동 데이터
     - 거리 (km)
@@ -67,97 +67,37 @@
              (기록 없을 때만 표시)
 ```
 
-## 코딩 규칙
+## 기술 스택 및 아키텍처
 
-### 네이밍 컨벤션 (SwiftLint + Swift API Guidelines)
+### 외부 연동
 
-- **타입**: UpperCamelCase
-  - View: `~View` (예: `DailyRecordView`)
-  - ViewModel: `~ViewModel` (예: `DailyRecordViewModel`)
-  - Protocol: `~able`, `~Protocol` (예: `Recordable`, `RecordRepositoryProtocol`)
-- **변수/함수**: lowerCamelCase
-- **상수**: lowerCamelCase (타입 프로퍼티는 예외적으로 UpperCamelCase 가능)
-- **약어**: 모두 대문자 or 모두 소문자 (예: `url`, `json`, `UUID`)
-
-### SwiftUI 스타일
-
-- **공통 스타일**: ViewModifier로 재사용
-- **Preview**: 모든 View에 필수 작성
-- **View 분리**
-  - 복잡한 View는 subview로 분리
-  - 특정 View에서만 사용하는 컴포넌트는 `private struct`로 같은 파일에 정의
-  ```swift
-  // ✅ 권장
-  struct DailyRecordView: View {
-      var body: some View {
-          DateCarouselView()  // private struct
-      }
-  }
-  
-  private struct DateCarouselView: View {
-      var body: some View { ... }
-  }
-  ```
-  
-  ```swift
-  // ❌ 지양 (같은 파일 내부에서만 사용하는 경우)
-  struct DailyRecordView: View {
-      var body: some View {
-          dateCarousel  // computed property
-      }
-      
-      private var dateCarousel: some View { ... }
-  }
-  ```
-
-- **유틸리티 로직**: 재사용 가능한 비즈니스 로직은 별도 객체로 분리
-  ```swift
-  // Core/Utils/DateFormatter+Custom.swift
-  extension DateFormatter {
-      static let displayDate: DateFormatter = { ... }()
-  }
-  
-  // Core/Utils/HealthKitManager.swift
-  final class HealthKitManager {
-      func fetchRunningData(...) { ... }
-  }
-  ```
-
-### 접근 제어
-
-- **기본**: `internal` (명시하지 않음)
-- **외부 노출 불필요**: `private` 또는 `fileprivate`
-- **모듈 간 공유**: `public` (Framework화 시 고려)
-
-### 테스트
-
-- ViewModel 로직: Unit Test 필수
-- 복잡한 Utils/Manager: Unit Test 작성
-- UI 컴포넌트: Snapshot Test 고려 (TBD)
-
-## 외부 연동
-
-### HealthKit
+#### HealthKit
 
 - 권한: 앱 초기 실행 시 요청
 - 읽기 권한: 거리, 심박수, 케이던스, 경로 데이터
 - 백그라운드 동기화 고려 (TBD)
 
-### 신발 API
+#### 신발 API
 
 - 외부 API를 통해 신발 정보 검색
 - API 명세 미정
 
-### 날씨 API
+#### 날씨 API
 
 - OpenWeatherMap 또는 기상청 API 고려 (TBD)
 
-## 데이터 저장[미정]
+### 데이터 저장 [미정]
 
 1. **Local DB**: CoreData / SwiftData / Realm
-2. **Remote DB + API**: 자체 백엔드 구현  
+2. **Remote DB + API**: 자체 백엔드 구현
 
 > **선택 전까지 Mock 데이터 사용하고, Repository 인터페이스만 정의**
+
+## 구현 시 고려사항
+
+- **HealthKit 권한**: 앱 초기 실행 시 요청, 거부 시 수동 입력만 가능
+- **DB 미결정**: Repository 패턴으로 추상화하여 추후 교체 용이하게 설계
+- **API 의존성**: 신발 API, 날씨 API 실패 시 Graceful Degradation 적용
 
 ## 개발 우선순위
 
@@ -175,8 +115,61 @@
 7. ⏳ 외부 API 연동 (신발, 날씨)
 8. ⏳ 로그인 기능 (미정)
 
-## 주의사항
+## 개발 규칙
 
-- **HealthKit 권한**: 앱 초기 실행 시 요청, 거부 시 수동 입력만 가능
-- **DB 미결정**: Repository 패턴으로 추상화하여 추후 교체 용이하게 설계
-- **API 의존성**: 신발 API, 날씨 API 실패 시 Graceful Degradation 적용
+### 코딩 규칙
+
+#### 네이밍 컨벤션 (SwiftLint + Swift API Guidelines)
+
+- **타입**: UpperCamelCase
+  - View: `~View` (예: `DailyRecordView`)
+  - ViewModel: `~ViewModel` (예: `DailyRecordViewModel`)
+  - Protocol: `~able`, `~Protocol` (예: `Recordable`, `RecordRepositoryProtocol`)
+- **변수/함수**: lowerCamelCase
+- **상수**: lowerCamelCase (타입 프로퍼티는 예외적으로 UpperCamelCase 가능)
+- **약어**: 모두 대문자 or 모두 소문자 (예: `url`, `json`, `UUID`)
+
+#### SwiftUI 스타일
+
+- 공통 스타일: ViewModifier로 재사용
+- Preview 필수 작성
+- View 분리: 복잡한 View는 `private struct`로 subview 분리
+```swift
+// ✅ 권장: private struct로 분리
+struct DailyRecordView: View {
+    var body: some View {
+        DateCarouselView()
+    }
+}
+
+private struct DateCarouselView: View { ... }
+```
+
+- **유틸리티 로직**: 재사용 가능한 비즈니스 로직은 별도 객체로 분리
+  ```swift
+  // Core/Utils/DateFormatter+Custom.swift
+  extension DateFormatter {
+      static let displayDate: DateFormatter = { ... }()
+  }
+
+  // Core/Utils/HealthKitManager.swift
+  final class HealthKitManager {
+      func fetchRunningData(...) { ... }
+  }
+  ```
+
+#### 접근 제어
+
+- **기본**: `internal` (명시하지 않음)
+- **외부 노출 불필요**: `private` 또는 `fileprivate`
+- **모듈 간 공유**: `public` (Framework화 시 고려)
+
+#### 테스트
+
+- ViewModel 로직: Unit Test 필수
+- 복잡한 Utils/Manager: Unit Test 작성
+- UI 컴포넌트: Snapshot Test 고려 (TBD)
+
+### Git 워크플로우
+
+브랜치 전략, 커밋, PR 규칙 등 협업 가이드라인은 [CONTRIBUTING.md](./CONTRIBUTING.md)를 참고하세요.
