@@ -65,7 +65,8 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
 
     func update(_ record: RunningRecord) async throws {
         // 기존 레코드 찾기
-        let predicate = #Predicate<RunningRecordModel> { $0.id == record.id }
+        let recordId = record.id
+        let predicate = #Predicate<RunningRecordModel> { $0.id == recordId }
         let descriptor = FetchDescriptor<RunningRecordModel>(predicate: predicate)
 
         guard let existingModel = try modelContext.fetch(descriptor).first else {
@@ -100,7 +101,8 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
     }
 
     func delete(_ record: RunningRecord) async throws {
-        let predicate = #Predicate<RunningRecordModel> { $0.id == record.id }
+        let recordId = record.id
+        let predicate = #Predicate<RunningRecordModel> { $0.id == recordId }
         let descriptor = FetchDescriptor<RunningRecordModel>(predicate: predicate)
 
         guard let model = try modelContext.fetch(descriptor).first else {
