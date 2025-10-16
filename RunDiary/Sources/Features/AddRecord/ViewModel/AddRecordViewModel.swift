@@ -14,8 +14,38 @@ enum RecordMode {
     case edit
 }
 
+// MARK: - Protocol
+
+protocol AddRecordViewModelProtocol: Observable {
+    var mode: RecordMode { get }
+    var distance: String { get set }
+    var averagePace: String { get set }
+    var averageHeartRate: String { get set }
+    var averageCadence: String { get set }
+    var isHealthKitDataLoaded: Bool { get }
+    var selectedPainAreas: Set<String> { get set }
+    var selectedRunningStyle: String? { get set }
+    var sleepHours: String { get set }
+    var hadMeal: Bool { get set }
+    var hadAlcohol: Bool { get set }
+    var memo: String { get set }
+    var selectedShoe: String? { get set }
+    var isLoading: Bool { get }
+    var showSatisfactionAlert: Bool { get set }
+    var selectedSatisfaction: Int? { get set }
+    var shoes: [ShoeModel] { get }
+    var painAreaOptions: [String] { get }
+    var runningStyleOptions: [String] { get }
+
+    func loadHealthKitData() async
+    func saveRecord(onComplete: @escaping (Bool) -> Void) async
+    func saveSatisfaction(onComplete: @escaping (Bool) -> Void) async
+}
+
+// MARK: - Production Implementation
+
 @Observable
-final class AddRecordViewModel {
+final class AddRecordViewModel: AddRecordViewModelProtocol {
     // MARK: - Mode
     let mode: RecordMode
     let date: Date
@@ -251,4 +281,59 @@ final class AddRecordViewModel {
 private struct CoordinateData: Codable {
     let latitude: Double
     let longitude: Double
+}
+
+// MARK: - Preview Implementation
+
+@Observable
+final class PreviewAddRecordViewModel: AddRecordViewModelProtocol {
+    let mode: RecordMode
+    var distance: String = "5.20"
+    var averagePace: String = "5'30\""
+    var averageHeartRate: String = "155"
+    var averageCadence: String = "180"
+    var isHealthKitDataLoaded: Bool = true
+    var selectedPainAreas: Set<String> = ["무릎"]
+    var selectedRunningStyle: String? = "포어풋"
+    var sleepHours: String = "7"
+    var hadMeal: Bool = true
+    var hadAlcohol: Bool = false
+    var memo: String = "컨디션 좋음"
+    var selectedShoe: String? = "Nike Pegasus 40"
+    var isLoading: Bool = false
+    var showSatisfactionAlert: Bool = false
+    var selectedSatisfaction: Int?
+    var shoes: [ShoeModel] = []
+    let painAreaOptions = ["무릎", "발목", "종아리", "허벅지", "고관절", "발바닥", "아킬레스건"]
+    let runningStyleOptions = ["포어풋", "미드풋", "힐스트라이크", "기타"]
+
+    init(mode: RecordMode = .add) {
+        self.mode = mode
+        setupMockShoes()
+    }
+
+    private func setupMockShoes() {
+        shoes = [
+            ShoeModel(name: "Nike Pegasus 40", brand: "Nike", createdAt: Date()),
+            ShoeModel(name: "Adidas Ultraboost 23", brand: "Adidas", createdAt: Date()),
+            ShoeModel(name: "Asics Gel-Kayano 30", brand: "Asics", createdAt: Date())
+        ]
+    }
+
+    @MainActor
+    func loadHealthKitData() async {
+        // 프리뷰에서는 이미 데이터가 로드되어 있음
+    }
+
+    @MainActor
+    func saveRecord(onComplete: @escaping (Bool) -> Void) async {
+        // 프리뷰에서는 저장하지 않음
+        onComplete(true)
+    }
+
+    @MainActor
+    func saveSatisfaction(onComplete: @escaping (Bool) -> Void) async {
+        // 프리뷰에서는 저장하지 않음
+        onComplete(true)
+    }
 }

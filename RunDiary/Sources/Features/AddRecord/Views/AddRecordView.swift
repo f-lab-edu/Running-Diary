@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct AddRecordView: View {
-    @State private var viewModel: AddRecordViewModel
+    @State private var viewModel: any AddRecordViewModelProtocol
     @Environment(\.dismiss) private var dismiss
 
-    init(viewModel: AddRecordViewModel) {
+    init(viewModel: any AddRecordViewModelProtocol) {
         self.viewModel = viewModel
     }
 
@@ -338,9 +338,9 @@ private struct CheckboxView: View {
 // MARK: - Preview
 
 #Preview("Add Mode") {
-    // Preview는 실제 동작하지 않으므로, ViewModel 의존성은 생략
-    // 실제 실행 시 DailyDetailView에서 의존성 주입됨
-    Text("AddRecordView Preview")
-        .font(.title)
-        .foregroundColor(.gray)
+    AddRecordView(viewModel: PreviewAddRecordViewModel(mode: .add))
+}
+
+#Preview("Edit Mode") {
+    AddRecordView(viewModel: PreviewAddRecordViewModel(mode: .edit))
 }
