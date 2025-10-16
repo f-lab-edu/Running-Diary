@@ -134,9 +134,13 @@
 - 공통 스타일: ViewModifier로 재사용
 - Preview 필수 작성
 - View 분리: 복잡한 View는 `private struct`로 subview 분리
+- View 구조체는 init 메서드 필수 작성
+- View `body`에서 객체 생성 금지 (의존성은 property 또는 initializer에서 주입)
+**예시**
 ```swift
-// ✅ 권장: private struct로 분리
 struct DailyRecordView: View {
+    init() {}
+
     var body: some View {
         DateCarouselView()
     }
