@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		3344D6092E81CD5B00982E36 /* RunDiary.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RunDiary.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		33TCA0012EA1600000000001 /* ComposableArchitecture */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = ComposableArchitecture; path = "swift-composable-architecture"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -78,6 +79,7 @@
 			);
 			name = RunDiary;
 			packageProductDependencies = (
+				33TCA0022EA1600000000002 /* ComposableArchitecture */,
 			);
 			productName = RunDiary;
 			productReference = 3344D6092E81CD5B00982E36 /* RunDiary.app */;
@@ -109,6 +111,9 @@
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3344D60A2E81CD5B00982E36 /* Products */;
+			packageReferences = (
+				33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -347,6 +352,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		33TCA0022EA1600000000002 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3344D6012E81CD5B00982E36 /* Project object */;
 }
