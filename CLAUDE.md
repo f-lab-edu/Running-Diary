@@ -5,9 +5,9 @@
 - **목적**: 일자별 러닝 기록 및 컨디션을 관리하는 iOS 앱
 - **기술 스택**: SwiftUI + Swift 5.0
 - **아키텍처**
-  - Clean Architecture
+  - TCA (The Composable Architecture)
   - Feature 기반 모듈화
-  - MVVM 패턴
+  - Reducer 기반 단방향 데이터 흐름
 
 ## 주요 기능
 
@@ -129,11 +129,79 @@
 
 - **타입**: UpperCamelCase
   - View: `~View` (예: `DailyRecordView`)
-  - ViewModel: `~ViewModel` (예: `DailyRecordViewModel`)
+  - Reducer: `~Feature` 또는 `~Reducer` (예: `DailyRecordFeature`, `DailyRecordReducer`)
+  - State: `State` (Reducer 내부 struct)
+  - Action: `Action` (Reducer 내부 enum)
   - Protocol: `~able`, `~Protocol` (예: `Recordable`, `RecordRepositoryProtocol`)
 - **변수/함수**: lowerCamelCase
 - **상수**: lowerCamelCase (타입 프로퍼티는 예외적으로 UpperCamelCase 가능)
 - **약어**: 모두 대문자 or 모두 소문자 (예: `url`, `json`, `UUID`)
+
+#### TCA 스타일
+
+- **Reducer 구조**
+  - State, Action, body를 명확하게 분리
+  - Reducer는 `@Reducer` 매크로 사용
+  - 각 Feature는 독립적인 파일로 분리
+
+**예시**
+```swift
+@Reducer
+struct DailyRecordFeature {
+    @ObservableState
+    struct State: Equatable {
+        var selectedDate: Date = Date()
+        var dates: [Date] = []
+        var runningRecord: RunningRecord?
+        var isLoading: Bool = false
+    }
+
+    enum Action {
+        case selectDate(Date)
+        case fetchRunningRecord(Date)
+        case runningRecordResponse(Result<RunningRecord?, Error>)
+    }
+
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
+            switch action {
+            case let .selectDate(date):
+                state.selectedDate = date
+                return .run { send in
+                    await send(.fetchRunningRecord(date))
+                }
+            // ...
+            }
+        }
+    }
+}
+```
+
+- **View와 Reducer 연결**
+  - `Store`를 통해 Reducer와 연결
+  - `@Bindable`로 양방향 바인딩 구현
+
+```swift
+struct DailyRecordView: View {
+    let store: StoreOf<DailyRecordFeature>
+
+    var body: some View {
+        // WithViewStore 대신 @Bindable 사용
+        Text("TCA View")
+    }
+}
+```
+
+- **Dependency 관리**
+  - 외부 의존성은 `@Dependency`로 주입
+  - HealthKit, API 등은 DependencyClient로 추상화
+
+```swift
+@DependencyClient
+struct HealthKitClient {
+    var fetchRunningData: @Sendable (Date) async throws -> RunningRecord?
+}
+```
 
 #### SwiftUI 스타일
 
@@ -141,32 +209,6 @@
 - Preview 필수 작성
 - View 분리: 복잡한 View는 `private struct`로 subview 분리
 - View 구조체는 init 메서드 필수 작성
-- View `body`에서 객체 생성 금지 (의존성은 property 또는 initializer에서 주입)
-**예시**
-```swift
-struct DailyRecordView: View {
-    init() {}
-
-    var body: some View {
-        DateCarouselView()
-    }
-}
-
-private struct DateCarouselView: View { ... }
-```
-
-- **유틸리티 로직**: 재사용 가능한 비즈니스 로직은 별도 객체로 분리
-  ```swift
-  // Core/Utils/DateFormatter+Custom.swift
-  extension DateFormatter {
-      static let displayDate: DateFormatter = { ... }()
-  }
-
-  // Core/Utils/HealthKitManager.swift
-  final class HealthKitManager {
-      func fetchRunningData(...) { ... }
-  }
-  ```
 
 #### 접근 제어
 
@@ -176,7 +218,11 @@ private struct DateCarouselView: View { ... }
 
 #### 테스트
 
-- ViewModel 로직: Unit Test 필수
+- Reducer 로직: Unit Test 필수
+  - TestStore를 사용한 상태 변화 검증
+  - Effect 실행 및 응답 테스트
+  - Action 순서 검증
+- Dependency: Mock/Test 구현체 작성
 - 복잡한 Utils/Manager: Unit Test 작성
 - UI 컴포넌트: Snapshot Test 고려 (TBD)
 
