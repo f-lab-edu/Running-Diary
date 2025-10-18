@@ -17,13 +17,13 @@ struct RecordView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             // 주요 지표
-            if record.distance != nil || record.averagePace != nil {
+            if record.distanceInKilometers != nil || record.averagePace != nil {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("주요 지표")
                         .font(.headline)
 
                     HStack(spacing: 20) {
-                        if let distance = record.distance {
+                        if let distance = record.distanceInKilometers {
                             RecordRowView(title: "거리", value: String(format: "%.2f km", distance))
                         }
 

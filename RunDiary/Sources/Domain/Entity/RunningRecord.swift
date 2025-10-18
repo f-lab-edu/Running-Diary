@@ -10,7 +10,7 @@ import Foundation
 struct RunningRecord: Identifiable {
     let id: UUID
     let date: Date
-    let distance: Double?           // km
+    let distanceInKilometers: Double?
     let averagePace: String?        // min/km
     let averageHeartRate: Int?      // bpm
     let averageCadence: Int?        // steps/min
@@ -20,10 +20,14 @@ struct RunningRecord: Identifiable {
     let shoes: String?
     let hasMap: Bool
 
+    var distanceInMiles: Double? {
+        distanceInKilometers.map { $0 * 0.621371 }
+    }
+
     init(
         id: UUID = UUID(),
         date: Date,
-        distance: Double? = nil,
+        distanceInKilometers: Double? = nil,
         averagePace: String? = nil,
         averageHeartRate: Int? = nil,
         averageCadence: Int? = nil,
@@ -35,7 +39,7 @@ struct RunningRecord: Identifiable {
     ) {
         self.id = id
         self.date = date
-        self.distance = distance
+        self.distanceInKilometers = distanceInKilometers
         self.averagePace = averagePace
         self.averageHeartRate = averageHeartRate
         self.averageCadence = averageCadence
