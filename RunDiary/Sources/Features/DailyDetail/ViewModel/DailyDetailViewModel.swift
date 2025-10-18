@@ -79,7 +79,7 @@ final class DailyDetailViewModel: DailyDetailViewModelProtocol {
 
     func showAddRecordView() {
         // TODO: 기록 추가 화면으로 이동
-        print("러닝 기록 입력 화면 열기")
+        AppLogger.dailyDetail.info("러닝 기록 입력 화면 열기")
     }
 }
 
@@ -92,7 +92,7 @@ final class PreviewDailyDetailViewModel: DailyDetailViewModelProtocol {
     var runningRecord: RunningRecord?
     var isLoading: Bool = false
     var errorMessage: String?
-    
+
     init(mockRecord: RunningRecord? = nil) {
         let calendar = Calendar.current
         self.selectedDate = calendar.startOfDay(for: Date())
@@ -125,6 +125,6 @@ final class PreviewDailyDetailViewModel: DailyDetailViewModelProtocol {
     }
     
     func showAddRecordView() {
-        print("프리뷰: 러닝 기록 입력 화면 열기")
+        AppLogger.dailyDetail.info("프리뷰: 러닝 기록 입력 화면 열기")
     }
 }
