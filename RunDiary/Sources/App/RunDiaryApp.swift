@@ -11,7 +11,7 @@ import SwiftUI
 struct RunDiaryApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            DailyDetailView(viewModel: DailyDetailViewModel())
         }
     }
 }

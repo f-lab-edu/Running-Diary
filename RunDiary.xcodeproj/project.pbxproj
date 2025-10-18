@@ -11,7 +11,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		3344D60B2E81CD5B00982E36 /* RunDiary */ = {
+		3367BB422E9D05250027F8B1 /* RunDiary */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = RunDiary;
 			sourceTree = "<group>";
@@ -32,8 +32,8 @@
 		3344D6002E81CD5B00982E36 = {
 			isa = PBXGroup;
 			children = (
-				3344D60B2E81CD5B00982E36 /* RunDiary */,
 				3344D60A2E81CD5B00982E36 /* Products */,
+				3367BB422E9D05250027F8B1 /* RunDiary */,
 			);
 			sourceTree = "<group>";
 		};
@@ -61,7 +61,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				3344D60B2E81CD5B00982E36 /* RunDiary */,
+				3367BB422E9D05250027F8B1 /* RunDiary */,
 			);
 			name = RunDiary;
 			packageProductDependencies = (

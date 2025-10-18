@@ -1,0 +1,52 @@
+[
+  {
+    "name": "feat",
+    "color": "a2eeef",
+    "description": "새로운 기능 추가"
+  },
+  {
+    "name": "fix",
+    "color": "d73a4a",
+    "description": "버그 수정"
+  },
+  {
+    "name": "docs",
+    "color": "0075ca",
+    "description": "문서 수정"
+  },
+  {
+    "name": "style",
+    "color": "f9d0c4",
+    "description": "코드 포맷팅, 세미콜론 누락 등 (코드 변경 없음)"
+  },
+  {
+    "name": "refactor",
+    "color": "fbca04",
+    "description": "코드 리팩토링"
+  },
+  {
+    "name": "test",
+    "color": "0e8a16",
+    "description": "테스트 추가 또는 수정"
+  },
+  {
+    "name": "chore",
+    "color": "fef2c0",
+    "description": "빌드 작업, 패키지 관리자 설정 등"
+  },
+  {
+    "name": "perf",
+    "color": "c5def5",
+    "description": "성능 개선"
+  },
+  {
+    "name": "ci",
+    "color": "ededed",
+    "description": "CI/CD 관련 변경"
+  },
+  {
+    "name": "build",
+    "color": "bfd4f2",
+    "description": "빌드 시스템 또는 외부 종속성 변경"
+  }
+]
