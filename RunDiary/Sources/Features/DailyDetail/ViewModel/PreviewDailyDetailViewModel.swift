@@ -1,5 +1,5 @@
 //
-//  DailyDetailViewModel.swift
+//  PreviewDailyDetailViewModel.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -8,20 +8,20 @@
 import Foundation
 import Observation
 
-// MARK: - Production Implementation
+// MARK: - Preview Implementation
 
 @Observable
-final class DailyDetailViewModel: DailyDetailViewModelProtocol {
+final class PreviewDailyDetailViewModel: DailyDetailViewModelProtocol {
     var selectedDate: Date
     var dates: [Date] = []
     var runningRecord: RunningRecord?
     var isLoading: Bool = false
     var errorMessage: String?
 
-    init() {
-        // 오늘 날짜를 초기 선택 날짜로 설정 (시간 정보는 제거하고 날짜만)
+    init(mockRecord: RunningRecord? = nil) {
         let calendar = Calendar.current
         self.selectedDate = calendar.startOfDay(for: Date())
+        self.runningRecord = mockRecord
         setupDates()
     }
 
@@ -41,30 +41,15 @@ final class DailyDetailViewModel: DailyDetailViewModelProtocol {
 
     func selectDate(_ date: Date) {
         selectedDate = date
-        Task {
-            await fetchRunningRecord(for: date)
-        }
+        // 프리뷰에서는 fetch하지 않음
     }
 
     @MainActor
     func fetchRunningRecord(for date: Date) async {
-        // TODO: UseCase 및 Repository 구현 후 데이터 fetch 로직 추가
-        // - 서버 API 연동 vs 로컬 DB 저장 방식 결정 필요
-        // - UseCase: FetchRunningRecordUseCase
-        // - Repository: RunningRecordRepository (protocol)
-        // - DataSource: LocalRunningRecordDataSource / RemoteRunningRecordDataSource
-
-        isLoading = true
-        errorMessage = nil
-
-        // 임시: 빈 상태 반환
-        runningRecord = nil
-
-        isLoading = false
+        // 프리뷰에서는 기존 데이터 유지, fetch하지 않음
     }
 
     func showAddRecordView() {
-        // TODO: 기록 추가 화면으로 이동
-        AppLogger.dailyDetail.info("러닝 기록 입력 화면 열기")
+        AppLogger.dailyDetail.info("프리뷰: 러닝 기록 입력 화면 열기")
     }
 }
