@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RunningRecord: Identifiable {
+struct RunningRecord: Identifiable, Equatable {
     let id: UUID
     let date: Date
     let distanceInKilometers: Double?
@@ -60,7 +60,7 @@ struct RunningRecord: Identifiable {
     }
 }
 
-struct RunningCondition {
+struct RunningCondition: Equatable {
     let sleep: Int?                 // 수면 시간
     let meal: Bool                  // 식사 여부
     let alcohol: Bool               // 음주 여부
@@ -79,7 +79,7 @@ struct RunningCondition {
     }
 }
 
-struct Weather {
+struct Weather: Equatable {
     let temperature: Double         // 기온 (°C)
     let humidity: Int               // 습도 (%)
     let windSpeed: Double           // 풍속 (m/s)
