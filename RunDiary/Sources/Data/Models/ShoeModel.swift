@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class ShoeModel {
+final class ShoeModel: @unchecked Sendable {
     @Attribute(.unique) var id: UUID
     var name: String
     var brand: String?
