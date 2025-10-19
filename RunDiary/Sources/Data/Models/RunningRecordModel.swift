@@ -98,7 +98,7 @@ extension RunningRecordModel {
         return RunningRecord(
             id: id,
             date: date,
-            distance: distance,
+            distanceInKilometers: distance,
             averagePace: averagePace,
             averageHeartRate: averageHeartRate,
             averageCadence: averageCadence,
@@ -117,7 +117,7 @@ extension RunningRecordModel {
         RunningRecordModel(
             id: record.id,
             date: record.date,
-            distance: record.distance,
+            distance: record.distanceInKilometers,
             averagePace: record.averagePace,
             averageHeartRate: record.averageHeartRate,
             averageCadence: record.averageCadence,

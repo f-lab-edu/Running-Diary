@@ -75,7 +75,7 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
 
         // 업데이트
         existingModel.date = record.date
-        existingModel.distance = record.distance
+        existingModel.distance = record.distanceInKilometers
         existingModel.averagePace = record.averagePace
         existingModel.averageHeartRate = record.averageHeartRate
         existingModel.averageCadence = record.averageCadence
