@@ -119,7 +119,7 @@ private struct RecordContentSection: View {
 #Preview("With Record") {
     let mockRecord = RunningRecord(
         date: Date(),
-        distance: 5.2,
+        distanceInKilometers: 5.2,
         averagePace: "5'30\"",
         averageHeartRate: 155,
         averageCadence: 180,

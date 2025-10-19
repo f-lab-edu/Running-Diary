@@ -154,7 +154,7 @@ final class AddRecordViewModel: AddRecordViewModelProtocol {
             let record = RunningRecord(
                 id: existingRecord?.id ?? UUID(),
                 date: date,
-                distance: Double(distance),
+                distanceInKilometers: Double(distance),
                 averagePace: averagePace.isEmpty ? nil : averagePace,
                 averageHeartRate: Int(averageHeartRate),
                 averageCadence: Int(averageCadence),
@@ -206,7 +206,7 @@ final class AddRecordViewModel: AddRecordViewModelProtocol {
             let record = RunningRecord(
                 id: existingRecord?.id ?? UUID(),
                 date: date,
-                distance: Double(distance),
+                distanceInKilometers: Double(distance),
                 averagePace: averagePace.isEmpty ? nil : averagePace,
                 averageHeartRate: Int(averageHeartRate),
                 averageCadence: Int(averageCadence),
@@ -236,7 +236,7 @@ final class AddRecordViewModel: AddRecordViewModelProtocol {
     }
 
     private func loadExistingRecord(_ record: RunningRecord) {
-        distance = record.distance.map { String(format: "%.2f", $0) } ?? ""
+        distance = record.distanceInKilometers.map { String(format: "%.2f", $0) } ?? ""
         averagePace = record.averagePace ?? ""
         averageHeartRate = record.averageHeartRate.map { String($0) } ?? ""
         averageCadence = record.averageCadence.map { String($0) } ?? ""
