@@ -13,7 +13,7 @@
 - 형식: `타입: 설명` (예: `feat: 캘린더 뷰 구현`)
 - 타입: feat, fix, refactor, docs, test, chore
 - 원자적 커밋, 빌드 유지
-- 관련 이슈: 본문에 `#이슈번호`
+- 관련 이슈: `feat: 캘린더 뷰 구현 (#이슈번호)`
 - ⚠️ "Generated with Claude Code" 제외
 
 ## PR
