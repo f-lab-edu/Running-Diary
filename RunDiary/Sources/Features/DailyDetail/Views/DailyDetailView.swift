@@ -7,52 +7,30 @@
 
 import SwiftUI
 import SwiftData
+import ComposableArchitecture
 
 struct DailyDetailView: View {
-    @State private var viewModel: any DailyDetailViewModelProtocol
+    let store: StoreOf<DailyDetailFeature>
     @Environment(\.modelContext) private var modelContext
-
-    init(viewModel: any DailyDetailViewModelProtocol) {
-        self._viewModel = State(initialValue: viewModel)
-    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                DateCarouselSection(
-                    dates: viewModel.dates,
-                    selectedDate: viewModel.selectedDate,
-                    onSelectDate: viewModel.selectDate
-                )
+                DateCarouselSection(store: store)
 
                 Divider()
 
-                RecordContentSection(
-                    isLoading: viewModel.isLoading,
-                    runningRecord: viewModel.runningRecord,
-                    onAddRecord: viewModel.showAddRecordView
-                )
+                RecordContentSection(store: store)
             }
-            .navigationDestination(
-                isPresented: Binding(
-                    get: { viewModel.isShowingAddRecord },
-                    set: { viewModel.isShowingAddRecord = $0 }
-                )
-            ) {
-                AddRecordView(
-                    viewModel: AddRecordViewModel(
-                        mode: viewModel.runningRecord == nil ? .add : .edit,
-                        date: viewModel.selectedDate,
-                        existingRecord: viewModel.runningRecord,
-                        healthKitManager: HealthKitManager(),
-                        weatherManager: MockWeatherManager(),
-                        repository: SwiftDataRunningRecordRepository(modelContext: modelContext),
-                        shoeManager: ShoeManager(modelContext: modelContext)
-                    )
-                )
+            .sheet(isPresented: Binding(
+                get: { store.isShowingAddRecord },
+                set: { if !$0 { store.send(.hideAddRecord) } }
+            )) {
+                // TODO: AddRecordView TCA 통합 후 구현
+                Text("기록 추가")
             }
             .task {
-                await viewModel.fetchRunningRecord(for: viewModel.selectedDate)
+                store.send(.onAppear)
             }
         }
     }
@@ -61,22 +39,14 @@ struct DailyDetailView: View {
 // MARK: - Subviews
 
 private struct DateCarouselSection: View {
-    let dates: [Date]
-    let selectedDate: Date
-    let onSelectDate: (Date) -> Void
-
-    init(dates: [Date], selectedDate: Date, onSelectDate: @escaping (Date) -> Void) {
-        self.dates = dates
-        self.selectedDate = selectedDate
-        self.onSelectDate = onSelectDate
-    }
+    let store: StoreOf<DailyDetailFeature>
 
     var body: some View {
         DateCarouselView(
-            dates: dates,
+            dates: store.dates,
             selectedDate: Binding(
-                get: { selectedDate },
-                set: { onSelectDate($0) }
+                get: { store.selectedDate },
+                set: { store.send(.dateSelected($0)) }
             )
         )
         .padding(.vertical, 16)
@@ -84,25 +54,17 @@ private struct DateCarouselSection: View {
 }
 
 private struct RecordContentSection: View {
-    let isLoading: Bool
-    let runningRecord: RunningRecord?
-    let onAddRecord: () -> Void
-
-    init(isLoading: Bool, runningRecord: RunningRecord?, onAddRecord: @escaping () -> Void) {
-        self.isLoading = isLoading
-        self.runningRecord = runningRecord
-        self.onAddRecord = onAddRecord
-    }
+    let store: StoreOf<DailyDetailFeature>
 
     var body: some View {
         ScrollView {
             Group {
-                if isLoading {
+                if store.isLoading {
                     ProgressView()
-                } else if let record = runningRecord {
+                } else if let record = store.runningRecord {
                     RecordView(record: record)
                 } else {
-                    EmptyRecordView(onAddRecord: onAddRecord)
+                    EmptyRecordView(onAddRecord: { store.send(.showAddRecord) })
                 }
             }
             .padding()
@@ -113,7 +75,13 @@ private struct RecordContentSection: View {
 // MARK: - Preview
 
 #Preview {
-    DailyDetailView(viewModel: DailyDetailViewModel())
+    DailyDetailView(
+        store: Store(initialState: DailyDetailFeature.State()) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.repositoryClient = .previewValue
+        }
+    )
 }
 
 #Preview("With Record") {
@@ -135,6 +103,15 @@ private struct RecordContentSection: View {
         hasMap: true
     )
 
-    let viewModel = PreviewDailyDetailViewModel(mockRecord: mockRecord)
-    DailyDetailView(viewModel: viewModel)
+    DailyDetailView(
+        store: Store(
+            initialState: DailyDetailFeature.State(
+                runningRecord: mockRecord
+            )
+        ) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.repositoryClient = .previewValue
+        }
+    )
 }
