@@ -19,7 +19,7 @@ struct DailyDetailFeature {
         var runningRecord: RunningRecord?
         var isLoading: Bool = false
         var errorMessage: String?
-        var isShowingAddRecord: Bool = false
+        @Presents var addRecord: AddRecordFeature.State?
     }
 
     // MARK: - Action
@@ -31,8 +31,7 @@ struct DailyDetailFeature {
         case recordFetchedSuccess(RunningRecord?)
         case recordFetchedFailure(String)
         case showAddRecord
-        case hideAddRecord
-        case recordSaved(RunningRecord)
+        case addRecord(PresentationAction<AddRecordFeature.Action>)
     }
 
     // MARK: - Dependency
@@ -90,19 +89,30 @@ struct DailyDetailFeature {
                 return .none
 
             case .showAddRecord:
-                state.isShowingAddRecord = true
+                let mode: RecordMode = state.runningRecord == nil ? .add : .edit
+                state.addRecord = AddRecordFeature.State(
+                    mode: mode,
+                    date: state.selectedDate,
+                    existingRecord: state.runningRecord
+                )
                 return .none
 
-            case .hideAddRecord:
-                state.isShowingAddRecord = false
-                return .none
-
-            case let .recordSaved(record):
-                // 기록이 저장되면 해당 날짜로 이동하고 새로고침
-                state.selectedDate = record.date
-                state.isShowingAddRecord = false
+            case .addRecord(.presented(.satisfactionSaved)):
+                // 만족도 저장 후 닫힘 - 기록 새로고침
+                state.addRecord = nil
                 return .send(.fetchRecordForSelectedDate)
+
+            case .addRecord(.dismiss):
+                // 닫기
+                state.addRecord = nil
+                return .none
+
+            case .addRecord:
+                return .none
             }
+        }
+        .ifLet(\.$addRecord, action: \.addRecord) {
+            AddRecordFeature()
         }
     }
 }

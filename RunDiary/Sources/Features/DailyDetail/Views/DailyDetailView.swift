@@ -22,12 +22,8 @@ struct DailyDetailView: View {
 
                 RecordContentSection(store: store)
             }
-            .sheet(isPresented: Binding(
-                get: { store.isShowingAddRecord },
-                set: { if !$0 { store.send(.hideAddRecord) } }
-            )) {
-                // TODO: AddRecordView TCA 통합 후 구현
-                Text("기록 추가")
+            .sheet(store: store.scope(state: \.$addRecord, action: \.addRecord)) { addRecordStore in
+                AddRecordView(store: addRecordStore)
             }
             .task {
                 store.send(.onAppear)

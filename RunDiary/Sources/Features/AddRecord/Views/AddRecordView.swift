@@ -6,54 +6,84 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
 
 struct AddRecordView: View {
-    @State private var viewModel: any AddRecordViewModelProtocol
+    @Bindable var store: StoreOf<AddRecordFeature>
     @Environment(\.dismiss) private var dismiss
-
-    init(viewModel: any AddRecordViewModelProtocol) {
-        self.viewModel = viewModel
-    }
 
     var body: some View {
         NavigationStack {
             Form {
                 // HealthKit 데이터 섹션
                 HealthKitSectionView(
-                    distance: $viewModel.distance,
-                    averagePace: $viewModel.averagePace,
-                    averageHeartRate: $viewModel.averageHeartRate,
-                    averageCadence: $viewModel.averageCadence,
-                    isDataLoaded: viewModel.isHealthKitDataLoaded
+                    distance: Binding(
+                        get: { store.distance },
+                        set: { store.send(.updateDistance($0)) }
+                    ),
+                    averagePace: Binding(
+                        get: { store.averagePace },
+                        set: { store.send(.updateAveragePace($0)) }
+                    ),
+                    averageHeartRate: Binding(
+                        get: { store.averageHeartRate },
+                        set: { store.send(.updateAverageHeartRate($0)) }
+                    ),
+                    averageCadence: Binding(
+                        get: { store.averageCadence },
+                        set: { store.send(.updateAverageCadence($0)) }
+                    ),
+                    isDataLoaded: store.isHealthKitDataLoaded
                 )
 
                 // 통증 부위 섹션
                 PainAreasSectionView(
-                    selectedPainAreas: $viewModel.selectedPainAreas,
-                    painAreaOptions: viewModel.painAreaOptions
+                    selectedPainAreas: Binding(
+                        get: { store.selectedPainAreas },
+                        set: { store.send(.updateSelectedPainAreas($0)) }
+                    ),
+                    painAreaOptions: store.painAreaOptions
                 )
 
                 // 주법/스타일 섹션
                 RunningStyleSectionView(
-                    selectedStyle: $viewModel.selectedRunningStyle,
-                    styleOptions: viewModel.runningStyleOptions
+                    selectedStyle: Binding(
+                        get: { store.selectedRunningStyle },
+                        set: { store.send(.updateSelectedRunningStyle($0)) }
+                    ),
+                    styleOptions: store.runningStyleOptions
                 )
 
                 // 컨디션 섹션
                 ConditionSectionView(
-                    sleepHours: $viewModel.sleepHours,
-                    hadMeal: $viewModel.hadMeal,
-                    hadAlcohol: $viewModel.hadAlcohol,
-                    memo: $viewModel.memo
+                    sleepHours: Binding(
+                        get: { store.sleepHours },
+                        set: { store.send(.updateSleepHours($0)) }
+                    ),
+                    hadMeal: Binding(
+                        get: { store.hadMeal },
+                        set: { store.send(.updateHadMeal($0)) }
+                    ),
+                    hadAlcohol: Binding(
+                        get: { store.hadAlcohol },
+                        set: { store.send(.updateHadAlcohol($0)) }
+                    ),
+                    memo: Binding(
+                        get: { store.memo },
+                        set: { store.send(.updateMemo($0)) }
+                    )
                 )
 
                 // 신발 섹션
                 ShoesSectionView(
-                    selectedShoe: $viewModel.selectedShoe,
-                    shoes: viewModel.shoes
+                    selectedShoe: Binding(
+                        get: { store.selectedShoe },
+                        set: { store.send(.updateSelectedShoe($0)) }
+                    ),
+                    shoes: store.shoes
                 )
             }
-            .navigationTitle(viewModel.mode == .add ? "기록 추가" : "기록 수정")
+            .navigationTitle(store.mode == .add ? "기록 추가" : "기록 수정")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -64,44 +94,35 @@ struct AddRecordView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("저장") {
-                        Task {
-                            await viewModel.saveRecord { success in
-                                if success {
-                                    // 만족도 알럿 표시 후 닫힘
-                                } else {
-                                    // 에러 처리
-                                }
-                            }
-                        }
+                        store.send(.saveRecord)
                     }
-                    .disabled(viewModel.isLoading)
+                    .disabled(store.isLoading)
                 }
             }
             .task {
-                if viewModel.mode == .add {
-                    await viewModel.loadHealthKitData()
+                store.send(.onAppear)
+                if store.mode == .add {
+                    store.send(.loadHealthKitData)
                 }
             }
-            .alert("러닝 만족도", isPresented: $viewModel.showSatisfactionAlert) {
+            .alert("러닝 만족도", isPresented: Binding(
+                get: { store.showSatisfactionAlert },
+                set: { if !$0 { store.send(.dismissSatisfactionAlert) } }
+            )) {
                 Button("1점") {
-                    viewModel.selectedSatisfaction = 1
-                    saveSatisfactionAndDismiss()
+                    saveSatisfactionAndDismiss(satisfaction: 1)
                 }
                 Button("2점") {
-                    viewModel.selectedSatisfaction = 2
-                    saveSatisfactionAndDismiss()
+                    saveSatisfactionAndDismiss(satisfaction: 2)
                 }
                 Button("3점") {
-                    viewModel.selectedSatisfaction = 3
-                    saveSatisfactionAndDismiss()
+                    saveSatisfactionAndDismiss(satisfaction: 3)
                 }
                 Button("4점") {
-                    viewModel.selectedSatisfaction = 4
-                    saveSatisfactionAndDismiss()
+                    saveSatisfactionAndDismiss(satisfaction: 4)
                 }
                 Button("5점") {
-                    viewModel.selectedSatisfaction = 5
-                    saveSatisfactionAndDismiss()
+                    saveSatisfactionAndDismiss(satisfaction: 5)
                 }
                 Button("건너뛰기", role: .cancel) {
                     dismiss()
@@ -110,7 +131,7 @@ struct AddRecordView: View {
                 Text("오늘 러닝에 만족하셨나요?")
             }
             .overlay {
-                if viewModel.isLoading {
+                if store.isLoading {
                     ProgressView()
                 }
             }
@@ -119,14 +140,9 @@ struct AddRecordView: View {
 
     // MARK: - Helper Methods
 
-    private func saveSatisfactionAndDismiss() {
-        Task {
-            await viewModel.saveSatisfaction { success in
-                if success {
-                    dismiss()
-                }
-            }
-        }
+    private func saveSatisfactionAndDismiss(satisfaction: Int) {
+        store.send(.setSatisfaction(satisfaction))
+        store.send(.saveSatisfaction)
     }
 }
 
@@ -338,9 +354,50 @@ private struct CheckboxView: View {
 // MARK: - Preview
 
 #Preview("Add Mode") {
-    AddRecordView(viewModel: PreviewAddRecordViewModel(mode: .add))
+    AddRecordView(
+        store: Store(
+            initialState: AddRecordFeature.State(
+                mode: .add,
+                date: Date()
+            )
+        ) {
+            AddRecordFeature()
+        }
+    )
 }
 
 #Preview("Edit Mode") {
-    AddRecordView(viewModel: PreviewAddRecordViewModel(mode: .edit))
+    let mockRecord = RunningRecord(
+        id: UUID(),
+        date: Date(),
+        distanceInKilometers: 5.2,
+        averagePace: "5'30\"",
+        averageHeartRate: 155,
+        averageCadence: 180,
+        painAreas: ["무릎"],
+        runningStyle: "포어풋",
+        condition: RunningCondition(
+            sleep: 7,
+            meal: true,
+            alcohol: false,
+            memo: "컨디션 좋음"
+        ),
+        shoes: "Nike Pegasus 40",
+        weather: nil,
+        satisfaction: nil,
+        routeData: nil,
+        hasMap: false
+    )
+
+    return AddRecordView(
+        store: Store(
+            initialState: AddRecordFeature.State(
+                mode: .edit,
+                date: Date(),
+                existingRecord: mockRecord
+            )
+        ) {
+            AddRecordFeature()
+        }
+    )
 }

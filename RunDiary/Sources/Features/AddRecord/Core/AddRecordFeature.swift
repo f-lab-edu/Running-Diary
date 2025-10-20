@@ -9,6 +9,11 @@ import Foundation
 import CoreLocation
 import ComposableArchitecture
 
+enum RecordMode {
+    case add
+    case edit
+}
+
 @Reducer
 struct AddRecordFeature {
     @ObservableState
@@ -66,11 +71,25 @@ struct AddRecordFeature {
         case healthKitDataLoaded(HealthKitRunningData)
         case healthKitDataFailed(String)
 
+        // Field updates
+        case updateDistance(String)
+        case updateAveragePace(String)
+        case updateAverageHeartRate(String)
+        case updateAverageCadence(String)
+        case updateSelectedPainAreas(Set<String>)
+        case updateSelectedRunningStyle(String?)
+        case updateSleepHours(String)
+        case updateHadMeal(Bool)
+        case updateHadAlcohol(Bool)
+        case updateMemo(String)
+        case updateSelectedShoe(String?)
+
         case saveRecord
         case weatherFetched(Weather)
         case recordSaved(RunningRecord)
         case recordSaveFailed(String)
 
+        case setSatisfaction(Int)
         case saveSatisfaction
         case satisfactionSaved(RunningRecord)
         case satisfactionSaveFailed(String)
@@ -160,6 +179,51 @@ struct AddRecordFeature {
                 state.isHealthKitDataLoaded = false
                 return .none
 
+            // Field updates
+            case let .updateDistance(value):
+                state.distance = value
+                return .none
+
+            case let .updateAveragePace(value):
+                state.averagePace = value
+                return .none
+
+            case let .updateAverageHeartRate(value):
+                state.averageHeartRate = value
+                return .none
+
+            case let .updateAverageCadence(value):
+                state.averageCadence = value
+                return .none
+
+            case let .updateSelectedPainAreas(areas):
+                state.selectedPainAreas = areas
+                return .none
+
+            case let .updateSelectedRunningStyle(style):
+                state.selectedRunningStyle = style
+                return .none
+
+            case let .updateSleepHours(hours):
+                state.sleepHours = hours
+                return .none
+
+            case let .updateHadMeal(value):
+                state.hadMeal = value
+                return .none
+
+            case let .updateHadAlcohol(value):
+                state.hadAlcohol = value
+                return .none
+
+            case let .updateMemo(text):
+                state.memo = text
+                return .none
+
+            case let .updateSelectedShoe(shoe):
+                state.selectedShoe = shoe
+                return .none
+
             case .saveRecord:
                 state.isLoading = true
                 state.errorMessage = nil
@@ -222,6 +286,10 @@ struct AddRecordFeature {
             case let .recordSaveFailed(error):
                 state.isLoading = false
                 state.errorMessage = "기록 저장에 실패했습니다: \(error)"
+                return .none
+
+            case let .setSatisfaction(satisfaction):
+                state.selectedSatisfaction = satisfaction
                 return .none
 
             case .saveSatisfaction:
