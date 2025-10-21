@@ -134,26 +134,3 @@ final class KMAWeatherManager: WeatherManagerProtocol {
         return (nx: nx, ny: ny)
     }
 }
-
-// MARK: - API Response Models
-
-private struct KMAWeatherResponse: Codable {
-    let response: KMAResponse
-}
-
-private struct KMAResponse: Codable {
-    let body: KMABody
-}
-
-private struct KMABody: Codable {
-    let items: KMAItems
-}
-
-private struct KMAItems: Codable {
-    let item: [KMAItem]?
-}
-
-private struct KMAItem: Codable {
-    let category: String
-    let fcstValue: String
-}
