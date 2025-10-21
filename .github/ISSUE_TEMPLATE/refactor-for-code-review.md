@@ -3,6 +3,8 @@ name: Refactor for Code Review
 about: 코드 리뷰를 통한 코드 개선
 title: 'refactor: '
 labels: refactor
+assignees: khyeji98
+
 ---
 
 # 관련 PR
