@@ -7,15 +7,17 @@
 
 import Foundation
 import SwiftData
-import ComposableArchitecture
+
+import Dependencies
+import DependenciesMacros
 
 @DependencyClient
 struct RepositoryClient {
-    var fetch: @Sendable (Date) async throws -> RunningRecord?
-    var fetchRecords: @Sendable (Date, Date) async throws -> [RunningRecord]
-    var save: @Sendable (RunningRecord) async throws -> Void
-    var update: @Sendable (RunningRecord) async throws -> Void
-    var delete: @Sendable (RunningRecord) async throws -> Void
+    var fetch: @MainActor @Sendable (Date) async throws -> RunningRecord?
+    var fetchRecords: @MainActor @Sendable (Date, Date) async throws -> [RunningRecord]
+    var save: @MainActor @Sendable (RunningRecord) async throws -> Void
+    var update: @MainActor @Sendable (RunningRecord) async throws -> Void
+    var delete: @MainActor @Sendable (RunningRecord) async throws -> Void
 }
 
 extension RepositoryClient: DependencyKey {
