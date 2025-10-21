@@ -6,24 +6,19 @@
 //
 
 import Foundation
-import SwiftData
 
-@Model
-final class ShoeModel: @unchecked Sendable {
-    @Attribute(.unique) var id: UUID
-    var name: String
-    var brand: String?
-    var createdAt: Date
+struct ShoeModel: Identifiable, Equatable, Hashable, Sendable {
+    let id: UUID
+    let name: String
+    let brand: String?
 
     init(
         id: UUID = UUID(),
         name: String,
-        brand: String? = nil,
-        createdAt: Date = Date()
+        brand: String? = nil
     ) {
         self.id = id
         self.name = name
         self.brand = brand
-        self.createdAt = createdAt
     }
 }

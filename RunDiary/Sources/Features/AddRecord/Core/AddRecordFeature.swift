@@ -129,7 +129,7 @@ struct AddRecordFeature {
             case .loadShoes:
                 return .run { send in
                     do {
-                        let shoes = try await shoeClient.fetchAllShoes()
+                        let shoes = try await shoeClient.fetchShoes()
                         await send(.shoesLoaded(shoes))
                     } catch {
                         await send(.shoesLoadFailed(error.localizedDescription))

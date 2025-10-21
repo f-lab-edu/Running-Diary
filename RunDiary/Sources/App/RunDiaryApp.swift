@@ -17,7 +17,7 @@ struct RunDiaryApp: App {
     init() {
         let container: ModelContainer
         do {
-            container = try ModelContainer(for: RunningRecordModel.self, ShoeModel.self)
+            container = try ModelContainer(for: RunningRecordModel.self)
         } catch {
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
@@ -28,7 +28,6 @@ struct RunDiaryApp: App {
             DailyDetailFeature()
         } withDependencies: {
             $0.repositoryClient = .live(modelContext: mainContext)
-            $0.shoeClient = .live(modelContext: mainContext)
         }
     }
 
