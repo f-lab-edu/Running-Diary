@@ -44,17 +44,10 @@ struct DailyDetailFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                // 날짜 배열 초기화
+                // 날짜 배열 초기화 (오늘 기준 14일 전후, 총 29일)
                 if state.dates.isEmpty {
-                    let calendar = Calendar.current
                     let today = Date()
-                    var dateArray: [Date] = []
-                    for offset in -14...14 {
-                        if let date = calendar.date(byAdding: .day, value: offset, to: today) {
-                            dateArray.append(calendar.startOfDay(for: date))
-                        }
-                    }
-                    state.dates = dateArray
+                    state.dates = DateHelper.generateSurroundingDates(from: today)
                 }
                 return .send(.fetchRecordForSelectedDate)
 
