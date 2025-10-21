@@ -9,19 +9,6 @@ import Foundation
 import HealthKit
 import CoreLocation
 
-protocol HealthKitManagerProtocol {
-    func requestAuthorization() async throws
-    func fetchRunningData(for date: Date) async throws -> HealthKitRunningData?
-}
-
-struct HealthKitRunningData {
-    let distance: Double?           // km
-    let averagePace: String?        // min/km
-    let averageHeartRate: Int?      // bpm
-    let averageCadence: Int?        // spm
-    let routeData: Data?
-}
-
 final class HealthKitManager: HealthKitManagerProtocol {
     private let healthStore = HKHealthStore()
 
@@ -245,26 +232,7 @@ final class HealthKitManager: HealthKitManagerProtocol {
     }
 
     private func encodeCoordinates(_ coordinates: [CLLocationCoordinate2D]) throws -> Data {
-        let coordinateStructs = coordinates.map { CoordinateData(latitude: $0.latitude, longitude: $0.longitude) }
+        let coordinateStructs = coordinates.map { HealthKitCoordinateData(latitude: $0.latitude, longitude: $0.longitude) }
         return try JSONEncoder().encode(coordinateStructs)
-    }
-}
-
-private struct CoordinateData: Codable {
-    let latitude: Double
-    let longitude: Double
-}
-
-enum HealthKitError: LocalizedError {
-    case notAvailable
-    case authorizationFailed
-
-    var errorDescription: String? {
-        switch self {
-        case .notAvailable:
-            return "HealthKit is not available on this device"
-        case .authorizationFailed:
-            return "HealthKit authorization failed"
-        }
     }
 }
