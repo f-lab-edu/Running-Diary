@@ -49,7 +49,7 @@ struct RecordView: View {
 
                     // 주법/스타일
                     if let style = record.runningStyle {
-                        DetailRowView(title: "주법", value: style)
+                        DetailRowView(title: "주법", value: style.rawValue)
                     }
 
                     // 통증 부위
@@ -60,7 +60,7 @@ struct RecordView: View {
                                 .foregroundColor(.gray)
 
                             DynamicGridLayout(items: record.painAreas) { item in
-                                Text(item)
+                                Text(item.rawValue)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
                                     .background(Color.red.opacity(0.1))

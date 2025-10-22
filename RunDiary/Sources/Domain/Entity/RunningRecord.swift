@@ -14,8 +14,8 @@ struct RunningRecord: Identifiable, Equatable {
     let averagePace: String?        // min/km
     let averageHeartRate: Int?      // bpm
     let averageCadence: Int?        // steps/min
-    let painAreas: [String]
-    let runningStyle: String?
+    let painAreas: [PainArea]
+    let runningStyle: RunninStyle?
     let condition: RunningCondition
     let shoes: String?
     let weather: Weather?
@@ -34,8 +34,8 @@ struct RunningRecord: Identifiable, Equatable {
         averagePace: String? = nil,
         averageHeartRate: Int? = nil,
         averageCadence: Int? = nil,
-        painAreas: [String] = [],
-        runningStyle: String? = nil,
+        painAreas: [PainArea] = [],
+        runningStyle: RunninStyle? = nil,
         condition: RunningCondition = RunningCondition(),
         shoes: String? = nil,
         weather: Weather? = nil,

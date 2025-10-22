@@ -102,8 +102,8 @@ private struct RecordContentSection: View {
         averagePace: "5'30\"",
         averageHeartRate: 155,
         averageCadence: 180,
-        painAreas: ["무릎", "발목"],
-        runningStyle: "포어풋",
+        painAreas: [.knee, .ankle],
+        runningStyle: .forefoot,
         condition: RunningCondition(
             sleep: 7,
             meal: true,

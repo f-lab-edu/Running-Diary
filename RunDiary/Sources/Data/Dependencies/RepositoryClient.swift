@@ -56,7 +56,7 @@ extension RepositoryClient: DependencyKey {
                 averageHeartRate: 155,
                 averageCadence: 180,
                 painAreas: [],
-                runningStyle: "포어풋",
+                runningStyle: .forefoot,
                 condition: RunningCondition(
                     sleep: 7,
                     meal: true,
