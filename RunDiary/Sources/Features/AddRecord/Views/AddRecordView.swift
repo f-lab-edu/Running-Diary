@@ -18,7 +18,7 @@ struct AddRecordView: View {
                 // HealthKit 데이터 섹션
                 HealthKitSectionView(
                     distance: Binding(
-                        get: { store.healthKitData.distance },
+                        get: { store.healthKitData.distance.to2f },
                         set: { store.send(.healthKitData(.updateDistance($0))) }
                     ),
                     duration: Binding(
@@ -30,11 +30,11 @@ struct AddRecordView: View {
                         set: { store.send(.healthKitData(.updateAveragePace($0))) }
                     ),
                     averageHeartRate: Binding(
-                        get: { store.healthKitData.averageHeartRate },
+                        get: { store.healthKitData.averageHeartRate.toString },
                         set: { store.send(.healthKitData(.updateAverageHeartRate($0))) }
                     ),
                     averageCadence: Binding(
-                        get: { store.healthKitData.averageCadence },
+                        get: { store.healthKitData.averageCadence.toString },
                         set: { store.send(.healthKitData(.updateAverageCadence($0))) }
                     ),
                     isDataLoaded: store.healthKitData.isDataLoaded

@@ -12,11 +12,11 @@ import ComposableArchitecture
 struct HealthKitDataFeature {
     @ObservableState
     struct State: Equatable {
-        var distance: String = ""
+        var distance: Double = 0
         var duration: String = ""
         var averagePace: String = ""
-        var averageHeartRate: String = ""
-        var averageCadence: String = ""
+        var averageHeartRate: Int = 0
+        var averageCadence: Int = 0
         var routeData: Data?
         var isDataLoaded: Bool = false
         var isLoading: Bool = false
@@ -59,11 +59,11 @@ struct HealthKitDataFeature {
 
             case let .dataLoaded(data):
                 state.isLoading = false
-                state.distance = data.distance.map { String(format: "%.2f", $0) } ?? ""
+                state.distance = data.distance ?? 0
                 state.duration = data.duration.map { formatDuration($0) } ?? ""
                 state.averagePace = data.averagePace ?? ""
-                state.averageHeartRate = data.averageHeartRate.map { String($0) } ?? ""
-                state.averageCadence = data.averageCadence.map { String($0) } ?? ""
+                state.averageHeartRate = data.averageHeartRate ?? 0
+                state.averageCadence = data.averageCadence ?? 0
                 state.routeData = data.routeData
                 state.isDataLoaded = true
                 return .none
@@ -75,7 +75,7 @@ struct HealthKitDataFeature {
                 return .none
 
             case let .updateDistance(value):
-                state.distance = value
+                state.distance = value.toDouble
                 return .none
 
             case let .updateDuration(value):
@@ -87,19 +87,19 @@ struct HealthKitDataFeature {
                 return .none
 
             case let .updateAverageHeartRate(value):
-                state.averageHeartRate = value
+                state.averageHeartRate = value.toInt
                 return .none
 
             case let .updateAverageCadence(value):
-                state.averageCadence = value
+                state.averageCadence = value.toInt
                 return .none
 
             case let .loadFromRecord(record):
-                state.distance = record.distanceInKilometers.map { String(format: "%.2f", $0) } ?? ""
+                state.distance = record.distanceInKilometers ?? 0
                 state.duration = record.formattedDuration ?? ""
                 state.averagePace = record.averagePace ?? ""
-                state.averageHeartRate = record.averageHeartRate.map { String($0) } ?? ""
-                state.averageCadence = record.averageCadence.map { String($0) } ?? ""
+                state.averageHeartRate = record.averageHeartRate ?? 0
+                state.averageCadence = record.averageCadence ?? 0
                 state.routeData = record.routeData
                 state.isDataLoaded = true
                 return .none
