@@ -10,7 +10,7 @@ import ComposableArchitecture
 
 @DependencyClient
 struct HealthKitClient {
-    var requestAuthorization: @Sendable () async throws -> Void
+    var ensureAuthorizationIfNeeded: @Sendable () async throws -> Void
     var fetchRunningData: @Sendable (Date) async throws -> HealthKitRunningData?
 }
 
@@ -19,8 +19,8 @@ extension HealthKitClient: DependencyKey {
         let manager = HealthKitManager()
 
         return HealthKitClient(
-            requestAuthorization: {
-                try await manager.requestAuthorization()
+            ensureAuthorizationIfNeeded: {
+                try await manager.ensureAuthorizationIfNeeded()
             },
             fetchRunningData: { date in
                 try await manager.fetchRunningData(for: date)
@@ -29,12 +29,12 @@ extension HealthKitClient: DependencyKey {
     }()
 
     static let testValue = HealthKitClient(
-        requestAuthorization: unimplemented("\(Self.self).requestAuthorization"),
+        ensureAuthorizationIfNeeded: unimplemented("\(Self.self).requestAuthorization"),
         fetchRunningData: unimplemented("\(Self.self).fetchRunningData")
     )
 
     static let previewValue = HealthKitClient(
-        requestAuthorization: {
+        ensureAuthorizationIfNeeded: {
             // Preview에서는 즉시 성공
         },
         fetchRunningData: { _ in

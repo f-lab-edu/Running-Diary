@@ -27,6 +27,7 @@ struct HealthKitDataFeature {
         case loadData(Date)
         case dataLoaded(HealthKitRunningData)
         case dataLoadFailed(String)
+        case healthStoreAuthorizationDenied
         case updateDistance(String)
         case updateDuration(String)
         case updateAveragePace(String)
@@ -46,11 +47,18 @@ struct HealthKitDataFeature {
 
                 return .run { send in
                     do {
-                        try await healthKitClient.requestAuthorization()
+                        try await healthKitClient.ensureAuthorizationIfNeeded()
                         if let data = try await healthKitClient.fetchRunningData(date) {
                             await send(.dataLoaded(data))
                         } else {
                             await send(.dataLoadFailed("데이터를 찾을 수 없습니다"))
+                        }
+                    } catch let hkError as HealthKitError {
+                        switch hkError {
+                        case .authorizationDenied:
+                            await send(.healthStoreAuthorizationDenied)
+                        default:
+                            await send(.dataLoadFailed(hkError.localizedDescription))
                         }
                     } catch {
                         await send(.dataLoadFailed(error.localizedDescription))
@@ -72,6 +80,9 @@ struct HealthKitDataFeature {
                 state.isLoading = false
                 state.errorMessage = "HealthKit 데이터를 가져올 수 없습니다: \(error)"
                 state.isDataLoaded = false
+                return .none
+
+            case .healthStoreAuthorizationDenied:
                 return .none
 
             case let .updateDistance(value):

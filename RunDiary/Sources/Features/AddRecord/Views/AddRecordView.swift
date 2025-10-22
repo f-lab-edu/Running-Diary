@@ -109,6 +109,19 @@ struct AddRecordView: View {
                     store.send(.healthKitData(.loadData(store.date)))
                 }
             }
+            .alert("건강 데이터 접근 거부됨", isPresented: Binding(
+                get: { store.showAuthorizationDeniedAlert },
+                set: { if !$0 { store.send(.dismissAuthorizationDeniedAlert) } }
+            )) {
+                Button("설정으로 이동") {
+                    store.send(.openSettings)
+                }
+                Button("취소") {
+                    dismiss()
+                }
+            } message: {
+                Text("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
+            }
             .alert("러닝 만족도", isPresented: Binding(
                 get: { store.showSatisfactionAlert },
                 set: { if !$0 { store.send(.dismissSatisfactionAlert) } }

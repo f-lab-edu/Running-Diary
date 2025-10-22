@@ -14,18 +14,38 @@ final class HealthKitManager: HealthKitManagerProtocol {
 
     private let typesToRead: Set<HKObjectType> = [
         HKObjectType.workoutType(),
+        HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)!,
         HKObjectType.quantityType(forIdentifier: .heartRate)!,
         HKObjectType.quantityType(forIdentifier: .runningSpeed)!,
         HKObjectType.quantityType(forIdentifier: .stepCount)!,
+        HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
         HKSeriesType.workoutRoute()
     ]
 
-    func requestAuthorization() async throws {
+    func ensureAuthorizationIfNeeded() async throws {
         guard HKHealthStore.isHealthDataAvailable() else {
             throw HealthKitError.notAvailable
         }
 
-        try await healthStore.requestAuthorization(toShare: [], read: typesToRead)
+        let statuses = currentAuthorizationStatuses()
+        let notDetermined = statuses.filter { $0.value == .notDetermined }.map { $0.key }
+
+        if !notDetermined.isEmpty {
+            try await healthStore.requestAuthorization(toShare: [], read: typesToRead)
+        }
+
+        let denied = statuses.filter { $0.value == .sharingDenied }
+        if !denied.isEmpty {
+            throw HealthKitError.authorizationDenied
+        }
+    }
+
+    private func currentAuthorizationStatuses() -> [HKObjectType: HKAuthorizationStatus] {
+        var result: [HKObjectType: HKAuthorizationStatus] = [:]
+        for type in typesToRead {
+            result[type] = healthStore.authorizationStatus(for: type)
+        }
+        return result
     }
 
     func fetchRunningData(for date: Date) async throws -> HealthKitRunningData? {

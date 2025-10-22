@@ -33,6 +33,7 @@ struct AddRecordFeature {
         // MARK: - UI State
         var isLoading: Bool = false
         var errorMessage: String?
+        var showAuthorizationDeniedAlert: Bool = false
         var showSatisfactionAlert: Bool = false
         var selectedSatisfaction: Int?
 
@@ -58,6 +59,8 @@ struct AddRecordFeature {
         case satisfactionSaved(RunningRecord)
         case satisfactionSaveFailed(String)
         case dismissSatisfactionAlert
+        case openSettings
+        case dismissAuthorizationDeniedAlert
     }
 
     @Dependency(\.repositoryClient) var repositoryClient
@@ -88,8 +91,13 @@ struct AddRecordFeature {
                     return .send(.condition(.loadShoes))
                 }
 
-            case .healthKitData:
-                // Handled by HealthKitDataFeature
+            case .healthKitData(let healthKitDataAction):
+                switch healthKitDataAction{
+                case .healthStoreAuthorizationDenied:
+                    state.showAuthorizationDeniedAlert = true
+                default:
+                    break
+                }
                 return .none
 
             case .condition:
@@ -225,6 +233,14 @@ struct AddRecordFeature {
 
             case .dismissSatisfactionAlert:
                 state.showSatisfactionAlert = false
+                return .none
+
+            case .openSettings:
+                URLOpener.openSettings()
+                return .none
+
+            case .dismissAuthorizationDeniedAlert:
+                state.showAuthorizationDeniedAlert = false
                 return .none
             }
         }
