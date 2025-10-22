@@ -1,4 +1,38 @@
-*.xcuserstate
+### Xcode ###
+
+## Xcode project user settings
 xcuserdata/
+*.xcuserstate
+
+## 빌드 결과물 및 파생 데이터
+build/
+DerivedData/
+
+## Xcode가 만드는 백업 파일
+*.moved-aside
+
+### Xcode Project ###
+
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+/*.gcno
+
+### Swift Package Manager ###
+
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+### App packaging ###
+
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+### Claude Code ###
+
 .claude/
 .serena/
