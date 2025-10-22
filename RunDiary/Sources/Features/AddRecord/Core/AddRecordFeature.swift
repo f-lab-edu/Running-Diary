@@ -31,8 +31,8 @@ struct AddRecordFeature {
         var isHealthKitDataLoaded: Bool = false
 
         // MARK: - User Input
-        var selectedPainAreas: Set<String> = []
-        var selectedRunningStyle: String?
+        var selectedPainAreas: Set<PainArea> = []
+        var selectedRunningStyle: RunninStyle?
         var sleepHours: String = ""
         var hadMeal: Bool = false
         var hadAlcohol: Bool = false
@@ -51,8 +51,8 @@ struct AddRecordFeature {
         var routeData: Data?
 
         // MARK: - Static Options
-        let painAreaOptions = ["무릎", "발목", "종아리", "허벅지", "고관절", "발바닥", "아킬레스건"]
-        let runningStyleOptions = ["포어풋", "미드풋", "힐스트라이크", "기타"]
+        let painAreaOptions = PainArea.allCases
+        let runningStyleOptions = RunninStyle.allCases
 
         init(mode: RecordMode, date: Date, existingRecord: RunningRecord? = nil) {
             self.mode = mode
@@ -76,8 +76,8 @@ struct AddRecordFeature {
         case updateAveragePace(String)
         case updateAverageHeartRate(String)
         case updateAverageCadence(String)
-        case updateSelectedPainAreas(Set<String>)
-        case updateSelectedRunningStyle(String?)
+        case updateSelectedPainAreas(Set<PainArea>)
+        case updateSelectedRunningStyle(RunninStyle?)
         case updateSleepHours(String)
         case updateHadMeal(Bool)
         case updateHadAlcohol(Bool)

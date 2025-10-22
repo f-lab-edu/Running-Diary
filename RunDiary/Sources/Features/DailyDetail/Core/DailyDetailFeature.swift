@@ -15,7 +15,7 @@ struct DailyDetailFeature {
     @ObservableState
     struct State: Equatable {
         var selectedDate: Date = Calendar.current.startOfDay(for: Date())
-        var dates: [Date] = []
+        var currentWeekDates: [Date] = []
         var runningRecord: RunningRecord?
         var isLoading: Bool = false
         var errorMessage: String?
@@ -27,6 +27,7 @@ struct DailyDetailFeature {
     enum Action {
         case onAppear
         case dateSelected(Date)
+        case weekChanged(offset: Int)
         case fetchRecordForSelectedDate
         case recordFetchedSuccess(RunningRecord?)
         case recordFetchedFailure(String)
@@ -44,15 +45,36 @@ struct DailyDetailFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                // 날짜 배열 초기화 (오늘 기준 14일 전후, 총 29일)
-                if state.dates.isEmpty {
+                // 현재 주의 날짜들로 초기화
+                if state.currentWeekDates.isEmpty {
                     let today = Date()
-                    state.dates = DateHelper.generateSurroundingDates(from: today)
+                    state.currentWeekDates = DateHelper.getWeekDates(for: today)
                 }
                 return .send(.fetchRecordForSelectedDate)
 
             case let .dateSelected(date):
                 state.selectedDate = date
+                // 선택된 날짜가 현재 주에 속하지 않으면 해당 주로 이동
+                if !state.currentWeekDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) }) {
+                    state.currentWeekDates = DateHelper.getWeekDates(for: date)
+                }
+                return .send(.fetchRecordForSelectedDate)
+
+            case let .weekChanged(offset):
+                // 현재 주에서 N주 이동
+                let currentWeekStart = state.currentWeekDates.first ?? state.selectedDate
+                let newWeekStart = DateHelper.addWeeks(offset, to: currentWeekStart)
+                state.currentWeekDates = DateHelper.getWeekDates(for: newWeekStart)
+                // 선택된 날짜를 새 주의 같은 요일로 이동
+                if let selectedDateWeekday = Calendar.current.dateComponents([.weekday], from: state.selectedDate).weekday,
+                   let newSelectedDate = state.currentWeekDates.first(where: {
+                       Calendar.current.dateComponents([.weekday], from: $0).weekday == selectedDateWeekday
+                   }) {
+                    state.selectedDate = newSelectedDate
+                } else {
+                    // 같은 요일이 없으면 새 주의 첫날(월요일)로 이동
+                    state.selectedDate = newWeekStart
+                }
                 return .send(.fetchRecordForSelectedDate)
 
             case .fetchRecordForSelectedDate:

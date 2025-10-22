@@ -206,8 +206,8 @@ private struct HealthKitSectionView: View {
 }
 
 private struct PainAreasSectionView: View {
-    @Binding var selectedPainAreas: Set<String>
-    let painAreaOptions: [String]
+    @Binding var selectedPainAreas: Set<PainArea>
+    let painAreaOptions: [PainArea]
 
     var body: some View {
         Section("통증 부위") {
@@ -221,7 +221,7 @@ private struct PainAreasSectionView: View {
                         }
                     }) {
                         HStack {
-                            Text(area)
+                            Text(area.rawValue)
                             if selectedPainAreas.contains(area) {
                                 Image(systemName: "checkmark")
                             }
@@ -230,7 +230,7 @@ private struct PainAreasSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedPainAreas.isEmpty ? "선택하세요" : selectedPainAreas.joined(separator: ", "))
+                    Text(selectedPainAreas.isEmpty ? "선택하세요" : selectedPainAreas.map({$0.rawValue}).joined(separator: ", "))
                         .foregroundColor(selectedPainAreas.isEmpty ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -242,20 +242,20 @@ private struct PainAreasSectionView: View {
 }
 
 private struct RunningStyleSectionView: View {
-    @Binding var selectedStyle: String?
-    let styleOptions: [String]
+    @Binding var selectedStyle: RunninStyle?
+    let styleOptions: [RunninStyle]
 
     var body: some View {
         Section("주법/스타일") {
             Menu {
                 ForEach(styleOptions, id: \.self) { style in
-                    Button(style) {
+                    Button(style.rawValue) {
                         selectedStyle = style
                     }
                 }
             } label: {
                 HStack {
-                    Text(selectedStyle ?? "선택하세요")
+                    Text(selectedStyle?.rawValue ?? "선택하세요")
                         .foregroundColor(selectedStyle == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -374,8 +374,8 @@ private struct CheckboxView: View {
         averagePace: "5'30\"",
         averageHeartRate: 155,
         averageCadence: 180,
-        painAreas: ["무릎"],
-        runningStyle: "포어풋",
+        painAreas: [.knee],
+        runningStyle: .forefoot,
         condition: RunningCondition(
             sleep: 7,
             meal: true,
@@ -389,7 +389,7 @@ private struct CheckboxView: View {
         hasMap: false
     )
 
-    return AddRecordView(
+    AddRecordView(
         store: Store(
             initialState: AddRecordFeature.State(
                 mode: .edit,

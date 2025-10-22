@@ -6,41 +6,127 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
 
 struct DateCarouselView: View {
+    let store: StoreOf<DailyDetailFeature>
+    @State private var dragOffset: CGFloat = 0
+    @State private var currentOffset: CGFloat = 0
+
+    init(store: StoreOf<DailyDetailFeature>) {
+        self.store = store
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let screenWidth = geometry.size.width
+
+            HStack(spacing: 0) {
+                // 이전 주
+                WeekView(
+                    dates: DateHelper.getWeekDates(
+                        for: DateHelper.addWeeks(-1, to: store.currentWeekDates.first ?? Date())
+                    ),
+                    selectedDate: Binding(
+                        get: { store.selectedDate },
+                        set: { store.send(.dateSelected($0)) }
+                    )
+                )
+                .frame(width: screenWidth)
+
+                // 현재 주
+                WeekView(
+                    dates: store.currentWeekDates,
+                    selectedDate: Binding(
+                        get: { store.selectedDate },
+                        set: { store.send(.dateSelected($0)) }
+                    )
+                )
+                .frame(width: screenWidth)
+
+                // 다음 주
+                WeekView(
+                    dates: DateHelper.getWeekDates(
+                        for: DateHelper.addWeeks(1, to: store.currentWeekDates.first ?? Date())
+                    ),
+                    selectedDate: Binding(
+                        get: { store.selectedDate },
+                        set: { store.send(.dateSelected($0)) }
+                    )
+                )
+                .frame(width: screenWidth)
+            }
+            .offset(x: -screenWidth + dragOffset + currentOffset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        dragOffset = value.translation.width
+                    }
+                    .onEnded { value in
+                        let threshold = screenWidth * 0.3
+                        let swipeDistance = value.translation.width
+
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            if swipeDistance > threshold {
+                                // 오른쪽 스와이프 → 이전 주
+                                currentOffset = screenWidth
+                            } else if swipeDistance < -threshold {
+                                // 왼쪽 스와이프 → 다음 주
+                                currentOffset = -screenWidth
+                            }
+                            dragOffset = 0
+                        }
+
+                        if abs(swipeDistance) > threshold {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                if swipeDistance > threshold {
+                                    store.send(.weekChanged(offset: -1))
+                                } else {
+                                    store.send(.weekChanged(offset: 1))
+                                }
+                                currentOffset = 0
+                            }
+                        }
+                    }
+            )
+        }
+        .frame(height: 80)
+    }
+}
+
+private struct WeekView: View {
     let dates: [Date]
     @Binding var selectedDate: Date
-    
+
     init(dates: [Date], selectedDate: Binding<Date>) {
         self.dates = dates
         self._selectedDate = selectedDate
     }
 
+    private let horizontalPadding: CGFloat = 14
+    private let itemSpacing: CGFloat = 10
+    private let numberOfItems: CGFloat = 7
+
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(dates, id: \.self) { date in
-                        DateItemView(
-                            date: date,
-                            isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate)
-                        )
-                        .onTapGesture {
-                            selectedDate = date
-                        }
-                        .id(date)
+        GeometryReader { geometry in
+            let totalPadding = horizontalPadding * 2
+            let totalSpacing = itemSpacing * (numberOfItems - 1)
+            let availableWidth = geometry.size.width - totalPadding - totalSpacing
+            let itemWidth = availableWidth / numberOfItems
+
+            HStack(spacing: itemSpacing) {
+                ForEach(dates, id: \.self) { date in
+                    DateItemView(
+                        date: date,
+                        isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                        width: itemWidth
+                    )
+                    .onTapGesture {
+                        selectedDate = date
                     }
                 }
-                .padding(.horizontal, 16)
             }
-            .onAppear {
-                proxy.scrollTo(selectedDate, anchor: .center)
-            }
-            .onChange(of: selectedDate) { _, newDate in
-                withAnimation {
-                    proxy.scrollTo(newDate, anchor: .center)
-                }
-            }
+            .padding(.horizontal, horizontalPadding)
         }
     }
 }
@@ -48,10 +134,12 @@ struct DateCarouselView: View {
 private struct DateItemView: View {
     let date: Date
     let isSelected: Bool
-    
-    init(date: Date, isSelected: Bool) {
+    var width: CGFloat = 50
+
+    init(date: Date, isSelected: Bool, width: CGFloat = 50) {
         self.date = date
         self.isSelected = isSelected
+        self.width = width
     }
 
     private var dayOfWeek: String {
@@ -61,39 +149,29 @@ private struct DateItemView: View {
         return formatter.string(from: date)
     }
 
-    private var monthAndDay: String {
+    private var day: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "M/d"
+        formatter.dateFormat = "d"
         return formatter.string(from: date)
-    }
-
-    private var dayOfWeekColor: Color {
-        switch dayOfWeek {
-        case "토":
-            return .blue
-        case "일":
-            return .red
-        default:
-            return .gray
-        }
     }
 
     var body: some View {
         VStack(spacing: 4) {
             Text(dayOfWeek)
                 .font(.caption)
-                .foregroundColor(dayOfWeekColor)
+                .fontWeight(.semibold)
+                .foregroundColor(isSelected ? .white : .gray)
 
-            Text(monthAndDay)
+            Text(day)
                 .font(.headline)
-                .foregroundColor(.primary)
+                .foregroundColor(isSelected ? .white : .black)
         }
-        .frame(width: 50, height: 60)
-        .background(Color.clear)
+        .frame(width: width, height: 60)
+        .background(isSelected ? Color.blue : Color.clear)
         .cornerRadius(10)
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(isSelected ? Color.blue : Color.gray.opacity(0.3), lineWidth: isSelected ? 2 : 1)
+                .stroke(isSelected ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
         )
     }
 }

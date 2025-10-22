@@ -16,6 +16,8 @@ struct DailyDetailView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                YearAndMonthSection(date: store.selectedDate)
+
                 DateCarouselSection(store: store)
 
                 Divider()
@@ -34,18 +36,30 @@ struct DailyDetailView: View {
 
 // MARK: - Subviews
 
+private struct YearAndMonthSection: View {
+    let yearAndMonth: String
+
+    init(date: Date) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "YYYY년 M월"
+        self.yearAndMonth = formatter.string(from: date)
+    }
+
+    var body: some View {
+        Text(yearAndMonth)
+            .font(.title2)
+            .fontWeight(.bold)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 14)
+    }
+}
+
 private struct DateCarouselSection: View {
     let store: StoreOf<DailyDetailFeature>
 
     var body: some View {
-        DateCarouselView(
-            dates: store.dates,
-            selectedDate: Binding(
-                get: { store.selectedDate },
-                set: { store.send(.dateSelected($0)) }
-            )
-        )
-        .padding(.vertical, 16)
+        DateCarouselView(store: store)
+            .padding(.top, 16)
     }
 }
 
@@ -65,6 +79,7 @@ private struct RecordContentSection: View {
             }
             .padding()
         }
+        .background(Color(.systemGray6))
     }
 }
 

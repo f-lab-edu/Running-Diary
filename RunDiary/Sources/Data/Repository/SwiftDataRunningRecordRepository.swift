@@ -79,8 +79,8 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
         existingModel.averagePace = record.averagePace
         existingModel.averageHeartRate = record.averageHeartRate
         existingModel.averageCadence = record.averageCadence
-        existingModel.painAreas = record.painAreas
-        existingModel.runningStyle = record.runningStyle
+        existingModel.painAreasRaw = record.painAreas.map { $0.rawValue }
+        existingModel.runningStyleRaw = record.runningStyle?.rawValue
         existingModel.sleepHours = record.condition.sleep
         existingModel.hadMeal = record.condition.meal
         existingModel.hadAlcohol = record.condition.alcohol

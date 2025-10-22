@@ -10,14 +10,15 @@ import SwiftData
 
 @Model
 final class RunningRecordModel {
-    @Attribute(.unique) var id: UUID
+    @Attribute(.unique)
+    var id: UUID
     var date: Date
     var distance: Double?
     var averagePace: String?
     var averageHeartRate: Int?
     var averageCadence: Int?
-    var painAreas: [String]
-    var runningStyle: String?
+    var painAreasRaw: [String]
+    var runningStyleRaw: String?
     var sleepHours: Int?
     var hadMeal: Bool
     var hadAlcohol: Bool
@@ -37,8 +38,8 @@ final class RunningRecordModel {
         averagePace: String? = nil,
         averageHeartRate: Int? = nil,
         averageCadence: Int? = nil,
-        painAreas: [String] = [],
-        runningStyle: String? = nil,
+        painAreasRaw: [String] = [],
+        runningStyleRaw: String? = nil,
         sleepHours: Int? = nil,
         hadMeal: Bool = false,
         hadAlcohol: Bool = false,
@@ -57,8 +58,8 @@ final class RunningRecordModel {
         self.averagePace = averagePace
         self.averageHeartRate = averageHeartRate
         self.averageCadence = averageCadence
-        self.painAreas = painAreas
-        self.runningStyle = runningStyle
+        self.painAreasRaw = painAreasRaw
+        self.runningStyleRaw = runningStyleRaw
         self.sleepHours = sleepHours
         self.hadMeal = hadMeal
         self.hadAlcohol = hadAlcohol
@@ -95,6 +96,10 @@ extension RunningRecordModel {
             weather = nil
         }
 
+        // Convert raw values to enums
+        let painAreas = painAreasRaw.compactMap { PainArea(rawValue: $0) }
+        let runningStyle = runningStyleRaw.flatMap { RunninStyle(rawValue: $0) }
+
         return RunningRecord(
             id: id,
             date: date,
@@ -121,8 +126,8 @@ extension RunningRecordModel {
             averagePace: record.averagePace,
             averageHeartRate: record.averageHeartRate,
             averageCadence: record.averageCadence,
-            painAreas: record.painAreas,
-            runningStyle: record.runningStyle,
+            painAreasRaw: record.painAreas.map { $0.rawValue },
+            runningStyleRaw: record.runningStyle?.rawValue,
             sleepHours: record.condition.sleep,
             hadMeal: record.condition.meal,
             hadAlcohol: record.condition.alcohol,
