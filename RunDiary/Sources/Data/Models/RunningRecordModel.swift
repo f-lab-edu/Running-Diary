@@ -14,6 +14,7 @@ final class RunningRecordModel {
     var id: UUID
     var date: Date
     var distance: Double?
+    var duration: TimeInterval?
     var averagePace: String?
     var averageHeartRate: Int?
     var averageCadence: Int?
@@ -35,6 +36,7 @@ final class RunningRecordModel {
         id: UUID = UUID(),
         date: Date,
         distance: Double? = nil,
+        duration: TimeInterval? = nil,
         averagePace: String? = nil,
         averageHeartRate: Int? = nil,
         averageCadence: Int? = nil,
@@ -55,6 +57,7 @@ final class RunningRecordModel {
         self.id = id
         self.date = date
         self.distance = distance
+        self.duration = duration
         self.averagePace = averagePace
         self.averageHeartRate = averageHeartRate
         self.averageCadence = averageCadence
@@ -104,6 +107,7 @@ extension RunningRecordModel {
             id: id,
             date: date,
             distanceInKilometers: distance,
+            durationInSeconds: duration,
             averagePace: averagePace,
             averageHeartRate: averageHeartRate,
             averageCadence: averageCadence,
@@ -123,6 +127,7 @@ extension RunningRecordModel {
             id: record.id,
             date: record.date,
             distance: record.distanceInKilometers,
+            duration: record.durationInSeconds,
             averagePace: record.averagePace,
             averageHeartRate: record.averageHeartRate,
             averageCadence: record.averageCadence,

@@ -9,6 +9,7 @@ import Foundation
 
 struct HealthKitRunningData {
     let distance: Double?           // km
+    let duration: TimeInterval?     // seconds
     let averagePace: String?        // min/km
     let averageHeartRate: Int?      // bpm
     let averageCadence: Int?        // spm

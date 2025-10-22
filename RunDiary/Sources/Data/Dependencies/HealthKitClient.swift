@@ -41,6 +41,7 @@ extension HealthKitClient: DependencyKey {
             // Mock 데이터 반환
             HealthKitRunningData(
                 distance: 5.2,
+                duration: 3665,  // 1시간 1분 5초
                 averagePace: "5'30\"",
                 averageHeartRate: 155,
                 averageCadence: 180,

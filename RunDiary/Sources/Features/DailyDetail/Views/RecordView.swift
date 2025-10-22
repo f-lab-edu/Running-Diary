@@ -20,23 +20,29 @@ struct RecordView: View {
             SectionContainer {
                 VStack(alignment: .leading, spacing: 16) {
                     // HealthKit 데이터
-                    if record.distanceInKilometers != nil || record.averagePace != nil {
+                    if record.distanceInKilometers != nil || record.averagePace != nil || record.durationInSeconds != nil {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack(spacing: 20) {
                                 if let distance = record.distanceInKilometers {
                                     RecordRowView(title: "거리", value: String(format: "%.2f km", distance))
                                 }
 
-                                if let pace = record.averagePace {
-                                    RecordRowView(title: "평균 페이스", value: pace)
+                                if let duration = record.formattedDuration {
+                                    RecordRowView(title: "소요시간", value: duration)
                                 }
                             }
 
                             HStack(spacing: 20) {
+                                if let pace = record.averagePace {
+                                    RecordRowView(title: "평균 페이스", value: pace)
+                                }
+
                                 if let heartRate = record.averageHeartRate {
                                     RecordRowView(title: "평균 심박수", value: "\(heartRate) bpm")
                                 }
+                            }
 
+                            HStack(spacing: 20) {
                                 if let cadence = record.averageCadence {
                                     RecordRowView(title: "평균 케이던스", value: "\(cadence) spm")
                                 }

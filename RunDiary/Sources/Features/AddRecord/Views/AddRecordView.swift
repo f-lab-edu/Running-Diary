@@ -18,69 +18,73 @@ struct AddRecordView: View {
                 // HealthKit 데이터 섹션
                 HealthKitSectionView(
                     distance: Binding(
-                        get: { store.distance },
-                        set: { store.send(.updateDistance($0)) }
+                        get: { store.healthKitData.distance },
+                        set: { store.send(.healthKitData(.updateDistance($0))) }
+                    ),
+                    duration: Binding(
+                        get: { store.healthKitData.duration },
+                        set: { store.send(.healthKitData(.updateDuration($0))) }
                     ),
                     averagePace: Binding(
-                        get: { store.averagePace },
-                        set: { store.send(.updateAveragePace($0)) }
+                        get: { store.healthKitData.averagePace },
+                        set: { store.send(.healthKitData(.updateAveragePace($0))) }
                     ),
                     averageHeartRate: Binding(
-                        get: { store.averageHeartRate },
-                        set: { store.send(.updateAverageHeartRate($0)) }
+                        get: { store.healthKitData.averageHeartRate },
+                        set: { store.send(.healthKitData(.updateAverageHeartRate($0))) }
                     ),
                     averageCadence: Binding(
-                        get: { store.averageCadence },
-                        set: { store.send(.updateAverageCadence($0)) }
+                        get: { store.healthKitData.averageCadence },
+                        set: { store.send(.healthKitData(.updateAverageCadence($0))) }
                     ),
-                    isDataLoaded: store.isHealthKitDataLoaded
+                    isDataLoaded: store.healthKitData.isDataLoaded
                 )
 
                 // 통증 부위 섹션
                 PainAreasSectionView(
                     selectedPainAreas: Binding(
-                        get: { store.selectedPainAreas },
-                        set: { store.send(.updateSelectedPainAreas($0)) }
+                        get: { store.condition.selectedPainAreas },
+                        set: { store.send(.condition(.updateSelectedPainAreas($0))) }
                     ),
-                    painAreaOptions: store.painAreaOptions
+                    painAreaOptions: store.condition.painAreaOptions
                 )
 
                 // 주법/스타일 섹션
                 RunningStyleSectionView(
                     selectedStyle: Binding(
-                        get: { store.selectedRunningStyle },
-                        set: { store.send(.updateSelectedRunningStyle($0)) }
+                        get: { store.condition.selectedRunningStyle },
+                        set: { store.send(.condition(.updateSelectedRunningStyle($0))) }
                     ),
-                    styleOptions: store.runningStyleOptions
+                    styleOptions: store.condition.runningStyleOptions
                 )
 
                 // 컨디션 섹션
                 ConditionSectionView(
                     sleepHours: Binding(
-                        get: { store.sleepHours },
-                        set: { store.send(.updateSleepHours($0)) }
+                        get: { store.condition.sleepHours },
+                        set: { store.send(.condition(.updateSleepHours($0))) }
                     ),
                     hadMeal: Binding(
-                        get: { store.hadMeal },
-                        set: { store.send(.updateHadMeal($0)) }
+                        get: { store.condition.hadMeal },
+                        set: { store.send(.condition(.updateHadMeal($0))) }
                     ),
                     hadAlcohol: Binding(
-                        get: { store.hadAlcohol },
-                        set: { store.send(.updateHadAlcohol($0)) }
+                        get: { store.condition.hadAlcohol },
+                        set: { store.send(.condition(.updateHadAlcohol($0))) }
                     ),
                     memo: Binding(
-                        get: { store.memo },
-                        set: { store.send(.updateMemo($0)) }
+                        get: { store.condition.memo },
+                        set: { store.send(.condition(.updateMemo($0))) }
                     )
                 )
 
                 // 신발 섹션
                 ShoesSectionView(
                     selectedShoe: Binding(
-                        get: { store.selectedShoe },
-                        set: { store.send(.updateSelectedShoe($0)) }
+                        get: { store.condition.selectedShoe },
+                        set: { store.send(.condition(.updateSelectedShoe($0))) }
                     ),
-                    shoes: store.shoes
+                    shoes: store.condition.shoes
                 )
             }
             .navigationTitle(store.mode == .add ? "기록 추가" : "기록 수정")
@@ -102,7 +106,7 @@ struct AddRecordView: View {
             .task {
                 store.send(.onAppear)
                 if store.mode == .add {
-                    store.send(.loadHealthKitData)
+                    store.send(.healthKitData(.loadData(store.date)))
                 }
             }
             .alert("러닝 만족도", isPresented: Binding(
@@ -150,6 +154,7 @@ struct AddRecordView: View {
 
 private struct HealthKitSectionView: View {
     @Binding var distance: String
+    @Binding var duration: String
     @Binding var averagePace: String
     @Binding var averageHeartRate: String
     @Binding var averageCadence: String
@@ -167,6 +172,15 @@ private struct HealthKitSectionView: View {
                     .allowsHitTesting(!isDataLoaded)
                 Text("km")
                     .foregroundColor(.gray)
+            }
+
+            HStack {
+                Text("소요시간")
+                    .foregroundColor(.gray)
+                Spacer()
+                TextField("0:00", text: $duration)
+                    .multilineTextAlignment(.trailing)
+                    .allowsHitTesting(!isDataLoaded)
             }
 
             HStack {
@@ -371,6 +385,7 @@ private struct CheckboxView: View {
         id: UUID(),
         date: Date(),
         distanceInKilometers: 5.2,
+        durationInSeconds: 3665,
         averagePace: "5'30\"",
         averageHeartRate: 155,
         averageCadence: 180,

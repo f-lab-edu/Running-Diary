@@ -23,21 +23,12 @@ struct AddRecordFeature {
         let date: Date
         var existingRecord: RunningRecord?
 
-        // MARK: - HealthKit Data
-        var distance: String = ""
-        var averagePace: String = ""
-        var averageHeartRate: String = ""
-        var averageCadence: String = ""
-        var isHealthKitDataLoaded: Bool = false
+        // MARK: - Child Features
+        var healthKitData: HealthKitDataFeature.State
+        var condition: RunningConditionFeature.State
 
-        // MARK: - User Input
-        var selectedPainAreas: Set<PainArea> = []
-        var selectedRunningStyle: RunninStyle?
-        var sleepHours: String = ""
-        var hadMeal: Bool = false
-        var hadAlcohol: Bool = false
-        var memo: String = ""
-        var selectedShoe: String?
+        // MARK: - Additional Data
+        var weather: Weather?
 
         // MARK: - UI State
         var isLoading: Bool = false
@@ -45,192 +36,76 @@ struct AddRecordFeature {
         var showSatisfactionAlert: Bool = false
         var selectedSatisfaction: Int?
 
-        // MARK: - Data
-        var shoes: [ShoeModel] = []
-        var weather: Weather?
-        var routeData: Data?
-
-        // MARK: - Static Options
-        let painAreaOptions = PainArea.allCases
-        let runningStyleOptions = RunninStyle.allCases
-
         init(mode: RecordMode, date: Date, existingRecord: RunningRecord? = nil) {
             self.mode = mode
             self.date = date
             self.existingRecord = existingRecord
+            self.healthKitData = HealthKitDataFeature.State()
+            self.condition = RunningConditionFeature.State()
         }
     }
 
     enum Action {
         case onAppear
-        case loadShoes
-        case shoesLoaded([ShoeModel])
-        case shoesLoadFailed(String)
-
-        case loadHealthKitData
-        case healthKitDataLoaded(HealthKitRunningData)
-        case healthKitDataFailed(String)
-
-        // Field updates
-        case updateDistance(String)
-        case updateAveragePace(String)
-        case updateAverageHeartRate(String)
-        case updateAverageCadence(String)
-        case updateSelectedPainAreas(Set<PainArea>)
-        case updateSelectedRunningStyle(RunninStyle?)
-        case updateSleepHours(String)
-        case updateHadMeal(Bool)
-        case updateHadAlcohol(Bool)
-        case updateMemo(String)
-        case updateSelectedShoe(String?)
-
+        case healthKitData(HealthKitDataFeature.Action)
+        case condition(RunningConditionFeature.Action)
         case saveRecord
         case weatherFetched(Weather)
         case recordSaved(RunningRecord)
         case recordSaveFailed(String)
-
         case setSatisfaction(Int)
         case saveSatisfaction
         case satisfactionSaved(RunningRecord)
         case satisfactionSaveFailed(String)
-
-        case loadExistingRecord
         case dismissSatisfactionAlert
     }
 
-    @Dependency(\.healthKitClient) var healthKitClient
-    @Dependency(\.weatherClient) var weatherClient
     @Dependency(\.repositoryClient) var repositoryClient
-    @Dependency(\.shoeClient) var shoeClient
+    @Dependency(\.weatherClient) var weatherClient
 
     var body: some Reducer<State, Action> {
+        Scope(state: \.healthKitData, action: \.healthKitData) {
+            HealthKitDataFeature()
+        }
+
+        Scope(state: \.condition, action: \.condition) {
+            RunningConditionFeature()
+        }
+
         Reduce { state, action in
             switch action {
             case .onAppear:
                 if state.mode == .edit, let record = state.existingRecord {
-                    // Edit mode: load existing record
-                    state.distance = record.distanceInKilometers.map { String(format: "%.2f", $0) } ?? ""
-                    state.averagePace = record.averagePace ?? ""
-                    state.averageHeartRate = record.averageHeartRate.map { String($0) } ?? ""
-                    state.averageCadence = record.averageCadence.map { String($0) } ?? ""
-                    state.selectedPainAreas = Set(record.painAreas)
-                    state.selectedRunningStyle = record.runningStyle
-                    state.sleepHours = record.condition.sleep.map { String($0) } ?? ""
-                    state.hadMeal = record.condition.meal
-                    state.hadAlcohol = record.condition.alcohol
-                    state.memo = record.condition.memo ?? ""
-                    state.selectedShoe = record.shoes
+                    // Edit mode: load existing record into child features
                     state.weather = record.weather
-                    state.routeData = record.routeData
-                    state.isHealthKitDataLoaded = true
-                }
-                return .send(.loadShoes)
-
-            case .loadShoes:
-                return .run { send in
-                    do {
-                        let shoes = try await shoeClient.fetchShoes()
-                        await send(.shoesLoaded(shoes))
-                    } catch {
-                        await send(.shoesLoadFailed(error.localizedDescription))
-                    }
+                    return .merge(
+                        .send(.healthKitData(.loadFromRecord(record))),
+                        .send(.condition(.loadFromRecord(record))),
+                        .send(.condition(.loadShoes))
+                    )
+                } else {
+                    // Add mode: just load shoes
+                    return .send(.condition(.loadShoes))
                 }
 
-            case let .shoesLoaded(shoes):
-                state.shoes = shoes
-                state.errorMessage = nil
+            case .healthKitData:
+                // Handled by HealthKitDataFeature
                 return .none
 
-            case let .shoesLoadFailed(error):
-                state.errorMessage = "신발 목록을 불러올 수 없습니다: \(error)"
-                return .none
-
-            case .loadHealthKitData:
-                state.isLoading = true
-                state.errorMessage = nil
-
-                let date = state.date
-                return .run { send in
-                    do {
-                        try await healthKitClient.requestAuthorization()
-                        if let data = try await healthKitClient.fetchRunningData(date) {
-                            await send(.healthKitDataLoaded(data))
-                        } else {
-                            await send(.healthKitDataFailed("데이터를 찾을 수 없습니다"))
-                        }
-                    } catch {
-                        await send(.healthKitDataFailed(error.localizedDescription))
-                    }
-                }
-
-            case let .healthKitDataLoaded(data):
-                state.isLoading = false
-                state.distance = data.distance.map { String(format: "%.2f", $0) } ?? ""
-                state.averagePace = data.averagePace ?? ""
-                state.averageHeartRate = data.averageHeartRate.map { String($0) } ?? ""
-                state.averageCadence = data.averageCadence.map { String($0) } ?? ""
-                state.routeData = data.routeData
-                state.isHealthKitDataLoaded = true
-                return .none
-
-            case let .healthKitDataFailed(error):
-                state.isLoading = false
-                state.errorMessage = "HealthKit 데이터를 가져올 수 없습니다: \(error)"
-                state.isHealthKitDataLoaded = false
-                return .none
-
-            // Field updates
-            case let .updateDistance(value):
-                state.distance = value
-                return .none
-
-            case let .updateAveragePace(value):
-                state.averagePace = value
-                return .none
-
-            case let .updateAverageHeartRate(value):
-                state.averageHeartRate = value
-                return .none
-
-            case let .updateAverageCadence(value):
-                state.averageCadence = value
-                return .none
-
-            case let .updateSelectedPainAreas(areas):
-                state.selectedPainAreas = areas
-                return .none
-
-            case let .updateSelectedRunningStyle(style):
-                state.selectedRunningStyle = style
-                return .none
-
-            case let .updateSleepHours(hours):
-                state.sleepHours = hours
-                return .none
-
-            case let .updateHadMeal(value):
-                state.hadMeal = value
-                return .none
-
-            case let .updateHadAlcohol(value):
-                state.hadAlcohol = value
-                return .none
-
-            case let .updateMemo(text):
-                state.memo = text
-                return .none
-
-            case let .updateSelectedShoe(shoe):
-                state.selectedShoe = shoe
+            case .condition:
+                // Handled by RunningConditionFeature
                 return .none
 
             case .saveRecord:
                 state.isLoading = true
                 state.errorMessage = nil
 
-                let location = extractLocationFromRoute(state.routeData)
+                let location = extractLocationFromRoute(state.healthKitData.routeData)
                 let date = state.date
-                let currentState = state
+                let healthKitData = state.healthKitData
+                let condition = state.condition
+                let existingRecordId = state.existingRecord?.id
+                let mode = state.mode
 
                 return .run { send in
                     do {
@@ -240,29 +115,30 @@ struct AddRecordFeature {
 
                         // Create record
                         let record = RunningRecord(
-                            id: currentState.existingRecord?.id ?? UUID(),
+                            id: existingRecordId ?? UUID(),
                             date: date,
-                            distanceInKilometers: Double(currentState.distance),
-                            averagePace: currentState.averagePace.isEmpty ? nil : currentState.averagePace,
-                            averageHeartRate: Int(currentState.averageHeartRate),
-                            averageCadence: Int(currentState.averageCadence),
-                            painAreas: Array(currentState.selectedPainAreas),
-                            runningStyle: currentState.selectedRunningStyle,
+                            distanceInKilometers: Double(healthKitData.distance),
+                            durationInSeconds: parseDuration(healthKitData.duration),
+                            averagePace: healthKitData.averagePace.isEmpty ? nil : healthKitData.averagePace,
+                            averageHeartRate: Int(healthKitData.averageHeartRate),
+                            averageCadence: Int(healthKitData.averageCadence),
+                            painAreas: Array(condition.selectedPainAreas),
+                            runningStyle: condition.selectedRunningStyle,
                             condition: RunningCondition(
-                                sleep: Int(currentState.sleepHours),
-                                meal: currentState.hadMeal,
-                                alcohol: currentState.hadAlcohol,
-                                memo: currentState.memo.isEmpty ? nil : currentState.memo
+                                sleep: Int(condition.sleepHours),
+                                meal: condition.hadMeal,
+                                alcohol: condition.hadAlcohol,
+                                memo: condition.memo.isEmpty ? nil : condition.memo
                             ),
-                            shoes: currentState.selectedShoe,
+                            shoes: condition.selectedShoe,
                             weather: weather,
                             satisfaction: nil,
-                            routeData: currentState.routeData,
-                            hasMap: currentState.routeData != nil
+                            routeData: healthKitData.routeData,
+                            hasMap: healthKitData.routeData != nil
                         )
 
                         // Save or update
-                        if currentState.mode == .add {
+                        if mode == .add {
                             try await repositoryClient.save(record)
                         } else {
                             try await repositoryClient.update(record)
@@ -298,30 +174,35 @@ struct AddRecordFeature {
                 }
 
                 state.isLoading = true
-                let currentState = state
+                let date = state.date
+                let healthKitData = state.healthKitData
+                let condition = state.condition
+                let existingRecordId = state.existingRecord?.id
+                let weather = state.weather
 
                 return .run { send in
                     do {
                         let record = RunningRecord(
-                            id: currentState.existingRecord?.id ?? UUID(),
-                            date: currentState.date,
-                            distanceInKilometers: Double(currentState.distance),
-                            averagePace: currentState.averagePace.isEmpty ? nil : currentState.averagePace,
-                            averageHeartRate: Int(currentState.averageHeartRate),
-                            averageCadence: Int(currentState.averageCadence),
-                            painAreas: Array(currentState.selectedPainAreas),
-                            runningStyle: currentState.selectedRunningStyle,
+                            id: existingRecordId ?? UUID(),
+                            date: date,
+                            distanceInKilometers: Double(healthKitData.distance),
+                            durationInSeconds: parseDuration(healthKitData.duration),
+                            averagePace: healthKitData.averagePace.isEmpty ? nil : healthKitData.averagePace,
+                            averageHeartRate: Int(healthKitData.averageHeartRate),
+                            averageCadence: Int(healthKitData.averageCadence),
+                            painAreas: Array(condition.selectedPainAreas),
+                            runningStyle: condition.selectedRunningStyle,
                             condition: RunningCondition(
-                                sleep: Int(currentState.sleepHours),
-                                meal: currentState.hadMeal,
-                                alcohol: currentState.hadAlcohol,
-                                memo: currentState.memo.isEmpty ? nil : currentState.memo
+                                sleep: Int(condition.sleepHours),
+                                meal: condition.hadMeal,
+                                alcohol: condition.hadAlcohol,
+                                memo: condition.memo.isEmpty ? nil : condition.memo
                             ),
-                            shoes: currentState.selectedShoe,
-                            weather: currentState.weather,
+                            shoes: condition.selectedShoe,
+                            weather: weather,
                             satisfaction: satisfaction,
-                            routeData: currentState.routeData,
-                            hasMap: currentState.routeData != nil
+                            routeData: healthKitData.routeData,
+                            hasMap: healthKitData.routeData != nil
                         )
 
                         try await repositoryClient.update(record)
@@ -340,9 +221,6 @@ struct AddRecordFeature {
             case let .satisfactionSaveFailed(error):
                 state.isLoading = false
                 state.errorMessage = "만족도 저장에 실패했습니다: \(error)"
-                return .none
-
-            case .loadExistingRecord:
                 return .none
 
             case .dismissSatisfactionAlert:
@@ -367,6 +245,27 @@ struct AddRecordFeature {
         } catch {
             return nil
         }
+    }
+
+    private func parseDuration(_ durationString: String) -> TimeInterval? {
+        guard !durationString.isEmpty else { return nil }
+
+        let components = durationString.split(separator: ":").compactMap { Int($0) }
+
+        if components.count == 2 {
+            // MM:SS format
+            let minutes = components[0]
+            let seconds = components[1]
+            return TimeInterval(minutes * 60 + seconds)
+        } else if components.count == 3 {
+            // HH:MM:SS format
+            let hours = components[0]
+            let minutes = components[1]
+            let seconds = components[2]
+            return TimeInterval(hours * 3600 + minutes * 60 + seconds)
+        }
+
+        return nil
     }
 }
 

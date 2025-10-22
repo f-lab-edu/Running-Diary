@@ -81,6 +81,7 @@ final class HealthKitManager: HealthKitManagerProtocol {
 
         return HealthKitRunningData(
             distance: distance,
+            duration: workout.duration,
             averagePace: averagePace,
             averageHeartRate: averageHeartRate,
             averageCadence: averageCadence,
