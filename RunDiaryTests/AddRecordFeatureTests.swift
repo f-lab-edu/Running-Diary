@@ -84,8 +84,25 @@ struct AddRecordFeatureTests {
             $0.weather = existingRecord.weather
         }
 
-        await store.receive(\.healthKitData.loadFromRecord)
+        await store.receive(\.healthKitData.loadFromRecord) {
+            $0.healthKitData.distance = 5.2
+            $0.healthKitData.duration = "30:00"
+            $0.healthKitData.averagePace = "5'30\""
+            $0.healthKitData.averageHeartRate = 155
+            $0.healthKitData.averageCadence = 180
+            $0.healthKitData.isDataLoaded = true
+        }
+
         await store.receive(\.condition.loadFromRecord) {
+            $0.condition.selectedPainAreas = [.knee]
+            $0.condition.selectedRunningStyle = .midfoot
+            $0.condition.sleepHours = "7"
+            $0.condition.hadMeal = true
+            $0.condition.hadAlcohol = false
+            $0.condition.memo = "좋은 컨디션"
+            $0.condition.selectedShoe = "Nike Pegasus 40"
+        }
+
         await store.receive(\.condition.loadShoes) {
             $0.condition.isLoadingShoes = true
         }
