@@ -51,7 +51,7 @@ struct AddRecordFeature {
         case healthKitData(HealthKitDataFeature.Action)
         case condition(RunningConditionFeature.Action)
         case saveRecord
-        case weatherFetched(Weather)
+        case weatherFetched(Weather?)
         case recordSaved(RunningRecord)
         case recordSaveFailed(String)
         case setSatisfaction(Int)
@@ -118,7 +118,7 @@ struct AddRecordFeature {
                 return .run { send in
                     do {
                         // Fetch weather
-                        let weather = try await weatherClient.fetchWeather(date, location)
+                        let weather = try? await weatherClient.fetchWeather(date, location)
                         await send(.weatherFetched(weather))
 
                         // Create record
