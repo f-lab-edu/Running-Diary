@@ -380,7 +380,7 @@ private struct CheckboxView: View {
 
 // MARK: - Preview
 
-#Preview("Add Mode") {
+#Preview("Add Mode", traits: .sampleData) {
     AddRecordView(
         store: Store(
             initialState: AddRecordFeature.State(
@@ -393,36 +393,13 @@ private struct CheckboxView: View {
     )
 }
 
-#Preview("Edit Mode") {
-    let mockRecord = RunningRecord(
-        id: UUID(),
-        date: Date(),
-        distanceInKilometers: 5.2,
-        durationInSeconds: 3665,
-        averagePace: "5'30\"",
-        averageHeartRate: 155,
-        averageCadence: 180,
-        painAreas: [.knee],
-        runningStyle: .forefoot,
-        condition: RunningCondition(
-            sleep: 7,
-            meal: true,
-            alcohol: false,
-            memo: "컨디션 좋음"
-        ),
-        shoes: "Nike Pegasus 40",
-        weather: nil,
-        satisfaction: nil,
-        routeData: nil,
-        hasMap: false
-    )
-
+#Preview("Edit Mode", traits: .sampleData) {
     AddRecordView(
         store: Store(
             initialState: AddRecordFeature.State(
                 mode: .edit,
                 date: Date(),
-                existingRecord: mockRecord
+                existingRecord: RunningRecordModel.preview.toDomain()
             )
         ) {
             AddRecordFeature()

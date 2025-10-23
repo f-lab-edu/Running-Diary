@@ -307,3 +307,9 @@ private struct WeatherItemView: View {
         }
     }
 }
+
+// MARK: - Preview
+
+#Preview(traits: .sampleData) {
+    RecordView(record: RunningRecordModel.preview.toDomain())
+}

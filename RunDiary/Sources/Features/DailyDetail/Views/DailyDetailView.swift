@@ -85,7 +85,7 @@ private struct RecordContentSection: View {
 
 // MARK: - Preview
 
-#Preview {
+#Preview(traits: .sampleData) {
     DailyDetailView(
         store: Store(initialState: DailyDetailFeature.State()) {
             DailyDetailFeature()
@@ -95,30 +95,11 @@ private struct RecordContentSection: View {
     )
 }
 
-#Preview("With Record") {
-    let mockRecord = RunningRecord(
-        date: Date(),
-        distanceInKilometers: 5.2,
-        durationInSeconds: 3665,
-        averagePace: "5'30\"",
-        averageHeartRate: 155,
-        averageCadence: 180,
-        painAreas: [.knee, .ankle],
-        runningStyle: .forefoot,
-        condition: RunningCondition(
-            sleep: 7,
-            meal: true,
-            alcohol: false,
-            memo: "컨디션 좋음"
-        ),
-        shoes: "Nike Pegasus 40",
-        hasMap: true
-    )
-
+#Preview("With Record", traits: .sampleData) {
     DailyDetailView(
         store: Store(
             initialState: DailyDetailFeature.State(
-                runningRecord: mockRecord
+                runningRecord: RunningRecordModel.preview.toDomain()
             )
         ) {
             DailyDetailFeature()

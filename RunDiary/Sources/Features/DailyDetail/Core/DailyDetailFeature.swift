@@ -54,10 +54,6 @@ struct DailyDetailFeature {
 
             case let .dateSelected(date):
                 state.selectedDate = date
-                // 선택된 날짜가 현재 주에 속하지 않으면 해당 주로 이동
-                if !state.currentWeekDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) }) {
-                    state.currentWeekDates = DateHelper.getWeekDates(for: date)
-                }
                 return .send(.fetchRecordForSelectedDate)
 
             case let .weekChanged(offset):

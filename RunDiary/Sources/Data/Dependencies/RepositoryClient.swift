@@ -48,34 +48,19 @@ extension RepositoryClient: DependencyKey {
     )
 
     static let previewValue = RepositoryClient(
-        fetch: { _ in
-            RunningRecord(
-                date: Date(),
-                distanceInKilometers: 5.2,
-                durationInSeconds: 3665,
-                averagePace: "5'30\"",
-                averageHeartRate: 155,
-                averageCadence: 180,
-                painAreas: [],
-                runningStyle: .forefoot,
-                condition: RunningCondition(
-                    sleep: 7,
-                    meal: true,
-                    alcohol: false,
-                    memo: "좋은 컨디션"
-                ),
-                shoes: "나이키 페가수스 40",
-                weather: Weather(
-                    temperature: 18.5,
-                    humidity: 60,
-                    windSpeed: 2.3
-                ),
-                satisfaction: nil,
-                routeData: nil,
-                hasMap: false
-            )
+        fetch: { date in
+            // RunningRecordModel.previewRecords에서 날짜가 일치하는 레코드 찾기
+            let calendar = Calendar.current
+            return RunningRecordModel.previewRecords
+                .first { calendar.isDate($0.date, inSameDayAs: date) }?
+                .toDomain()
         },
-        fetchRecords: { _, _ in [] },
+        fetchRecords: { startDate, endDate in
+            // 날짜 범위에 맞는 레코드들 반환
+            RunningRecordModel.previewRecords
+                .filter { $0.date >= startDate && $0.date <= endDate }
+                .map { $0.toDomain() }
+        },
         save: { _ in },
         update: { _ in },
         delete: { _ in }
