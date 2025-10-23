@@ -29,7 +29,7 @@ struct DailyDetailFeatureTests {
         }
 
         await store.send(.onAppear) {
-            $0.dates = DateHelper.generateSurroundingDates(from: Date())
+            $0.currentWeekDates = DateHelper.getWeekDates(for: Date())
         }
 
         await store.receive(\.fetchRecordForSelectedDate) {
