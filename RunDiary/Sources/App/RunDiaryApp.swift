@@ -11,30 +11,18 @@ import ComposableArchitecture
 
 @main
 struct RunDiaryApp: App {
-    let modelContainer: ModelContainer
-    let store: StoreOf<DailyDetailFeature>
+    let modelContainer = DataModel.shared.modelContainer
 
-    init() {
-        let container: ModelContainer
-        do {
-            container = try ModelContainer(for: RunningRecordModel.self)
-        } catch {
-            fatalError("Failed to initialize ModelContainer: \(error)")
-        }
-        self.modelContainer = container
-
-        let mainContext = container.mainContext
-        self.store = Store(initialState: DailyDetailFeature.State()) {
-            DailyDetailFeature()
-        } withDependencies: {
-            $0.repositoryClient = .live(modelContext: mainContext)
-        }
-    }
+    init() {}
 
     var body: some Scene {
         WindowGroup {
-            DailyDetailView(store: store)
-                .modelContainer(modelContainer)
+            DailyDetailView(store: Store(initialState: DailyDetailFeature.State()) {
+                DailyDetailFeature()
+            } withDependencies: {
+                $0.repositoryClient = .live(modelContext: modelContainer.mainContext)
+            })
+            .modelContainer(modelContainer)
         }
     }
 }
