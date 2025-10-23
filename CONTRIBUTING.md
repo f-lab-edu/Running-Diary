@@ -14,7 +14,7 @@
 - 타입: feat, fix, refactor, docs, test, chore
 - 원자적 커밋, 빌드 유지
 - 관련 이슈: `feat: 캘린더 뷰 구현 (#이슈번호)`
-- ⚠️ "Generated with Claude Code" 제외
+- 주의사항: "Generated with Claude Code" 제외
 
 ## PR
 - 제목: `타입: 설명`
