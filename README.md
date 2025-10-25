@@ -44,14 +44,16 @@ graph LR
 ## 기술 스택
 
 ### Architecture
-- **Clean Architecture**: 계층 분리를 통한 유지보수성과 테스트 용이성 확보
-  - **Domain Layer**: 비즈니스 로직과 Entity 정의
-  - **Data Layer**: 데이터 저장소 및 Repository 구현 (추후 구현 예정)
-  - **Presentation Layer**: MVVM 패턴 기반 UI 및 상태 관리
+- **TCA (The Composable Architecture)**: 단방향 데이터 흐름과 합성 가능한 아키텍처
+  - **Reducer**: 상태 변화와 비즈니스 로직을 순수 함수로 관리
+  - **State**: 불변 상태 관리로 예측 가능한 상태 변화
+  - **Effect**: 비동기 작업과 외부 의존성 관리
+  - **Dependency**: 의존성 주입을 통한 테스트 용이성
+  - **Feature 기반 모듈화**: 각 기능을 독립적인 Reducer로 구성
 
 ### Tech Stack
 - **SwiftUI**: 선언적 UI 프레임워크
-- **Observation Framework**: `@Observable`을 사용한 반응형 상태 관리
+- **TCA**: The Composable Architecture 라이브러리
 - **Swift Concurrency**: async/await 기반 비동기 처리
 
 ## 개발 환경

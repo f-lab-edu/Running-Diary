@@ -1,179 +1,38 @@
-# 프로젝트: 러닝 기록 다이어리
+# Running Log Diary
 
-## 프로젝트 개요
+## Overview
+- **Goal**: Manage daily running logs and condition tracking
+- **Core Design**: Built with predictable state management and modularized features based on TCA.
+- **Key Concept**: Focused on clear state–action boundaries and data-driven UI updates.
 
-- **목적**: 일자별 러닝 기록 및 컨디션을 관리하는 iOS 앱
-- **기술 스택**: SwiftUI + Swift 5.0
-- **아키텍처**
-  - Clean Architecture
-  - Feature 기반 모듈화
-  - MVVM 패턴
+## Tech Stack
+- **Architecture**: TCA (@Reducer, State, Action, Dependency)
+- **Storage**: SwiftData (Repository pattern)
+- **Integration**: HealthKit (distance/heart rate/cadence/route), Shoes API, Weather API
 
-## 주요 기능
+## Main Screens
+1. **Daily Logs** (Main): Date carousel, HealthKit data, pain/stride/condition, shoes, weather, route
+2. **Calendar View**: Satisfaction visualization
+3. **Add/Edit Log**: Import from HealthKit or manual entry
 
-### 1. 일자별 러닝 기록 화면 (메인)
+## Priorities
+1. ✅ Setup
+2. 🔄 Basic UI structure (date carousel, mock data)
+3. ⏳ HealthKit integration
+4. ⏳ Log entry screen
+5. ⏳ Calendar view
+6. ⏳ SwiftData + Repository
+7. ⏳ External API integration
 
-- **일자 선택 Carousel**
-  - 수평 스크롤 가능한 날짜 선택기
-  - 선택된 날짜에 따라 하단 기록 표시
+## Coding Guidelines
+- **Naming**: SwiftLint + Swift API Guidelines
+  - Types: UpperCamelCase (`~View`, `~Feature`)
+  - Variables/functions: lowerCamelCase
+- **TCA**: `@Reducer` macro, separate State/Action, `@Dependency` injection
+- **Access Control**: default internal, private when unnecessary
+- **Testing**: Reducers must use TestStore, Dependencies require mock implementations
 
-- **기록 상세 정보** (세로 스크롤)
-  - HealthKit 연동 데이터
-    - 거리 (km)
-    - 평균 페이스 (min/km)
-    - 평균 심박수 (bpm)
-    - 평균 케이던스 (spm)
-  - 통증 부위
-  - 주법/스타일
-  - 컨디션
-    - 수면 시간
-    - 식사 여부
-    - 음주 여부
-    - 기타 메모
-  - 착용 신발 (외부 API 연동)
-  - 날씨 정보
-    - 기온
-    - 습도
-    - 풍속
-  - 지도 (러닝 경로)
-  - [미정] 만족도 평가
+See existing feature files for detailed examples
 
-- **기록 추가**
-  - 기록 없는 날짜 선택 시 "추가하기" 버튼 표시
-  - 모든 항목 수동 입력 가능
-
-### 2. 캘린더 뷰
-
-- **진입**: 일자별 기록 화면 상단 "전체보기" 버튼
-- **디자인**: 애플 캘린더 스타일
-- **표시**: 만족도 항목을 일자별로 시각화 (미정)
-
-### 3. 러닝 기록 추가/편집
-
-- HealthKit 데이터 불러오기 or 수동 입력
-- 모든 상세 항목 입력 폼 제공
-- 신발 종류는 외부 API를 통해 검색/선택
-
-## 화면 흐름
-
-```
-[앱 실행]
-    ↓
-[일자별 러닝 기록 화면] ← 메인 화면
-    ├─ [일자 Carousel]
-    │    └─ "전체보기" 버튼 → [캘린더 뷰]
-    ├─ [기록 상세 (스크롤)]
-    └─ [추가하기 버튼] → [기록 추가 화면]
-             (기록 없을 때만 표시)
-```
-
-## 기술 스택 및 아키텍처
-
-### 외부 연동
-
-#### HealthKit
-
-- 권한: 앱 초기 실행 시 요청
-- 읽기 권한: 거리, 심박수, 케이던스, 경로 데이터
-- 백그라운드 동기화 고려 (TBD)
-
-#### 신발 API
-
-- 외부 API를 통해 신발 정보 검색
-- API 명세 미정
-
-#### 날씨 API
-
-- OpenWeatherMap 또는 기상청 API 고려 (TBD)
-
-### 데이터 저장 [미정]
-
-1. **Local DB**: CoreData / SwiftData / Realm
-2. **Remote DB + API**: 자체 백엔드 구현
-
-> **선택 전까지 Mock 데이터 사용하고, Repository 인터페이스만 정의**
-
-## 구현 시 고려사항
-
-- **HealthKit 권한**: 앱 초기 실행 시 요청, 거부 시 수동 입력만 가능
-- **DB 미결정**: Repository 패턴으로 추상화하여 추후 교체 용이하게 설계
-- **API 의존성**: 신발 API, 날씨 API 실패 시 Graceful Degradation 적용
-
-## 개발 우선순위
-
-1. ✅ 프로젝트 셋업 & CLAUDE.md 작성
-2. 🔄 UI/UX 기본 구조
-   - 일자별 기록 화면 레이아웃
-   - 날짜 Carousel 컴포넌트
-   - Mock 데이터로 기록 표시
-3. ⏳ HealthKit 연동
-   - 권한 요청 플로우
-   - 러닝 데이터 Fetch
-4. ⏳ 기록 추가 화면
-5. ⏳ 캘린더 뷰
-6. ⏳ 데이터 저장 (DB 선택 후 구현)
-7. ⏳ 외부 API 연동 (신발, 날씨)
-8. ⏳ 로그인 기능 (미정)
-
-## 개발 규칙
-
-### 코딩 규칙
-
-#### 네이밍 컨벤션 (SwiftLint + Swift API Guidelines)
-
-- **타입**: UpperCamelCase
-  - View: `~View` (예: `DailyRecordView`)
-  - ViewModel: `~ViewModel` (예: `DailyRecordViewModel`)
-  - Protocol: `~able`, `~Protocol` (예: `Recordable`, `RecordRepositoryProtocol`)
-- **변수/함수**: lowerCamelCase
-- **상수**: lowerCamelCase (타입 프로퍼티는 예외적으로 UpperCamelCase 가능)
-- **약어**: 모두 대문자 or 모두 소문자 (예: `url`, `json`, `UUID`)
-
-#### SwiftUI 스타일
-
-- 공통 스타일: ViewModifier로 재사용
-- Preview 필수 작성
-- View 분리: 복잡한 View는 `private struct`로 subview 분리
-- View 구조체는 init 메서드 필수 작성
-- View `body`에서 객체 생성 금지 (의존성은 property 또는 initializer에서 주입)
-**예시**
-```swift
-struct DailyRecordView: View {
-    init() {}
-
-    var body: some View {
-        DateCarouselView()
-    }
-}
-
-private struct DateCarouselView: View { ... }
-```
-
-- **유틸리티 로직**: 재사용 가능한 비즈니스 로직은 별도 객체로 분리
-  ```swift
-  // Core/Utils/DateFormatter+Custom.swift
-  extension DateFormatter {
-      static let displayDate: DateFormatter = { ... }()
-  }
-
-  // Core/Utils/HealthKitManager.swift
-  final class HealthKitManager {
-      func fetchRunningData(...) { ... }
-  }
-  ```
-
-#### 접근 제어
-
-- **기본**: `internal` (명시하지 않음)
-- **외부 노출 불필요**: `private` 또는 `fileprivate`
-- **모듈 간 공유**: `public` (Framework화 시 고려)
-
-#### 테스트
-
-- ViewModel 로직: Unit Test 필수
-- 복잡한 Utils/Manager: Unit Test 작성
-- UI 컴포넌트: Snapshot Test 고려 (TBD)
-
-### Git 워크플로우
-
-브랜치 전략, 커밋, PR 규칙 등 협업 가이드라인은 [CONTRIBUTING.md](./CONTRIBUTING.md)를 참고하세요.
+## Collaboration
+Git workflow, commit/PR conventions: [CONTRIBUTING.md](./CONTRIBUTING.md)

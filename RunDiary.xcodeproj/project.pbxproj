@@ -6,23 +6,64 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		339637502EA4F89B00640DBF /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 33TCA0022EA1600000000002 /* ComposableArchitecture */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3317C6182EA774D900525269 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3344D6012E81CD5B00982E36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3344D6082E81CD5B00982E36;
+			remoteInfo = RunDiary;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		3317C6142EA774D900525269 /* RunDiaryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunDiaryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3344D6092E81CD5B00982E36 /* RunDiary.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RunDiary.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		330521562EA1537C00000222 /* Exceptions for "RunDiary" folder in "RunDiary" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Info.plist,
+			);
+			target = 3344D6082E81CD5B00982E36 /* RunDiary */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		3317C6152EA774D900525269 /* RunDiaryTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RunDiaryTests;
+			sourceTree = "<group>";
+		};
 		3367BB422E9D05250027F8B1 /* RunDiary */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				330521562EA1537C00000222 /* Exceptions for "RunDiary" folder in "RunDiary" target */,
+			);
 			path = RunDiary;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		3317C6112EA774D900525269 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3344D6062E81CD5B00982E36 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				339637502EA4F89B00640DBF /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -32,6 +73,7 @@
 		3344D6002E81CD5B00982E36 = {
 			isa = PBXGroup;
 			children = (
+				3317C6152EA774D900525269 /* RunDiaryTests */,
 				3344D60A2E81CD5B00982E36 /* Products */,
 				3367BB422E9D05250027F8B1 /* RunDiary */,
 			);
@@ -41,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				3344D6092E81CD5B00982E36 /* RunDiary.app */,
+				3317C6142EA774D900525269 /* RunDiaryTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +91,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3317C6132EA774D900525269 /* RunDiaryTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3317C61A2EA774D900525269 /* Build configuration list for PBXNativeTarget "RunDiaryTests" */;
+			buildPhases = (
+				3317C6102EA774D900525269 /* Sources */,
+				3317C6112EA774D900525269 /* Frameworks */,
+				3317C6122EA774D900525269 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3317C6192EA774D900525269 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3317C6152EA774D900525269 /* RunDiaryTests */,
+			);
+			name = RunDiaryTests;
+			packageProductDependencies = (
+			);
+			productName = RunDiaryTests;
+			productReference = 3317C6142EA774D900525269 /* RunDiaryTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		3344D6082E81CD5B00982E36 /* RunDiary */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3344D6142E81CD5C00982E36 /* Build configuration list for PBXNativeTarget "RunDiary" */;
@@ -65,6 +131,7 @@
 			);
 			name = RunDiary;
 			packageProductDependencies = (
+				33TCA0022EA1600000000002 /* ComposableArchitecture */,
 			);
 			productName = RunDiary;
 			productReference = 3344D6092E81CD5B00982E36 /* RunDiary.app */;
@@ -80,6 +147,10 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					3317C6132EA774D900525269 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 3344D6082E81CD5B00982E36;
+					};
 					3344D6082E81CD5B00982E36 = {
 						CreatedOnToolsVersion = 26.0;
 					};
@@ -94,17 +165,28 @@
 			);
 			mainGroup = 3344D6002E81CD5B00982E36;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3344D60A2E81CD5B00982E36 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				3344D6082E81CD5B00982E36 /* RunDiary */,
+				3317C6132EA774D900525269 /* RunDiaryTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3317C6122EA774D900525269 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3344D6072E81CD5B00982E36 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,6 +197,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3317C6102EA774D900525269 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3344D6052E81CD5B00982E36 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,7 +213,57 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		3317C6192EA774D900525269 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3344D6082E81CD5B00982E36 /* RunDiary */;
+			targetProxy = 3317C6182EA774D900525269 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		3317C61B2EA774D900525269 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DH9CS7PA5D;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kimhyeji.RunDiaryTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RunDiary.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RunDiary";
+			};
+			name = Debug;
+		};
+		3317C61C2EA774D900525269 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DH9CS7PA5D;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kimhyeji.RunDiaryTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RunDiary.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RunDiary";
+			};
+			name = Release;
+		};
 		3344D6122E81CD5C00982E36 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -256,6 +395,7 @@
 				DEVELOPMENT_TEAM = DH9CS7PA5D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RunDiary/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -288,6 +428,7 @@
 				DEVELOPMENT_TEAM = DH9CS7PA5D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RunDiary/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -313,6 +454,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3317C61A2EA774D900525269 /* Build configuration list for PBXNativeTarget "RunDiaryTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3317C61B2EA774D900525269 /* Debug */,
+				3317C61C2EA774D900525269 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		3344D6042E81CD5B00982E36 /* Build configuration list for PBXProject "RunDiary" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -332,6 +482,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		33TCA0022EA1600000000002 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3344D6012E81CD5B00982E36 /* Project object */;
 }

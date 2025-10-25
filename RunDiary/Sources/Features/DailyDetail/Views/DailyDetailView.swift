@@ -6,73 +6,105 @@
 //
 
 import SwiftUI
+import SwiftData
+import ComposableArchitecture
 
 struct DailyDetailView: View {
-    @State private var viewModel: any DailyDetailViewModelProtocol
+    let store: StoreOf<DailyDetailFeature>
+    @Environment(\.modelContext) private var modelContext
 
-    init(viewModel: any DailyDetailViewModelProtocol) {
-        self.viewModel = viewModel
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                YearAndMonthSection(date: store.selectedDate)
+
+                DateCarouselSection(store: store)
+
+                Divider()
+
+                RecordContentSection(store: store)
+            }
+            .sheet(store: store.scope(state: \.$addRecord, action: \.addRecord)) { addRecordStore in
+                AddRecordView(store: addRecordStore)
+            }
+            .task {
+                store.send(.onAppear)
+            }
+        }
+    }
+}
+
+// MARK: - Subviews
+
+private struct YearAndMonthSection: View {
+    let yearAndMonth: String
+
+    init(date: Date) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "YYYY년 M월"
+        self.yearAndMonth = formatter.string(from: date)
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 상단 날짜 캐러셀
-            DateCarouselView(
-                dates: viewModel.dates,
-                selectedDate: Binding(
-                    get: { viewModel.selectedDate },
-                    set: { viewModel.selectDate($0) }
-                )
-            )
-            .padding(.vertical, 16)
+        Text(yearAndMonth)
+            .font(.title2)
+            .fontWeight(.bold)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 14)
+    }
+}
 
-            Divider()
+private struct DateCarouselSection: View {
+    let store: StoreOf<DailyDetailFeature>
 
-            // 러닝 기록 또는 빈 상태
-            ScrollView {
-                Group {
-                    if viewModel.isLoading {
-                        ProgressView()
-                    } else if let record = viewModel.runningRecord {
-                        RecordView(record: record)
-                    } else {
-                        EmptyRecordView(onAddRecord: viewModel.showAddRecordView)
-                    }
+    var body: some View {
+        DateCarouselView(store: store)
+            .padding(.top, 16)
+    }
+}
+
+private struct RecordContentSection: View {
+    let store: StoreOf<DailyDetailFeature>
+
+    var body: some View {
+        ScrollView {
+            Group {
+                if store.isLoading {
+                    ProgressView()
+                } else if let record = store.runningRecord {
+                    RecordView(record: record)
+                } else {
+                    EmptyRecordView(onAddRecord: { store.send(.showAddRecord) })
                 }
-                .padding()
             }
+            .padding()
         }
-        .task {
-            await viewModel.fetchRunningRecord(for: viewModel.selectedDate)
-        }
+        .background(Color(.systemGray6))
     }
 }
 
 // MARK: - Preview
 
-#Preview {
-    DailyDetailView(viewModel: DailyDetailViewModel())
+#Preview(traits: .sampleData) {
+    DailyDetailView(
+        store: Store(initialState: DailyDetailFeature.State()) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.repositoryClient = .previewValue
+        }
+    )
 }
 
-#Preview("With Record") {
-    let mockRecord = RunningRecord(
-        date: Date(),
-        distance: 5.2,
-        averagePace: "5'30\"",
-        averageHeartRate: 155,
-        averageCadence: 180,
-        painAreas: ["무릎", "발목"],
-        runningStyle: "포어풋",
-        condition: RunningCondition(
-            sleep: "7시간",
-            meal: "가볍게",
-            alcohol: "없음",
-            custom: "컨디션 좋음"
-        ),
-        shoes: "Nike Pegasus 40",
-        hasMap: true
+#Preview("With Record", traits: .sampleData) {
+    DailyDetailView(
+        store: Store(
+            initialState: DailyDetailFeature.State(
+                runningRecord: RunningRecordModel.preview.toDomain()
+            )
+        ) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.repositoryClient = .previewValue
+        }
     )
-    
-    let viewModel = PreviewDailyDetailViewModel(mockRecord: mockRecord)
-    return DailyDetailView(viewModel: viewModel)
 }

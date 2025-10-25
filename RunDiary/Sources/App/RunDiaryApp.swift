@@ -6,12 +6,23 @@
 //
 
 import SwiftUI
+import SwiftData
+import ComposableArchitecture
 
 @main
 struct RunDiaryApp: App {
+    let modelContainer = DataModel.shared.modelContainer
+
+    init() {}
+
     var body: some Scene {
         WindowGroup {
-            DailyDetailView(viewModel: DailyDetailViewModel())
+            DailyDetailView(store: Store(initialState: DailyDetailFeature.State()) {
+                DailyDetailFeature()
+            } withDependencies: {
+                $0.repositoryClient = .live(modelContext: modelContainer.mainContext)
+            })
+            .modelContainer(modelContainer)
         }
     }
 }
