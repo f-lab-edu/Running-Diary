@@ -3,6 +3,8 @@ name: Feature request
 about: 새로운 기능 추가
 title: 'feat: '
 labels: feat
+assignees: khyeji98
+
 ---
 
 # 작업 내용
