@@ -12,8 +12,8 @@ jobs:
     timeout-minutes: 40
 
     env:
-      SCHEME: RunningDiary
-      PROJECT: RunningDiary.xcodeproj
+      SCHEME: RunDiary
+      PROJECT: RunDiary.xcodeproj
       DESTINATION: "platform=iOS Simulator,name=iPhone 17,OS=18.0"
 
     steps:
