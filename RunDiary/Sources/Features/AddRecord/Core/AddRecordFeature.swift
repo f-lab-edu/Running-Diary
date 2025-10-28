@@ -66,6 +66,7 @@ struct AddRecordFeature {
 
     enum AlertAction: Equatable {
         case openSettings
+        case goBack
     }
 
     enum SatisfactionAction: Equatable {
@@ -74,6 +75,7 @@ struct AddRecordFeature {
 
     @Dependency(\.repositoryClient) var repositoryClient
     @Dependency(\.weatherClient) var weatherClient
+    @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
         Scope(state: \.healthKitData, action: \.healthKitData) {
@@ -88,7 +90,7 @@ struct AddRecordFeature {
             switch action {
             case .onAppear:
                 if state.mode == .edit, let record = state.existingRecord {
-                    // Edit mode: load existing record into child features
+                    // edit mode: load existing record into child features
                     state.weather = record.weather
                     return .merge(
                         .send(.healthKitData(.loadFromRecord(record))),
@@ -96,8 +98,11 @@ struct AddRecordFeature {
                         .send(.condition(.loadShoes))
                     )
                 } else {
-                    // Add mode: just load shoes
-                    return .send(.condition(.loadShoes))
+                    // add mode: HealthKit + shoes 로드
+                    return .merge(
+                        .send(.healthKitData(.loadData(state.date))),
+                        .send(.condition(.loadShoes))
+                    )
                 }
 
             case .healthKitData(let healthKitDataAction):
@@ -109,8 +114,8 @@ struct AddRecordFeature {
                         ButtonState(action: .openSettings) {
                             TextState("설정으로 이동")
                         }
-                        ButtonState(role: .cancel) {
-                            TextState("취소")
+                        ButtonState(action: .goBack) {
+                            TextState("뒤로 가기")
                         }
                     } message: {
                         TextState("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
@@ -128,7 +133,7 @@ struct AddRecordFeature {
                 state.isLoading = true
                 state.errorMessage = nil
 
-                let location = extractLocationFromRoute(state.healthKitData.routeData)
+                let location = extractLocationFromRoute(state.healthKitData.data.routeData)
                 let date = state.date
                 let healthKitData = state.healthKitData
                 let condition = state.condition
@@ -145,11 +150,11 @@ struct AddRecordFeature {
                         let record = await RunningRecord(
                             id: existingRecordId ?? UUID(),
                             date: date,
-                            distanceInKilometers: Double(healthKitData.distance),
-                            durationInSeconds: parseDuration(healthKitData.duration),
-                            averagePace: healthKitData.averagePace.isEmpty ? nil : healthKitData.averagePace,
-                            averageHeartRate: Int(healthKitData.averageHeartRate),
-                            averageCadence: Int(healthKitData.averageCadence),
+                            distanceInKilometers: healthKitData.data.distance,
+                            durationInSeconds: healthKitData.data.durationInSeconds,
+                            averagePace: healthKitData.data.averagePace.isEmpty ? nil : healthKitData.data.averagePace,
+                            averageHeartRate: healthKitData.data.averageHeartRate,
+                            averageCadence: healthKitData.data.averageCadence,
                             painAreas: Array(condition.selectedPainAreas),
                             runningStyle: condition.selectedRunningStyle,
                             condition: RunningCondition(
@@ -161,8 +166,8 @@ struct AddRecordFeature {
                             shoes: condition.selectedShoe,
                             weather: weather,
                             satisfaction: nil,
-                            routeData: healthKitData.routeData,
-                            hasMap: healthKitData.routeData != nil
+                            routeData: healthKitData.data.routeData,
+                            hasMap: healthKitData.data.routeData != nil
                         )
 
                         // Save or update
@@ -236,11 +241,11 @@ struct AddRecordFeature {
                         let record = await RunningRecord(
                             id: existingRecordId ?? UUID(),
                             date: date,
-                            distanceInKilometers: Double(healthKitData.distance),
-                            durationInSeconds: parseDuration(healthKitData.duration),
-                            averagePace: healthKitData.averagePace.isEmpty ? nil : healthKitData.averagePace,
-                            averageHeartRate: Int(healthKitData.averageHeartRate),
-                            averageCadence: Int(healthKitData.averageCadence),
+                            distanceInKilometers: healthKitData.data.distance,
+                            durationInSeconds: healthKitData.data.durationInSeconds,
+                            averagePace: healthKitData.data.averagePace.isEmpty ? nil : healthKitData.data.averagePace,
+                            averageHeartRate: healthKitData.data.averageHeartRate,
+                            averageCadence: healthKitData.data.averageCadence,
                             painAreas: Array(condition.selectedPainAreas),
                             runningStyle: condition.selectedRunningStyle,
                             condition: RunningCondition(
@@ -252,8 +257,8 @@ struct AddRecordFeature {
                             shoes: condition.selectedShoe,
                             weather: weather,
                             satisfaction: satisfaction,
-                            routeData: healthKitData.routeData,
-                            hasMap: healthKitData.routeData != nil
+                            routeData: healthKitData.data.routeData,
+                            hasMap: healthKitData.data.routeData != nil
                         )
 
                         try await repositoryClient.update(record)
@@ -276,6 +281,11 @@ struct AddRecordFeature {
             case .authorizationAlert(.presented(.openSettings)):
                 URLOpener.openSettings()
                 return .none
+
+            case .authorizationAlert(.presented(.goBack)):
+                return .run { _ in
+                    await dismiss()
+                }
 
             case .authorizationAlert:
                 return .none
@@ -307,27 +317,6 @@ struct AddRecordFeature {
         } catch {
             return nil
         }
-    }
-
-    private func parseDuration(_ durationString: String) -> TimeInterval? {
-        guard !durationString.isEmpty else { return nil }
-
-        let components = durationString.split(separator: ":").compactMap { Int($0) }
-
-        if components.count == 2 {
-            // MM:SS format
-            let minutes = components[0]
-            let seconds = components[1]
-            return TimeInterval(minutes * 60 + seconds)
-        } else if components.count == 3 {
-            // HH:MM:SS format
-            let hours = components[0]
-            let minutes = components[1]
-            let seconds = components[2]
-            return TimeInterval(hours * 3600 + minutes * 60 + seconds)
-        }
-
-        return nil
     }
 }
 

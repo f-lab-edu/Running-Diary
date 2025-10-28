@@ -64,7 +64,6 @@ struct HealthKitClientTests {
         let result = try await client.fetchRunningData(testDate)
 
         #expect(result != nil)
-        #expect(Calendar.current.isDate(result, inSameDayAs: testDate))
         #expect(result?.distance == 5.2)
         #expect(result?.duration == 1800)
         #expect(result?.averagePace == "5'30\"")

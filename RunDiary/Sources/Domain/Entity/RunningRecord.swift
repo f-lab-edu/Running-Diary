@@ -7,6 +7,8 @@
 
 import Foundation
 
+import CommonFoundation
+
 struct RunningRecord: Identifiable, Equatable {
     let id: UUID
     let date: Date
@@ -73,6 +75,28 @@ struct RunningRecord: Identifiable, Equatable {
         self.satisfaction = satisfaction
         self.routeData = routeData
         self.hasMap = hasMap
+    }
+}
+
+struct HealthKitDataModel: Equatable {
+    let distance: Double                // km
+    let durationInSeconds: TimeInterval // seconds
+    let averagePace: String             // min/km
+    let averageHeartRate: Int           // bpm
+    let averageCadence: Int             // steps/min
+    let routeData: Data?
+
+    var formattedDistance: String {
+        distance == 0 ? "" : distance.to2f
+    }
+    var formattedDuration: String {
+        durationInSeconds.formatted
+    }
+    var formattedAverageHeartRate: String {
+        averageHeartRate.toString
+    }
+    var formattedAverageCadence: String {
+        averageCadence.toString
     }
 }
 

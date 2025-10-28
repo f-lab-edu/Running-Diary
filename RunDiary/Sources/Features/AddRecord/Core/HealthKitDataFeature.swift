@@ -15,12 +15,14 @@ import CommonFoundation
 struct HealthKitDataFeature {
     @ObservableState
     struct State: Equatable {
-        var distance: Double = 0
-        var duration: String = ""
-        var averagePace: String = ""
-        var averageHeartRate: Int = 0
-        var averageCadence: Int = 0
-        var routeData: Data?
+        var data: HealthKitDataModel = HealthKitDataModel(
+            distance: 0,
+            durationInSeconds: 0,
+            averagePace: "",
+            averageHeartRate: 0,
+            averageCadence: 0,
+            routeData: nil
+        )
         var isDataLoaded: Bool = false
         var isLoading: Bool = false
         var errorMessage: String?
@@ -56,26 +58,21 @@ struct HealthKitDataFeature {
                         } else {
                             await send(.dataLoadFailed("데이터를 찾을 수 없습니다"))
                         }
-                    } catch let hkError as HealthKitError {
-                        switch hkError {
-                        case .authorizationDenied:
-                            await send(.healthStoreAuthorizationDenied)
-                        default:
-                            await send(.dataLoadFailed(hkError.localizedDescription))
-                        }
                     } catch {
                         await send(.dataLoadFailed(error.localizedDescription))
                     }
                 }
 
-            case let .dataLoaded(data):
+            case let .dataLoaded(healthKitData):
                 state.isLoading = false
-                state.distance = data.distance ?? 0
-                state.duration = data.duration.map { formatDuration($0) } ?? ""
-                state.averagePace = data.averagePace ?? ""
-                state.averageHeartRate = data.averageHeartRate ?? 0
-                state.averageCadence = data.averageCadence ?? 0
-                state.routeData = data.routeData
+                state.data = HealthKitDataModel(
+                    distance: healthKitData.distance ?? 0,
+                    durationInSeconds: healthKitData.duration ?? 0,
+                    averagePace: healthKitData.averagePace ?? "",
+                    averageHeartRate: healthKitData.averageHeartRate ?? 0,
+                    averageCadence: healthKitData.averageCadence ?? 0,
+                    routeData: healthKitData.routeData
+                )
                 state.isDataLoaded = true
                 return .none
 
@@ -89,47 +86,93 @@ struct HealthKitDataFeature {
                 return .none
 
             case let .updateDistance(value):
-                state.distance = value.toDouble
+                state.data = HealthKitDataModel(
+                    distance: value.toDouble,
+                    durationInSeconds: state.data.durationInSeconds,
+                    averagePace: state.data.averagePace,
+                    averageHeartRate: state.data.averageHeartRate,
+                    averageCadence: state.data.averageCadence,
+                    routeData: state.data.routeData
+                )
                 return .none
 
             case let .updateDuration(value):
-                state.duration = value
+                state.data = HealthKitDataModel(
+                    distance: state.data.distance,
+                    durationInSeconds: parseDuration(value) ?? 0,
+                    averagePace: state.data.averagePace,
+                    averageHeartRate: state.data.averageHeartRate,
+                    averageCadence: state.data.averageCadence,
+                    routeData: state.data.routeData
+                )
                 return .none
 
             case let .updateAveragePace(value):
-                state.averagePace = value
+                state.data = HealthKitDataModel(
+                    distance: state.data.distance,
+                    durationInSeconds: state.data.durationInSeconds,
+                    averagePace: value,
+                    averageHeartRate: state.data.averageHeartRate,
+                    averageCadence: state.data.averageCadence,
+                    routeData: state.data.routeData
+                )
                 return .none
 
             case let .updateAverageHeartRate(value):
-                state.averageHeartRate = value.toInt
+                state.data = HealthKitDataModel(
+                    distance: state.data.distance,
+                    durationInSeconds: state.data.durationInSeconds,
+                    averagePace: state.data.averagePace,
+                    averageHeartRate: value.toInt,
+                    averageCadence: state.data.averageCadence,
+                    routeData: state.data.routeData
+                )
                 return .none
 
             case let .updateAverageCadence(value):
-                state.averageCadence = value.toInt
+                state.data = HealthKitDataModel(
+                    distance: state.data.distance,
+                    durationInSeconds: state.data.durationInSeconds,
+                    averagePace: state.data.averagePace,
+                    averageHeartRate: state.data.averageHeartRate,
+                    averageCadence: value.toInt,
+                    routeData: state.data.routeData
+                )
                 return .none
 
             case let .loadFromRecord(record):
-                state.distance = record.distanceInKilometers ?? 0
-                state.duration = record.formattedDuration ?? ""
-                state.averagePace = record.averagePace ?? ""
-                state.averageHeartRate = record.averageHeartRate ?? 0
-                state.averageCadence = record.averageCadence ?? 0
-                state.routeData = record.routeData
+                state.data = HealthKitDataModel(
+                    distance: record.distanceInKilometers ?? 0,
+                    durationInSeconds: record.durationInSeconds ?? 0,
+                    averagePace: record.averagePace ?? "",
+                    averageHeartRate: record.averageHeartRate ?? 0,
+                    averageCadence: record.averageCadence ?? 0,
+                    routeData: record.routeData
+                )
                 state.isDataLoaded = true
                 return .none
             }
         }
     }
 
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let hours = Int(duration) / 3600
-        let minutes = (Int(duration) % 3600) / 60
-        let seconds = Int(duration) % 60
+    private func parseDuration(_ durationString: String) -> TimeInterval? {
+        guard !durationString.isEmpty else { return nil }
 
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            return String(format: "%d:%02d", minutes, seconds)
+        let components = durationString.split(separator: ":").compactMap { Int($0) }
+
+        if components.count == 2 {
+            // MM:SS format
+            let minutes = components[0]
+            let seconds = components[1]
+            return TimeInterval(minutes * 60 + seconds)
+        } else if components.count == 3 {
+            // HH:MM:SS format
+            let hours = components[0]
+            let minutes = components[1]
+            let seconds = components[2]
+            return TimeInterval(hours * 3600 + minutes * 60 + seconds)
         }
+
+        return nil
     }
 }

@@ -10,8 +10,8 @@ import ComposableArchitecture
 
 @DependencyClient
 struct HealthKitClient {
-    var ensureAuthorizationIfNeeded: @Sendable () async throws -> Void
-    var fetchRunningData: @Sendable (Date) async throws -> HealthKitRunningData?
+    var ensureAuthorizationIfNeeded: @MainActor @Sendable () async throws -> Void
+    var fetchRunningData: @MainActor @Sendable (Date) async throws -> HealthKitRunningData?
 }
 
 extension HealthKitClient: DependencyKey {

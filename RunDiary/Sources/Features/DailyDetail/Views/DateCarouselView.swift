@@ -111,7 +111,7 @@ private struct WeekView: View {
         GeometryReader { geometry in
             let totalPadding = horizontalPadding * 2
             let totalSpacing = itemSpacing * (numberOfItems - 1)
-            let availableWidth = geometry.size.width - totalPadding - totalSpacing
+            let availableWidth = UIScreen.main.bounds.width - totalPadding - totalSpacing
             let itemWidth = availableWidth / numberOfItems
 
             HStack(spacing: itemSpacing) {
@@ -134,7 +134,7 @@ private struct WeekView: View {
 private struct DateItemView: View {
     let date: Date
     let isSelected: Bool
-    var width: CGFloat = 50
+    let width: CGFloat
 
     init(date: Date, isSelected: Bool, width: CGFloat = 50) {
         self.date = date

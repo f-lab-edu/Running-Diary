@@ -33,11 +33,6 @@ final class HealthKitManager: HealthKitManagerProtocol {
         if !notDetermined.isEmpty {
             try await healthStore.requestAuthorization(toShare: [], read: typesToRead)
         }
-
-        let denied = statuses.filter { $0.value == .sharingDenied }
-        if !denied.isEmpty {
-            throw HealthKitError.authorizationDenied
-        }
     }
 
     private func currentAuthorizationStatuses() -> [HKObjectType: HKAuthorizationStatus] {

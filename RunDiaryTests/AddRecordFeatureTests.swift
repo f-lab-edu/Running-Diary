@@ -29,9 +29,16 @@ struct AddRecordFeatureTests {
             AddRecordFeature()
         } withDependencies: {
             $0.shoeClient.fetchShoes = { mockShoes }
+            $0.healthKitClient.ensureAuthorizationIfNeeded = {}
+            $0.healthKitClient.fetchRunningData = { _ in nil }
         }
 
         await store.send(.onAppear)
+
+        await store.receive(\.healthKitData.loadData) {
+            $0.healthKitData.isLoading = true
+            $0.healthKitData.errorMessage = nil
+        }
 
         await store.receive(\.condition.loadShoes) {
             $0.condition.isLoadingShoes = true
@@ -40,6 +47,12 @@ struct AddRecordFeatureTests {
         await store.receive(\.condition.shoesLoaded) {
             $0.condition.isLoadingShoes = false
             $0.condition.shoes = mockShoes
+        }
+
+        await store.receive(\.healthKitData.dataLoadFailed) {
+            $0.healthKitData.isLoading = false
+            $0.healthKitData.errorMessage = "HealthKit 데이터를 가져올 수 없습니다: 데이터를 찾을 수 없습니다"
+            $0.healthKitData.isDataLoaded = false
         }
     }
 
@@ -84,11 +97,14 @@ struct AddRecordFeatureTests {
         }
 
         await store.receive(\.healthKitData.loadFromRecord) {
-            $0.healthKitData.distance = 5.2
-            $0.healthKitData.duration = "30:00"
-            $0.healthKitData.averagePace = "5'30\""
-            $0.healthKitData.averageHeartRate = 155
-            $0.healthKitData.averageCadence = 180
+            $0.healthKitData.data = HealthKitDataModel(
+                distance: 5.2,
+                durationInSeconds: 1800,
+                averagePace: "5'30\"",
+                averageHeartRate: 155,
+                averageCadence: 180,
+                routeData: nil
+            )
             $0.healthKitData.isDataLoaded = true
         }
 
@@ -121,8 +137,14 @@ struct AddRecordFeatureTests {
         var savedRecord: RunningRecord?
 
         var initialState = AddRecordFeature.State(date: testDate)
-        initialState.healthKitData.distance = 5.0
-        initialState.healthKitData.duration = "30:00"
+        initialState.healthKitData.data = HealthKitDataModel(
+            distance: 5.0,
+            durationInSeconds: 1800,
+            averagePace: "",
+            averageHeartRate: 0,
+            averageCadence: 0,
+            routeData: nil
+        )
         initialState.condition.hadMeal = true
 
         let store = TestStore(initialState: initialState) {
@@ -146,7 +168,30 @@ struct AddRecordFeatureTests {
         await store.receive(\.recordSaved) {
             $0.isLoading = false
             // satisfactionDialog is presented
-            #expect($0.satisfactionDialog != nil)
+            $0.satisfactionDialog = ConfirmationDialogState {
+                TextState("러닝 만족도")
+            } actions: {
+                ButtonState(action: .rate(1)) {
+                    TextState("1점")
+                }
+                ButtonState(action: .rate(2)) {
+                    TextState("2점")
+                }
+                ButtonState(action: .rate(3)) {
+                    TextState("3점")
+                }
+                ButtonState(action: .rate(4)) {
+                    TextState("4점")
+                }
+                ButtonState(action: .rate(5)) {
+                    TextState("5점")
+                }
+                ButtonState(role: .cancel) {
+                    TextState("건너뛰기")
+                }
+            } message: {
+                TextState("오늘 러닝에 만족하셨나요?")
+            }
         }
 
         #expect(savedRecord != nil)
@@ -171,8 +216,14 @@ struct AddRecordFeatureTests {
             date: testDate,
             existingRecord: existingRecord
         )
-        initialState.healthKitData.distance = 5.5
-        initialState.healthKitData.duration = "35:00"
+        initialState.healthKitData.data = HealthKitDataModel(
+            distance: 5.5,
+            durationInSeconds: 2100,
+            averagePace: "",
+            averageHeartRate: 0,
+            averageCadence: 0,
+            routeData: nil
+        )
 
         let store = TestStore(initialState: initialState) {
             AddRecordFeature()
@@ -194,7 +245,30 @@ struct AddRecordFeatureTests {
         await store.receive(\.recordSaved) {
             $0.isLoading = false
             // satisfactionDialog is presented
-            #expect($0.satisfactionDialog != nil)
+            $0.satisfactionDialog = ConfirmationDialogState {
+                TextState("러닝 만족도")
+            } actions: {
+                ButtonState(action: .rate(1)) {
+                    TextState("1점")
+                }
+                ButtonState(action: .rate(2)) {
+                    TextState("2점")
+                }
+                ButtonState(action: .rate(3)) {
+                    TextState("3점")
+                }
+                ButtonState(action: .rate(4)) {
+                    TextState("4점")
+                }
+                ButtonState(action: .rate(5)) {
+                    TextState("5점")
+                }
+                ButtonState(role: .cancel) {
+                    TextState("건너뛰기")
+                }
+            } message: {
+                TextState("오늘 러닝에 만족하셨나요?")
+            }
         }
 
         #expect(updatedRecord != nil)
@@ -216,11 +290,17 @@ struct AddRecordFeatureTests {
             $0.weatherClient.fetchWeather = { _, _ in
                 throw SaveError()
             }
+            $0.repositoryClient.save = { _ in
+                throw SaveError()
+            }
         }
 
         await store.send(.saveRecord) {
             $0.isLoading = true
+            $0.errorMessage = nil
         }
+
+        await store.receive(\.weatherFetched)
 
         await store.receive(\.recordSaveFailed) {
             $0.isLoading = false
@@ -247,8 +327,14 @@ struct AddRecordFeatureTests {
             date: testDate,
             existingRecord: existingRecord
         )
-        initialState.healthKitData.distance = 5.0
-        initialState.healthKitData.duration = "30:00"
+        initialState.healthKitData.data = HealthKitDataModel(
+            distance: 5.0,
+            durationInSeconds: 1800,
+            averagePace: "",
+            averageHeartRate: 0,
+            averageCadence: 0,
+            routeData: nil
+        )
 
         let store = TestStore(initialState: initialState) {
             AddRecordFeature()
@@ -317,7 +403,18 @@ struct AddRecordFeatureTests {
 
         await store.send(.healthKitData(.healthStoreAuthorizationDenied)) {
             // authorizationAlert is presented
-            #expect($0.authorizationAlert != nil)
+            $0.authorizationAlert = AlertState {
+                TextState("건강 데이터 접근 거부됨")
+            } actions: {
+                ButtonState(action: .openSettings) {
+                    TextState("설정으로 이동")
+                }
+                ButtonState(action: .goBack) {
+                    TextState("뒤로 가기")
+                }
+            } message: {
+                TextState("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
+            }
         }
     }
 
@@ -350,6 +447,9 @@ struct AddRecordFeatureTests {
             ButtonState(action: .openSettings) {
                 TextState("설정으로 이동")
             }
+            ButtonState(action: .goBack) {
+                TextState("뒤로 가기")
+            }
         }
 
         let store = TestStore(initialState: initialState) {
@@ -357,6 +457,34 @@ struct AddRecordFeatureTests {
         }
 
         await store.send(.authorizationAlert(.dismiss)) {
+            $0.authorizationAlert = nil
+        }
+    }
+
+    @Test("권한 거부 alert에서 뒤로 가기")
+    func goBackFromAuthorizationDeniedAlert() async {
+        let store = TestStore(
+            initialState: AddRecordFeature.State(date: Date())
+        ) {
+            AddRecordFeature()
+        }
+
+        await store.send(.healthKitData(.healthStoreAuthorizationDenied)) {
+            $0.authorizationAlert = AlertState {
+                TextState("건강 데이터 접근 거부됨")
+            } actions: {
+                ButtonState(action: .openSettings) {
+                    TextState("설정으로 이동")
+                }
+                ButtonState(action: .goBack) {
+                    TextState("뒤로 가기")
+                }
+            } message: {
+                TextState("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
+            }
+        }
+
+        await store.send(.authorizationAlert(.presented(.goBack))) {
             $0.authorizationAlert = nil
         }
     }

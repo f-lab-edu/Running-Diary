@@ -9,38 +9,73 @@ import SwiftUI
 
 import ComposableArchitecture
 
-import CommonFoundation
-
 struct AddRecordView: View {
     @Bindable var store: StoreOf<AddRecordFeature>
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
+            contentView
+                .navigationTitle(store.mode == .add ? "기록 추가" : "기록 수정")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("취소") {
+                            dismiss()
+                        }
+                    }
+
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("저장") {
+                            store.send(.saveRecord)
+                        }
+                        .disabled(store.isLoading)
+                    }
+                }
+                .task {
+                    store.send(.onAppear)
+                }
+                .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
+                .confirmationDialog($store.scope(state: \.satisfactionDialog, action: \.satisfactionDialog))
+                .overlay {
+                    if store.isLoading {
+                        ProgressView()
+                    }
+                }
+        }
+    }
+
+    // MARK: - Helper Methods
+
+    @ViewBuilder
+    private var contentView: some View {
+        if store.healthKitData.isLoading {
+            ProgressView("피트니스 기록을 가져오는 중입니다!")
+                .progressViewStyle(.circular)
+        } else {
             Form {
                 // HealthKit 데이터 섹션
                 HealthKitSectionView(
                     distance: Binding(
-                        get: { store.healthKitData.distance.to2f },
+                        get: { store.healthKitData.data.formattedDistance },
                         set: { store.send(.healthKitData(.updateDistance($0))) }
                     ),
                     duration: Binding(
-                        get: { store.healthKitData.duration },
+                        get: { store.healthKitData.data.formattedDuration },
                         set: { store.send(.healthKitData(.updateDuration($0))) }
                     ),
                     averagePace: Binding(
-                        get: { store.healthKitData.averagePace },
+                        get: { store.healthKitData.data.averagePace },
                         set: { store.send(.healthKitData(.updateAveragePace($0))) }
                     ),
                     averageHeartRate: Binding(
-                        get: { store.healthKitData.averageHeartRate.toString },
+                        get: { store.healthKitData.data.formattedAverageHeartRate },
                         set: { store.send(.healthKitData(.updateAverageHeartRate($0))) }
                     ),
                     averageCadence: Binding(
-                        get: { store.healthKitData.averageCadence.toString },
+                        get: { store.healthKitData.data.formattedAverageCadence },
                         set: { store.send(.healthKitData(.updateAverageCadence($0))) }
-                    ),
-                    isDataLoaded: store.healthKitData.isDataLoaded
+                    )
                 )
 
                 // 통증 부위 섹션
@@ -90,39 +125,8 @@ struct AddRecordView: View {
                     shoes: store.condition.shoes
                 )
             }
-            .navigationTitle(store.mode == .add ? "기록 추가" : "기록 수정")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("취소") {
-                        dismiss()
-                    }
-                }
-
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("저장") {
-                        store.send(.saveRecord)
-                    }
-                    .disabled(store.isLoading)
-                }
-            }
-            .task {
-                store.send(.onAppear)
-                if store.mode == .add {
-                    store.send(.healthKitData(.loadData(store.date)))
-                }
-            }
-            .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
-            .confirmationDialog($store.scope(state: \.satisfactionDialog, action: \.satisfactionDialog))
-            .overlay {
-                if store.isLoading {
-                    ProgressView()
-                }
-            }
         }
     }
-
-    // MARK: - Helper Methods
 
     private func saveSatisfactionAndDismiss(satisfaction: Int) {
         store.send(.satisfactionDialog(.presented(.rate(satisfaction))))
@@ -138,7 +142,6 @@ private struct HealthKitSectionView: View {
     @Binding var averagePace: String
     @Binding var averageHeartRate: String
     @Binding var averageCadence: String
-    let isDataLoaded: Bool
 
     var body: some View {
         Section("주요 지표") {
@@ -149,7 +152,6 @@ private struct HealthKitSectionView: View {
                 TextField("0.00", text: $distance)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
                 Text("km")
                     .foregroundColor(.gray)
             }
@@ -160,7 +162,6 @@ private struct HealthKitSectionView: View {
                 Spacer()
                 TextField("0:00", text: $duration)
                     .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
             }
 
             HStack {
@@ -169,7 +170,6 @@ private struct HealthKitSectionView: View {
                 Spacer()
                 TextField("0'00\"", text: $averagePace)
                     .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
             }
 
             HStack {
@@ -179,7 +179,6 @@ private struct HealthKitSectionView: View {
                 TextField("0", text: $averageHeartRate)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
                 Text("bpm")
                     .foregroundColor(.gray)
             }
@@ -191,7 +190,6 @@ private struct HealthKitSectionView: View {
                 TextField("0", text: $averageCadence)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
                 Text("spm")
                     .foregroundColor(.gray)
             }
