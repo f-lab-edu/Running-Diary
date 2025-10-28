@@ -14,7 +14,7 @@ jobs:
     env:
       SCHEME: RunDiary
       PROJECT: RunDiary.xcodeproj
-      DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0"
+      DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
 
     steps:
       - uses: actions/checkout@v4
