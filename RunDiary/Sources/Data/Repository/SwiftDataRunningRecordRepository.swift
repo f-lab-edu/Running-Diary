@@ -90,7 +90,7 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
         existingModel.temperature = record.weather?.temperature
         existingModel.humidity = record.weather?.humidity
         existingModel.windSpeed = record.weather?.windSpeed
-        existingModel.satisfaction = record.satisfaction
+        existingModel.difficultyLevelRaw = record.difficultyLevel?.rawValue
         existingModel.routeData = record.routeData
         existingModel.hasMap = record.hasMap
 

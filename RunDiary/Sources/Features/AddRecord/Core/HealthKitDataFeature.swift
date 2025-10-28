@@ -15,14 +15,7 @@ import CommonFoundation
 struct HealthKitDataFeature {
     @ObservableState
     struct State: Equatable {
-        var data: HealthKitDataModel = HealthKitDataModel(
-            distance: 0,
-            durationInSeconds: 0,
-            averagePace: "",
-            averageHeartRate: 0,
-            averageCadence: 0,
-            routeData: nil
-        )
+        var data: HealthKitDataModel?
         var isDataLoaded: Bool = false
         var isLoading: Bool = false
         var errorMessage: String?
@@ -33,11 +26,6 @@ struct HealthKitDataFeature {
         case dataLoaded(HealthKitRunningData)
         case dataLoadFailed(String)
         case healthStoreAuthorizationDenied
-        case updateDistance(String)
-        case updateDuration(String)
-        case updateAveragePace(String)
-        case updateAverageHeartRate(String)
-        case updateAverageCadence(String)
         case loadFromRecord(RunningRecord)
     }
 
@@ -83,61 +71,6 @@ struct HealthKitDataFeature {
                 return .none
 
             case .healthStoreAuthorizationDenied:
-                return .none
-
-            case let .updateDistance(value):
-                state.data = HealthKitDataModel(
-                    distance: value.toDouble,
-                    durationInSeconds: state.data.durationInSeconds,
-                    averagePace: state.data.averagePace,
-                    averageHeartRate: state.data.averageHeartRate,
-                    averageCadence: state.data.averageCadence,
-                    routeData: state.data.routeData
-                )
-                return .none
-
-            case let .updateDuration(value):
-                state.data = HealthKitDataModel(
-                    distance: state.data.distance,
-                    durationInSeconds: parseDuration(value) ?? 0,
-                    averagePace: state.data.averagePace,
-                    averageHeartRate: state.data.averageHeartRate,
-                    averageCadence: state.data.averageCadence,
-                    routeData: state.data.routeData
-                )
-                return .none
-
-            case let .updateAveragePace(value):
-                state.data = HealthKitDataModel(
-                    distance: state.data.distance,
-                    durationInSeconds: state.data.durationInSeconds,
-                    averagePace: value,
-                    averageHeartRate: state.data.averageHeartRate,
-                    averageCadence: state.data.averageCadence,
-                    routeData: state.data.routeData
-                )
-                return .none
-
-            case let .updateAverageHeartRate(value):
-                state.data = HealthKitDataModel(
-                    distance: state.data.distance,
-                    durationInSeconds: state.data.durationInSeconds,
-                    averagePace: state.data.averagePace,
-                    averageHeartRate: value.toInt,
-                    averageCadence: state.data.averageCadence,
-                    routeData: state.data.routeData
-                )
-                return .none
-
-            case let .updateAverageCadence(value):
-                state.data = HealthKitDataModel(
-                    distance: state.data.distance,
-                    durationInSeconds: state.data.durationInSeconds,
-                    averagePace: state.data.averagePace,
-                    averageHeartRate: state.data.averageHeartRate,
-                    averageCadence: value.toInt,
-                    routeData: state.data.routeData
-                )
                 return .none
 
             case let .loadFromRecord(record):

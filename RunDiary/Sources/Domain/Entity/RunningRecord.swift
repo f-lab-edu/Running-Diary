@@ -22,7 +22,7 @@ struct RunningRecord: Identifiable, Equatable {
     let condition: RunningCondition
     let shoes: String?
     let weather: Weather?
-    let satisfaction: Int?                  // 1-5
+    let difficultyLevel: DifficultyLevel?
     let routeData: Data?                    // HealthKit route data
     let hasMap: Bool
 
@@ -56,7 +56,7 @@ struct RunningRecord: Identifiable, Equatable {
         condition: RunningCondition = RunningCondition(),
         shoes: String? = nil,
         weather: Weather? = nil,
-        satisfaction: Int? = nil,
+        difficultyLevel: DifficultyLevel? = nil,
         routeData: Data? = nil,
         hasMap: Bool = false
     ) {
@@ -72,7 +72,7 @@ struct RunningRecord: Identifiable, Equatable {
         self.condition = condition
         self.shoes = shoes
         self.weather = weather
-        self.satisfaction = satisfaction
+        self.difficultyLevel = difficultyLevel
         self.routeData = routeData
         self.hasMap = hasMap
     }
@@ -90,13 +90,13 @@ struct HealthKitDataModel: Equatable {
         distance == 0 ? "" : distance.to2f
     }
     var formattedDuration: String {
-        durationInSeconds.formatted
+        durationInSeconds == 0 ? "" : durationInSeconds.formatted
     }
     var formattedAverageHeartRate: String {
-        averageHeartRate.toString
+        averageHeartRate == 0 ? "" : averageHeartRate.toString
     }
     var formattedAverageCadence: String {
-        averageCadence.toString
+        averageCadence == 0 ? "" : averageCadence.toString
     }
 }
 
@@ -132,5 +132,28 @@ struct Weather: Equatable {
         self.temperature = temperature
         self.humidity = humidity
         self.windSpeed = windSpeed
+    }
+}
+
+enum DifficultyLevel: Int, CaseIterable {
+    case veryEasy = 1
+    case easy
+    case medium
+    case hard
+    case veryHard
+
+    var displayName: String {
+        switch self {
+        case .veryEasy:
+            return "매우 쉬움"
+        case .easy:
+            return "쉬움"
+        case .medium:
+            return "보통"
+        case .hard:
+            return "어려움"
+        case .veryHard:
+            return "매우 어려움"
+        }
     }
 }

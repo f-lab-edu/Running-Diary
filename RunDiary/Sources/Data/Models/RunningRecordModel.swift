@@ -28,7 +28,7 @@ final class RunningRecordModel {
     var temperature: Double?
     var humidity: Int?
     var windSpeed: Double?
-    var satisfaction: Int?
+    var difficultyLevelRaw: Int?
     var routeData: Data?
     var hasMap: Bool
 
@@ -50,7 +50,7 @@ final class RunningRecordModel {
         temperature: Double? = nil,
         humidity: Int? = nil,
         windSpeed: Double? = nil,
-        satisfaction: Int? = nil,
+        difficultyLevelRaw: Int? = nil,
         routeData: Data? = nil,
         hasMap: Bool = false
     ) {
@@ -71,7 +71,7 @@ final class RunningRecordModel {
         self.temperature = temperature
         self.humidity = humidity
         self.windSpeed = windSpeed
-        self.satisfaction = satisfaction
+        self.difficultyLevelRaw = difficultyLevelRaw
         self.routeData = routeData
         self.hasMap = hasMap
     }
@@ -102,6 +102,7 @@ extension RunningRecordModel {
         // Convert raw values to enums
         let painAreas = painAreasRaw.compactMap { PainArea(rawValue: $0) }
         let runningStyle = runningStyleRaw.flatMap { RunninStyle(rawValue: $0) }
+        let difficultyLevel = difficultyLevelRaw.flatMap { DifficultyLevel(rawValue: $0) }
 
         return RunningRecord(
             id: id,
@@ -116,7 +117,7 @@ extension RunningRecordModel {
             condition: condition,
             shoes: shoes,
             weather: weather,
-            satisfaction: satisfaction,
+            difficultyLevel: difficultyLevel,
             routeData: routeData,
             hasMap: hasMap
         )
@@ -141,7 +142,7 @@ extension RunningRecordModel {
             temperature: record.weather?.temperature,
             humidity: record.weather?.humidity,
             windSpeed: record.weather?.windSpeed,
-            satisfaction: record.satisfaction,
+            difficultyLevelRaw: record.difficultyLevel?.rawValue,
             routeData: record.routeData,
             hasMap: record.hasMap
         )
@@ -180,7 +181,7 @@ extension RunningRecordModel {
             temperature: 18.5,
             humidity: 62,
             windSpeed: 3.2,
-            satisfaction: 4,
+            difficultyLevelRaw: 4,
             routeData: nil,
             hasMap: true
         )
@@ -206,7 +207,7 @@ extension RunningRecordModel {
                 temperature: 21.0,
                 humidity: 58,
                 windSpeed: 2.1,
-                satisfaction: 4,
+                difficultyLevelRaw: 4,
                 routeData: nil,
                 hasMap: true
             ),
@@ -228,7 +229,7 @@ extension RunningRecordModel {
                 temperature: 17.2,
                 humidity: 65,
                 windSpeed: 3.4,
-                satisfaction: 5,
+                difficultyLevelRaw: 5,
                 routeData: nil,
                 hasMap: true
             ),
@@ -250,7 +251,7 @@ extension RunningRecordModel {
                 temperature: 19.5,
                 humidity: 70,
                 windSpeed: 2.8,
-                satisfaction: 2,
+                difficultyLevelRaw: 2,
                 routeData: nil,
                 hasMap: false
             ),

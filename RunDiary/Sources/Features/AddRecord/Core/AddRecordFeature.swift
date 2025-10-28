@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreLocation
+
 import ComposableArchitecture
 
 enum RecordMode {
@@ -18,27 +19,22 @@ enum RecordMode {
 struct AddRecordFeature {
     @ObservableState
     struct State: Equatable {
-        // MARK: - Mode
-        let date: Date
-        var existingRecord: RunningRecord?
-
         var mode: RecordMode {
             existingRecord == nil ? .add : .edit
         }
 
-        // MARK: - Child Features
+        let date: Date
+        var existingRecord: RunningRecord?
         var healthKitData: HealthKitDataFeature.State
         var condition: RunningConditionFeature.State
+        var selectedDifficultyLevel: DifficultyLevel?
 
-        // MARK: - Additional Data
         var weather: Weather?
 
-        // MARK: - UI State
         var isLoading: Bool = false
         var errorMessage: String?
         @Presents var authorizationAlert: AlertState<AlertAction>?
-        @Presents var satisfactionDialog: ConfirmationDialogState<SatisfactionAction>?
-        var selectedSatisfaction: Int?
+        @Presents var emptyHealthKitDataAlert: AlertState<EmptyHealthKitDataAlertAction>?
 
         init(date: Date, existingRecord: RunningRecord? = nil) {
             self.date = date
@@ -52,16 +48,13 @@ struct AddRecordFeature {
         case onAppear
         case healthKitData(HealthKitDataFeature.Action)
         case condition(RunningConditionFeature.Action)
+        case updateSelectedDifficultyLevel(DifficultyLevel?)
         case saveRecord
         case weatherFetched(Weather?)
         case recordSaved(RunningRecord)
         case recordSaveFailed(String)
-        case setSatisfaction(Int)
-        case saveSatisfaction
-        case satisfactionSaved(RunningRecord)
-        case satisfactionSaveFailed(String)
         case authorizationAlert(PresentationAction<AlertAction>)
-        case satisfactionDialog(PresentationAction<SatisfactionAction>)
+        case emptyHealthKitDataAlert(PresentationAction<EmptyHealthKitDataAlertAction>)
     }
 
     enum AlertAction: Equatable {
@@ -69,8 +62,8 @@ struct AddRecordFeature {
         case goBack
     }
 
-    enum SatisfactionAction: Equatable {
-        case rate(Int)
+    enum EmptyHealthKitDataAlertAction: Equatable {
+        case goBack
     }
 
     @Dependency(\.repositoryClient) var repositoryClient
@@ -92,6 +85,7 @@ struct AddRecordFeature {
                 if state.mode == .edit, let record = state.existingRecord {
                     // edit mode: load existing record into child features
                     state.weather = record.weather
+                    state.selectedDifficultyLevel = record.difficultyLevel
                     return .merge(
                         .send(.healthKitData(.loadFromRecord(record))),
                         .send(.condition(.loadFromRecord(record))),
@@ -120,6 +114,16 @@ struct AddRecordFeature {
                     } message: {
                         TextState("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
                     }
+                case .dataLoadFailed(let message):
+                    state.emptyHealthKitDataAlert = AlertState {
+                        TextState("피트니스 데이터 가져오기 실패")
+                    } actions: {
+                        ButtonState(action: .goBack) {
+                            TextState("뒤로 가기")
+                        }
+                    } message: {
+                        TextState(message)
+                    }
                 default:
                     break
                 }
@@ -129,16 +133,21 @@ struct AddRecordFeature {
                 // Handled by RunningConditionFeature
                 return .none
 
+            case .updateSelectedDifficultyLevel(let level):
+                state.selectedDifficultyLevel = level
+                return .none
+
             case .saveRecord:
+                guard let healthKitData = state.healthKitData.data else { return .none }
                 state.isLoading = true
                 state.errorMessage = nil
 
-                let location = extractLocationFromRoute(state.healthKitData.data.routeData)
+                let location = extractLocationFromRoute(healthKitData.routeData)
                 let date = state.date
-                let healthKitData = state.healthKitData
                 let condition = state.condition
                 let existingRecordId = state.existingRecord?.id
                 let mode = state.mode
+                let difficultyLevel = state.selectedDifficultyLevel
 
                 return .run { send in
                     do {
@@ -150,11 +159,11 @@ struct AddRecordFeature {
                         let record = await RunningRecord(
                             id: existingRecordId ?? UUID(),
                             date: date,
-                            distanceInKilometers: healthKitData.data.distance,
-                            durationInSeconds: healthKitData.data.durationInSeconds,
-                            averagePace: healthKitData.data.averagePace.isEmpty ? nil : healthKitData.data.averagePace,
-                            averageHeartRate: healthKitData.data.averageHeartRate,
-                            averageCadence: healthKitData.data.averageCadence,
+                            distanceInKilometers: healthKitData.distance,
+                            durationInSeconds: healthKitData.durationInSeconds,
+                            averagePace: healthKitData.averagePace,
+                            averageHeartRate: healthKitData.averageHeartRate,
+                            averageCadence: healthKitData.averageCadence,
                             painAreas: Array(condition.selectedPainAreas),
                             runningStyle: condition.selectedRunningStyle,
                             condition: RunningCondition(
@@ -165,9 +174,9 @@ struct AddRecordFeature {
                             ),
                             shoes: condition.selectedShoe,
                             weather: weather,
-                            satisfaction: nil,
-                            routeData: healthKitData.data.routeData,
-                            hasMap: healthKitData.data.routeData != nil
+                            difficultyLevel: difficultyLevel,
+                            routeData: healthKitData.routeData,
+                            hasMap: healthKitData.routeData != nil
                         )
 
                         // Save or update
@@ -189,93 +198,13 @@ struct AddRecordFeature {
 
             case .recordSaved:
                 state.isLoading = false
-                state.satisfactionDialog = ConfirmationDialogState {
-                    TextState("러닝 만족도")
-                } actions: {
-                    ButtonState(action: .rate(1)) {
-                        TextState("1점")
-                    }
-                    ButtonState(action: .rate(2)) {
-                        TextState("2점")
-                    }
-                    ButtonState(action: .rate(3)) {
-                        TextState("3점")
-                    }
-                    ButtonState(action: .rate(4)) {
-                        TextState("4점")
-                    }
-                    ButtonState(action: .rate(5)) {
-                        TextState("5점")
-                    }
-                    ButtonState(role: .cancel) {
-                        TextState("건너뛰기")
-                    }
-                } message: {
-                    TextState("오늘 러닝에 만족하셨나요?")
+                return .run { _ in
+                    await dismiss()
                 }
-                return .none
 
             case let .recordSaveFailed(error):
                 state.isLoading = false
                 state.errorMessage = "기록 저장에 실패했습니다: \(error)"
-                return .none
-
-            case let .setSatisfaction(satisfaction):
-                state.selectedSatisfaction = satisfaction
-                return .none
-
-            case .saveSatisfaction:
-                guard let satisfaction = state.selectedSatisfaction else {
-                    return .none
-                }
-
-                state.isLoading = true
-                let date = state.date
-                let healthKitData = state.healthKitData
-                let condition = state.condition
-                let existingRecordId = state.existingRecord?.id
-                let weather = state.weather
-
-                return .run { send in
-                    do {
-                        let record = await RunningRecord(
-                            id: existingRecordId ?? UUID(),
-                            date: date,
-                            distanceInKilometers: healthKitData.data.distance,
-                            durationInSeconds: healthKitData.data.durationInSeconds,
-                            averagePace: healthKitData.data.averagePace.isEmpty ? nil : healthKitData.data.averagePace,
-                            averageHeartRate: healthKitData.data.averageHeartRate,
-                            averageCadence: healthKitData.data.averageCadence,
-                            painAreas: Array(condition.selectedPainAreas),
-                            runningStyle: condition.selectedRunningStyle,
-                            condition: RunningCondition(
-                                sleep: Int(condition.sleepHours),
-                                meal: condition.hadMeal,
-                                alcohol: condition.hadAlcohol,
-                                memo: condition.memo.isEmpty ? nil : condition.memo
-                            ),
-                            shoes: condition.selectedShoe,
-                            weather: weather,
-                            satisfaction: satisfaction,
-                            routeData: healthKitData.data.routeData,
-                            hasMap: healthKitData.data.routeData != nil
-                        )
-
-                        try await repositoryClient.update(record)
-                        await send(.satisfactionSaved(record))
-                    } catch {
-                        await send(.satisfactionSaveFailed(error.localizedDescription))
-                    }
-                }
-
-            case let .satisfactionSaved(record):
-                state.isLoading = false
-                state.existingRecord = record
-                return .none
-
-            case let .satisfactionSaveFailed(error):
-                state.isLoading = false
-                state.errorMessage = "만족도 저장에 실패했습니다: \(error)"
                 return .none
 
             case .authorizationAlert(.presented(.openSettings)):
@@ -290,16 +219,17 @@ struct AddRecordFeature {
             case .authorizationAlert:
                 return .none
 
-            case let .satisfactionDialog(.presented(.rate(rating))):
-                state.selectedSatisfaction = rating
-                return .send(.saveSatisfaction)
+            case .emptyHealthKitDataAlert(.presented(.goBack)):
+                return .run { _ in
+                    await dismiss()
+                }
 
-            case .satisfactionDialog:
+            case .emptyHealthKitDataAlert:
                 return .none
             }
         }
         .ifLet(\.$authorizationAlert, action: \.authorizationAlert)
-        .ifLet(\.$satisfactionDialog, action: \.satisfactionDialog)
+        .ifLet(\.$emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert)
     }
 
     private func extractLocationFromRoute(_ routeData: Data?) -> CLLocationCoordinate2D? {

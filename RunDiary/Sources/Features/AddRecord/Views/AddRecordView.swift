@@ -15,133 +15,126 @@ struct AddRecordView: View {
 
     var body: some View {
         NavigationStack {
-            contentView
-                .navigationTitle(store.mode == .add ? "기록 추가" : "기록 수정")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("취소") {
-                            dismiss()
-                        }
-                    }
-
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("저장") {
-                            store.send(.saveRecord)
-                        }
-                        .disabled(store.isLoading)
-                    }
+            Group {
+                if store.healthKitData.isLoading {
+                    ProgressView("피트니스 기록을 가져오는 중입니다!")
+                        .progressViewStyle(.circular)
+                } else {
+                    FormContentView(store: store)
                 }
-                .task {
-                    store.send(.onAppear)
-                }
-                .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
-                .confirmationDialog($store.scope(state: \.satisfactionDialog, action: \.satisfactionDialog))
-                .overlay {
-                    if store.isLoading {
-                        ProgressView()
+            }
+            .navigationTitle(store.mode == .add ? "기록 추가" : "기록 수정")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("취소") {
+                        dismiss()
                     }
                 }
-        }
-    }
 
-    // MARK: - Helper Methods
-
-    @ViewBuilder
-    private var contentView: some View {
-        if store.healthKitData.isLoading {
-            ProgressView("피트니스 기록을 가져오는 중입니다!")
-                .progressViewStyle(.circular)
-        } else {
-            Form {
-                // HealthKit 데이터 섹션
-                HealthKitSectionView(
-                    distance: Binding(
-                        get: { store.healthKitData.data.formattedDistance },
-                        set: { store.send(.healthKitData(.updateDistance($0))) }
-                    ),
-                    duration: Binding(
-                        get: { store.healthKitData.data.formattedDuration },
-                        set: { store.send(.healthKitData(.updateDuration($0))) }
-                    ),
-                    averagePace: Binding(
-                        get: { store.healthKitData.data.averagePace },
-                        set: { store.send(.healthKitData(.updateAveragePace($0))) }
-                    ),
-                    averageHeartRate: Binding(
-                        get: { store.healthKitData.data.formattedAverageHeartRate },
-                        set: { store.send(.healthKitData(.updateAverageHeartRate($0))) }
-                    ),
-                    averageCadence: Binding(
-                        get: { store.healthKitData.data.formattedAverageCadence },
-                        set: { store.send(.healthKitData(.updateAverageCadence($0))) }
-                    )
-                )
-
-                // 통증 부위 섹션
-                PainAreasSectionView(
-                    selectedPainAreas: Binding(
-                        get: { store.condition.selectedPainAreas },
-                        set: { store.send(.condition(.updateSelectedPainAreas($0))) }
-                    ),
-                    painAreaOptions: store.condition.painAreaOptions
-                )
-
-                // 주법/스타일 섹션
-                RunningStyleSectionView(
-                    selectedStyle: Binding(
-                        get: { store.condition.selectedRunningStyle },
-                        set: { store.send(.condition(.updateSelectedRunningStyle($0))) }
-                    ),
-                    styleOptions: store.condition.runningStyleOptions
-                )
-
-                // 컨디션 섹션
-                ConditionSectionView(
-                    sleepHours: Binding(
-                        get: { store.condition.sleepHours },
-                        set: { store.send(.condition(.updateSleepHours($0))) }
-                    ),
-                    hadMeal: Binding(
-                        get: { store.condition.hadMeal },
-                        set: { store.send(.condition(.updateHadMeal($0))) }
-                    ),
-                    hadAlcohol: Binding(
-                        get: { store.condition.hadAlcohol },
-                        set: { store.send(.condition(.updateHadAlcohol($0))) }
-                    ),
-                    memo: Binding(
-                        get: { store.condition.memo },
-                        set: { store.send(.condition(.updateMemo($0))) }
-                    )
-                )
-
-                // 신발 섹션
-                ShoesSectionView(
-                    selectedShoe: Binding(
-                        get: { store.condition.selectedShoe },
-                        set: { store.send(.condition(.updateSelectedShoe($0))) }
-                    ),
-                    shoes: store.condition.shoes
-                )
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("저장") {
+                        store.send(.saveRecord)
+                    }
+                    .disabled(store.isLoading)
+                }
+            }
+            .task {
+                store.send(.onAppear)
+            }
+            .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
+            .alert($store.scope(state: \.emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert))
+            .overlay {
+                if store.isLoading {
+                    ProgressView()
+                }
             }
         }
     }
+}
 
-    private func saveSatisfactionAndDismiss(satisfaction: Int) {
-        store.send(.satisfactionDialog(.presented(.rate(satisfaction))))
-        dismiss()
+// MARK: - Form Content
+
+private struct FormContentView: View {
+    @Bindable var store: StoreOf<AddRecordFeature>
+
+    var body: some View {
+        Form {
+            // HealthKit 데이터 섹션
+            HealthKitSectionView(
+                distance: store.healthKitData.data?.formattedDistance ?? "",
+                duration: store.healthKitData.data?.formattedDuration ?? "",
+                averagePace: store.healthKitData.data?.averagePace ?? "",
+                averageHeartRate: store.healthKitData.data?.formattedAverageHeartRate ?? "",
+                averageCadence: store.healthKitData.data?.formattedAverageCadence ?? ""
+            )
+
+            // 통증 부위 섹션
+            PainAreasSectionView(
+                selectedPainAreas: Binding(
+                    get: { store.condition.selectedPainAreas },
+                    set: { store.send(.condition(.updateSelectedPainAreas($0))) }
+                ),
+                painAreaOptions: store.condition.painAreaOptions
+            )
+
+            // 주법/스타일 섹션
+            RunningStyleSectionView(
+                selectedStyle: Binding(
+                    get: { store.condition.selectedRunningStyle },
+                    set: { store.send(.condition(.updateSelectedRunningStyle($0))) }
+                ),
+                styleOptions: store.condition.runningStyleOptions
+            )
+
+            // 난이도 섹션
+            DifficultyLevelSectionView(
+                selectedLevel: Binding(
+                    get: { store.selectedDifficultyLevel },
+                    set: { store.send(.updateSelectedDifficultyLevel($0)) }
+                )
+            )
+
+            // 컨디션 섹션
+            ConditionSectionView(
+                sleepHours: Binding(
+                    get: { store.condition.sleepHours },
+                    set: { store.send(.condition(.updateSleepHours($0))) }
+                ),
+                hadMeal: Binding(
+                    get: { store.condition.hadMeal },
+                    set: { store.send(.condition(.updateHadMeal($0))) }
+                ),
+                hadAlcohol: Binding(
+                    get: { store.condition.hadAlcohol },
+                    set: { store.send(.condition(.updateHadAlcohol($0))) }
+                ),
+                memo: Binding(
+                    get: { store.condition.memo },
+                    set: { store.send(.condition(.updateMemo($0))) }
+                )
+            )
+
+            // 신발 섹션
+            ShoesSectionView(
+                selectedShoe: Binding(
+                    get: { store.condition.selectedShoe },
+                    set: { store.send(.condition(.updateSelectedShoe($0))) }
+                ),
+                shoes: store.condition.shoes
+            )
+        }
     }
 }
 
 // MARK: - Section Views
 
 private struct HealthKitSectionView: View {
-    @Binding var distance: String
-    @Binding var duration: String
-    @Binding var averagePace: String
-    @Binding var averageHeartRate: String
-    @Binding var averageCadence: String
+    let distance: String
+    let duration: String
+    let averagePace: String
+    let averageHeartRate: String
+    let averageCadence: String
 
     var body: some View {
         Section("주요 지표") {
@@ -149,9 +142,7 @@ private struct HealthKitSectionView: View {
                 Text("거리")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0.00", text: $distance)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
+                Text(distance)
                 Text("km")
                     .foregroundColor(.gray)
             }
@@ -160,25 +151,21 @@ private struct HealthKitSectionView: View {
                 Text("소요시간")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0:00", text: $duration)
-                    .multilineTextAlignment(.trailing)
+                Text(duration)
             }
 
             HStack {
                 Text("평균 페이스")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0'00\"", text: $averagePace)
-                    .multilineTextAlignment(.trailing)
+                Text(averagePace)
             }
 
             HStack {
                 Text("평균 심박수")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0", text: $averageHeartRate)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
+                Text(averageHeartRate)
                 Text("bpm")
                     .foregroundColor(.gray)
             }
@@ -187,9 +174,7 @@ private struct HealthKitSectionView: View {
                 Text("평균 케이던스")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0", text: $averageCadence)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
+                Text(averageCadence)
                 Text("spm")
                     .foregroundColor(.gray)
             }
@@ -250,6 +235,39 @@ private struct RunningStyleSectionView: View {
                     Text(selectedStyle?.rawValue ?? "선택하세요")
                         .foregroundColor(selectedStyle == nil ? .gray : .primary)
                     Spacer()
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(.gray)
+                }
+            }
+        }
+    }
+}
+
+private struct DifficultyLevelSectionView: View {
+    @Binding var selectedLevel: DifficultyLevel?
+
+    var body: some View {
+        Section("운동 강도") {
+            Menu {
+                ForEach(DifficultyLevel.allCases, id: \.self) { level in
+                    Button(level.displayName) {
+                        selectedLevel = level
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selectedLevel?.displayName ?? "선택하세요")
+                        .foregroundColor(selectedLevel == nil ? .gray : .primary)
+                    Spacer()
+                    if let level = selectedLevel {
+                        HStack(spacing: 2) {
+                            ForEach(1...5, id: \.self) { index in
+                                Image(systemName: index <= level.rawValue ? "star.fill" : "star")
+                                    .foregroundColor(index <= level.rawValue ? .yellow : .gray)
+                                    .font(.caption)
+                            }
+                        }
+                    }
                     Image(systemName: "chevron.down")
                         .foregroundColor(.gray)
                 }

@@ -103,7 +103,7 @@ struct RecordView: View {
             // 섹션 4: 셀프 피드백 점수, 메모
             SectionContainer {
                 VStack(alignment: .leading, spacing: 12) {
-                    SatisfactionView(satisfaction: record.satisfaction)
+                    DifficultyLevelView(difficultyLevel: record.difficultyLevel?.rawValue)
 
                     if let memo = record.condition.memo {
                         VStack(spacing: 20) {
@@ -229,19 +229,19 @@ private struct SectionContainer<Content: View>: View {
     }
 }
 
-private struct SatisfactionView: View {
-    let satisfaction: Int?
+private struct DifficultyLevelView: View {
+    let difficultyLevel: Int?
 
-    init(satisfaction: Int?) {
-        self.satisfaction = satisfaction
+    init(difficultyLevel: Int?) {
+        self.difficultyLevel = difficultyLevel
     }
 
     var body: some View {
-        if let satisfaction = satisfaction {
+        if let difficultyLevel = difficultyLevel {
             HStack(spacing: 4) {
                 ForEach(1...5, id: \.self) { index in
-                    Image(systemName: index <= satisfaction ? "star.fill" : "star")
-                        .foregroundColor(index <= satisfaction ? .yellow : .gray.opacity(0.3))
+                    Image(systemName: index <= difficultyLevel ? "star.fill" : "star")
+                        .foregroundColor(index <= difficultyLevel ? .yellow : .gray.opacity(0.3))
                         .font(.system(size: 20))
                 }
             }

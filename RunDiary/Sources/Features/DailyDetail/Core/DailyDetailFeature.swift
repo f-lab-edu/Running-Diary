@@ -106,7 +106,7 @@ struct DailyDetailFeature {
                 )
                 return .none
 
-            case .addRecord(.presented(.satisfactionSaved)):
+            case .addRecord(.presented(.recordSaved)):
                 // 만족도 저장 후 닫힘 - 기록 새로고침
                 state.addRecord = nil
                 return .send(.fetchRecordForSelectedDate)
