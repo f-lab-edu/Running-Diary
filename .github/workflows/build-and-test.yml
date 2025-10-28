@@ -1,0 +1,35 @@
+name: Build & Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    timeout-minutes: 40
+
+    env:
+      SCHEME: RunningDiary
+      PROJECT: RunningDiary.xcodeproj
+      DESTINATION: "platform=iOS Simulator,name=iPhone 17,OS=18.0"
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          xcodebuild \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination "$DESTINATION" \
+            -configuration Debug \
+            build
+      - Test:
+        run: |
+          xcodebuild \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination "$DESTINATION" \
+            -configuration Debug \
+            -enableCodeCoverage YES \
+            test
