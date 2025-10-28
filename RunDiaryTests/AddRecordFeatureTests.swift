@@ -24,7 +24,7 @@ struct AddRecordFeatureTests {
         ]
 
         let store = TestStore(
-            initialState: AddRecordFeature.State(mode: .add, date: testDate)
+            initialState: AddRecordFeature.State(date: testDate)
         ) {
             AddRecordFeature()
         } withDependencies: {
@@ -70,7 +70,6 @@ struct AddRecordFeatureTests {
 
         let store = TestStore(
             initialState: AddRecordFeature.State(
-                mode: .edit,
                 date: testDate,
                 existingRecord: existingRecord
             )
@@ -121,7 +120,7 @@ struct AddRecordFeatureTests {
         let mockWeather = Weather(temperature: 20.0, humidity: 55, windSpeed: 2.5)
         var savedRecord: RunningRecord?
 
-        var initialState = AddRecordFeature.State(mode: .add, date: testDate)
+        var initialState = AddRecordFeature.State(date: testDate)
         initialState.healthKitData.distance = 5.0
         initialState.healthKitData.duration = "30:00"
         initialState.condition.hadMeal = true
@@ -146,7 +145,8 @@ struct AddRecordFeatureTests {
 
         await store.receive(\.recordSaved) {
             $0.isLoading = false
-            $0.showSatisfactionAlert = true
+            // satisfactionDialog is presented
+            #expect($0.satisfactionDialog != nil)
         }
 
         #expect(savedRecord != nil)
@@ -168,7 +168,6 @@ struct AddRecordFeatureTests {
         var updatedRecord: RunningRecord?
 
         var initialState = AddRecordFeature.State(
-            mode: .edit,
             date: testDate,
             existingRecord: existingRecord
         )
@@ -194,7 +193,8 @@ struct AddRecordFeatureTests {
 
         await store.receive(\.recordSaved) {
             $0.isLoading = false
-            $0.showSatisfactionAlert = true
+            // satisfactionDialog is presented
+            #expect($0.satisfactionDialog != nil)
         }
 
         #expect(updatedRecord != nil)
@@ -209,7 +209,7 @@ struct AddRecordFeatureTests {
         }
 
         let store = TestStore(
-            initialState: AddRecordFeature.State(mode: .add, date: Date())
+            initialState: AddRecordFeature.State(date: Date())
         ) {
             AddRecordFeature()
         } withDependencies: {
@@ -244,7 +244,6 @@ struct AddRecordFeatureTests {
         var updatedRecord: RunningRecord?
 
         var initialState = AddRecordFeature.State(
-            mode: .add,
             date: testDate,
             existingRecord: existingRecord
         )
@@ -269,7 +268,6 @@ struct AddRecordFeatureTests {
 
         await store.receive(\.satisfactionSaved) {
             $0.isLoading = false
-            $0.showSatisfactionAlert = false
             $0.existingRecord = updatedRecord
         }
 
@@ -284,7 +282,7 @@ struct AddRecordFeatureTests {
         }
 
         let store = TestStore(
-            initialState: AddRecordFeature.State(mode: .add, date: Date())
+            initialState: AddRecordFeature.State(date: Date())
         ) {
             AddRecordFeature()
         } withDependencies: {
@@ -312,41 +310,54 @@ struct AddRecordFeatureTests {
     @Test("HealthKit 권한 거부 시 alert 표시")
     func healthKitAuthorizationDeniedShowsAlert() async {
         let store = TestStore(
-            initialState: AddRecordFeature.State(mode: .add, date: Date())
+            initialState: AddRecordFeature.State(date: Date())
         ) {
             AddRecordFeature()
         }
 
         await store.send(.healthKitData(.healthStoreAuthorizationDenied)) {
-            $0.showAuthorizationDeniedAlert = true
+            // authorizationAlert is presented
+            #expect($0.authorizationAlert != nil)
         }
     }
 
-    @Test("만족도 alert 닫기")
-    func dismissSatisfactionAlert() async {
-        var initialState = AddRecordFeature.State(mode: .add, date: Date())
-        initialState.showSatisfactionAlert = true
+    @Test("만족도 dialog 닫기")
+    func dismissSatisfactionDialog() async {
+        var initialState = AddRecordFeature.State(date: Date())
+        initialState.satisfactionDialog = ConfirmationDialogState {
+            TextState("러닝 만족도")
+        } actions: {
+            ButtonState(action: .rate(3)) {
+                TextState("3점")
+            }
+        }
 
         let store = TestStore(initialState: initialState) {
             AddRecordFeature()
         }
 
-        await store.send(.dismissSatisfactionAlert) {
-            $0.showSatisfactionAlert = false
+        await store.send(.satisfactionDialog(.dismiss)) {
+            $0.satisfactionDialog = nil
         }
     }
 
     @Test("권한 거부 alert 닫기")
     func dismissAuthorizationDeniedAlert() async {
-        var initialState = AddRecordFeature.State(mode: .add, date: Date())
-        initialState.showAuthorizationDeniedAlert = true
+        var initialState = AddRecordFeature.State(date: Date())
+        initialState.authorizationAlert = AlertState {
+            TextState("건강 데이터 접근 거부됨")
+        } actions: {
+            ButtonState(action: .openSettings) {
+                TextState("설정으로 이동")
+            }
+        }
 
         let store = TestStore(initialState: initialState) {
             AddRecordFeature()
         }
 
-        await store.send(.dismissAuthorizationDeniedAlert) {
-            $0.showAuthorizationDeniedAlert = false
+        await store.send(.authorizationAlert(.dismiss)) {
+            $0.authorizationAlert = nil
         }
     }
 }

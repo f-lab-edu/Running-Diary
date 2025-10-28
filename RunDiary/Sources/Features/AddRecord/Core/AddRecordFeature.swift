@@ -19,9 +19,12 @@ struct AddRecordFeature {
     @ObservableState
     struct State: Equatable {
         // MARK: - Mode
-        let mode: RecordMode
         let date: Date
         var existingRecord: RunningRecord?
+
+        var mode: RecordMode {
+            existingRecord == nil ? .add : .edit
+        }
 
         // MARK: - Child Features
         var healthKitData: HealthKitDataFeature.State
@@ -33,12 +36,11 @@ struct AddRecordFeature {
         // MARK: - UI State
         var isLoading: Bool = false
         var errorMessage: String?
-        var showAuthorizationDeniedAlert: Bool = false
-        var showSatisfactionAlert: Bool = false
+        @Presents var authorizationAlert: AlertState<AlertAction>?
+        @Presents var satisfactionDialog: ConfirmationDialogState<SatisfactionAction>?
         var selectedSatisfaction: Int?
 
-        init(mode: RecordMode, date: Date, existingRecord: RunningRecord? = nil) {
-            self.mode = mode
+        init(date: Date, existingRecord: RunningRecord? = nil) {
             self.date = date
             self.existingRecord = existingRecord
             self.healthKitData = HealthKitDataFeature.State()
@@ -58,9 +60,16 @@ struct AddRecordFeature {
         case saveSatisfaction
         case satisfactionSaved(RunningRecord)
         case satisfactionSaveFailed(String)
-        case dismissSatisfactionAlert
+        case authorizationAlert(PresentationAction<AlertAction>)
+        case satisfactionDialog(PresentationAction<SatisfactionAction>)
+    }
+
+    enum AlertAction: Equatable {
         case openSettings
-        case dismissAuthorizationDeniedAlert
+    }
+
+    enum SatisfactionAction: Equatable {
+        case rate(Int)
     }
 
     @Dependency(\.repositoryClient) var repositoryClient
@@ -94,7 +103,18 @@ struct AddRecordFeature {
             case .healthKitData(let healthKitDataAction):
                 switch healthKitDataAction{
                 case .healthStoreAuthorizationDenied:
-                    state.showAuthorizationDeniedAlert = true
+                    state.authorizationAlert = AlertState {
+                        TextState("건강 데이터 접근 거부됨")
+                    } actions: {
+                        ButtonState(action: .openSettings) {
+                            TextState("설정으로 이동")
+                        }
+                        ButtonState(role: .cancel) {
+                            TextState("취소")
+                        }
+                    } message: {
+                        TextState("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
+                    }
                 default:
                     break
                 }
@@ -164,7 +184,30 @@ struct AddRecordFeature {
 
             case .recordSaved:
                 state.isLoading = false
-                state.showSatisfactionAlert = true
+                state.satisfactionDialog = ConfirmationDialogState {
+                    TextState("러닝 만족도")
+                } actions: {
+                    ButtonState(action: .rate(1)) {
+                        TextState("1점")
+                    }
+                    ButtonState(action: .rate(2)) {
+                        TextState("2점")
+                    }
+                    ButtonState(action: .rate(3)) {
+                        TextState("3점")
+                    }
+                    ButtonState(action: .rate(4)) {
+                        TextState("4점")
+                    }
+                    ButtonState(action: .rate(5)) {
+                        TextState("5점")
+                    }
+                    ButtonState(role: .cancel) {
+                        TextState("건너뛰기")
+                    }
+                } message: {
+                    TextState("오늘 러닝에 만족하셨나요?")
+                }
                 return .none
 
             case let .recordSaveFailed(error):
@@ -222,7 +265,6 @@ struct AddRecordFeature {
 
             case let .satisfactionSaved(record):
                 state.isLoading = false
-                state.showSatisfactionAlert = false
                 state.existingRecord = record
                 return .none
 
@@ -231,19 +273,23 @@ struct AddRecordFeature {
                 state.errorMessage = "만족도 저장에 실패했습니다: \(error)"
                 return .none
 
-            case .dismissSatisfactionAlert:
-                state.showSatisfactionAlert = false
-                return .none
-
-            case .openSettings:
+            case .authorizationAlert(.presented(.openSettings)):
                 URLOpener.openSettings()
                 return .none
 
-            case .dismissAuthorizationDeniedAlert:
-                state.showAuthorizationDeniedAlert = false
+            case .authorizationAlert:
+                return .none
+
+            case let .satisfactionDialog(.presented(.rate(rating))):
+                state.selectedSatisfaction = rating
+                return .send(.saveSatisfaction)
+
+            case .satisfactionDialog:
                 return .none
             }
         }
+        .ifLet(\.$authorizationAlert, action: \.authorizationAlert)
+        .ifLet(\.$satisfactionDialog, action: \.satisfactionDialog)
     }
 
     private func extractLocationFromRoute(_ routeData: Data?) -> CLLocationCoordinate2D? {

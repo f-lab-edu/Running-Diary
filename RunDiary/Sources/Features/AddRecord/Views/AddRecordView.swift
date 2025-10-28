@@ -112,44 +112,8 @@ struct AddRecordView: View {
                     store.send(.healthKitData(.loadData(store.date)))
                 }
             }
-            .alert("건강 데이터 접근 거부됨", isPresented: Binding(
-                get: { store.showAuthorizationDeniedAlert },
-                set: { if !$0 { store.send(.dismissAuthorizationDeniedAlert) } }
-            )) {
-                Button("설정으로 이동") {
-                    store.send(.openSettings)
-                }
-                Button("취소") {
-                    dismiss()
-                }
-            } message: {
-                Text("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
-            }
-            .alert("러닝 만족도", isPresented: Binding(
-                get: { store.showSatisfactionAlert },
-                set: { if !$0 { store.send(.dismissSatisfactionAlert) } }
-            )) {
-                Button("1점") {
-                    saveSatisfactionAndDismiss(satisfaction: 1)
-                }
-                Button("2점") {
-                    saveSatisfactionAndDismiss(satisfaction: 2)
-                }
-                Button("3점") {
-                    saveSatisfactionAndDismiss(satisfaction: 3)
-                }
-                Button("4점") {
-                    saveSatisfactionAndDismiss(satisfaction: 4)
-                }
-                Button("5점") {
-                    saveSatisfactionAndDismiss(satisfaction: 5)
-                }
-                Button("건너뛰기", role: .cancel) {
-                    dismiss()
-                }
-            } message: {
-                Text("오늘 러닝에 만족하셨나요?")
-            }
+            .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
+            .confirmationDialog($store.scope(state: \.satisfactionDialog, action: \.satisfactionDialog))
             .overlay {
                 if store.isLoading {
                     ProgressView()
@@ -161,8 +125,8 @@ struct AddRecordView: View {
     // MARK: - Helper Methods
 
     private func saveSatisfactionAndDismiss(satisfaction: Int) {
-        store.send(.setSatisfaction(satisfaction))
-        store.send(.saveSatisfaction)
+        store.send(.satisfactionDialog(.presented(.rate(satisfaction))))
+        dismiss()
     }
 }
 
@@ -387,7 +351,6 @@ private struct CheckboxView: View {
     AddRecordView(
         store: Store(
             initialState: AddRecordFeature.State(
-                mode: .add,
                 date: Date()
             )
         ) {
@@ -400,7 +363,6 @@ private struct CheckboxView: View {
     AddRecordView(
         store: Store(
             initialState: AddRecordFeature.State(
-                mode: .edit,
                 date: Date(),
                 existingRecord: RunningRecordModel.preview.toDomain()
             )

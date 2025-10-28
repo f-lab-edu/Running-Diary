@@ -124,9 +124,7 @@ struct DailyDetailFeatureTests {
 
         await store.send(.showAddRecord) {
             $0.addRecord = AddRecordFeature.State(
-                mode: .add,
-                date: testDate,
-                existingRecord: nil
+                date: testDate
             )
         }
     }
@@ -151,7 +149,6 @@ struct DailyDetailFeatureTests {
 
         await store.send(.showAddRecord) {
             $0.addRecord = AddRecordFeature.State(
-                mode: .edit,
                 date: testDate,
                 existingRecord: mockRecord
             )
@@ -170,7 +167,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(
             initialState: DailyDetailFeature.State(
                 selectedDate: testDate,
-                addRecord: AddRecordFeature.State(mode: .add, date: testDate)
+                addRecord: AddRecordFeature.State(date: testDate)
             )
         ) {
             DailyDetailFeature()

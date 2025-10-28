@@ -100,9 +100,7 @@ struct DailyDetailFeature {
                 return .none
 
             case .showAddRecord:
-                let mode: RecordMode = state.runningRecord == nil ? .add : .edit
                 state.addRecord = AddRecordFeature.State(
-                    mode: mode,
                     date: state.selectedDate,
                     existingRecord: state.runningRecord
                 )
