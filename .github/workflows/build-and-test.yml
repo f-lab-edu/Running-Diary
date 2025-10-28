@@ -1,8 +1,10 @@
 name: Build & Test
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
 
 jobs:
   build-and-test:
@@ -16,20 +18,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build
+      - name: Start xcode build 🛠
         run: |
-          xcodebuild \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
-            -configuration Debug \
-            build
-      - Test:
-        run: |
-          xcodebuild \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
-            -configuration Debug \
-            -enableCodeCoverage YES \
-            test
+          xcodebuild clean test -project "$PROJECT" -scheme "$SCHEME" -destination "$DESTINATION" -enableCodeCoverage YES
