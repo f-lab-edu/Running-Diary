@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Double {
+public extension Double {
     var to2f: String {
         String(format: "%.2f", self)
     }

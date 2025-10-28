@@ -6,7 +6,10 @@
 //
 
 import Foundation
+
 import ComposableArchitecture
+
+import CommonFoundation
 
 @Reducer
 struct HealthKitDataFeature {

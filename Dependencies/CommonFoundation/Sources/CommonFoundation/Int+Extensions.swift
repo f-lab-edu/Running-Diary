@@ -5,7 +5,7 @@
 //  Created by 김혜지 on 10/23/25.
 //
 
-extension Int {
+public extension Int {
     var toString: String {
         String(self)
     }

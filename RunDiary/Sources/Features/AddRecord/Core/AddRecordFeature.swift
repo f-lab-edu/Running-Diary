@@ -122,7 +122,7 @@ struct AddRecordFeature {
                         await send(.weatherFetched(weather))
 
                         // Create record
-                        let record = RunningRecord(
+                        let record = await RunningRecord(
                             id: existingRecordId ?? UUID(),
                             date: date,
                             distanceInKilometers: Double(healthKitData.distance),
@@ -190,7 +190,7 @@ struct AddRecordFeature {
 
                 return .run { send in
                     do {
-                        let record = RunningRecord(
+                        let record = await RunningRecord(
                             id: existingRecordId ?? UUID(),
                             date: date,
                             distanceInKilometers: Double(healthKitData.distance),

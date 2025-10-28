@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3394D2C32EAC74C700A46A16 /* CommonFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 3394D2C22EAC74C700A46A16 /* CommonFoundation */; };
 		339637502EA4F89B00640DBF /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 33TCA0022EA1600000000002 /* ComposableArchitecture */; };
 /* End PBXBuildFile section */
 
@@ -23,6 +24,7 @@
 /* Begin PBXFileReference section */
 		3317C6142EA774D900525269 /* RunDiaryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunDiaryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3344D6092E81CD5B00982E36 /* RunDiary.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RunDiary.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3394D2472EAC74A300A46A16 /* CommonFoundation */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CommonFoundation; path = Dependencies/CommonFoundation; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -63,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3394D2C32EAC74C700A46A16 /* CommonFoundation in Frameworks */,
 				339637502EA4F89B00640DBF /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -73,9 +76,11 @@
 		3344D6002E81CD5B00982E36 = {
 			isa = PBXGroup;
 			children = (
-				3317C6152EA774D900525269 /* RunDiaryTests */,
+				3394D2472EAC74A300A46A16 /* CommonFoundation */,
+				3394D2C12EAC74C700A46A16 /* Frameworks */,
 				3344D60A2E81CD5B00982E36 /* Products */,
 				3367BB422E9D05250027F8B1 /* RunDiary */,
+				3317C6152EA774D900525269 /* RunDiaryTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -86,6 +91,13 @@
 				3317C6142EA774D900525269 /* RunDiaryTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3394D2C12EAC74C700A46A16 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -132,6 +144,7 @@
 			name = RunDiary;
 			packageProductDependencies = (
 				33TCA0022EA1600000000002 /* ComposableArchitecture */,
+				3394D2C22EAC74C700A46A16 /* CommonFoundation */,
 			);
 			productName = RunDiary;
 			productReference = 3344D6092E81CD5B00982E36 /* RunDiary.app */;
@@ -495,6 +508,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		3394D2C22EAC74C700A46A16 /* CommonFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CommonFoundation;
+		};
 		33TCA0022EA1600000000002 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;

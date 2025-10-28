@@ -6,7 +6,10 @@
 //
 
 import SwiftUI
+
 import ComposableArchitecture
+
+import CommonFoundation
 
 struct AddRecordView: View {
     @Bindable var store: StoreOf<AddRecordFeature>
