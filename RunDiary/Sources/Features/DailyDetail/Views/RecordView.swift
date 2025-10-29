@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+import CommonFoundation
+
 struct RecordView: View {
     let record: RunningRecord
     let onEdit: () -> Void
@@ -35,38 +37,24 @@ struct RecordView: View {
             SectionContainer {
                 VStack(alignment: .leading, spacing: 16) {
                     // HealthKit 데이터
-                    if record.distanceInKilometers != nil || record.averagePace != nil || record.durationInSeconds != nil {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack(spacing: 20) {
-                                if let distance = record.distanceInKilometers {
-                                    RecordRowView(title: "거리", value: String(format: "%.2f km", distance))
-                                }
-
-                                if let duration = record.formattedDuration {
-                                    RecordRowView(title: "소요시간", value: duration)
-                                }
-                            }
-
-                            HStack(spacing: 20) {
-                                if let pace = record.averagePace {
-                                    RecordRowView(title: "평균 페이스", value: pace)
-                                }
-
-                                if let heartRate = record.averageHeartRate {
-                                    RecordRowView(title: "평균 심박수", value: "\(heartRate) bpm")
-                                }
-                            }
-
-                            HStack(spacing: 20) {
-                                if let cadence = record.averageCadence {
-                                    RecordRowView(title: "평균 케이던스", value: "\(cadence) spm")
-                                }
-                            }
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 20) {
+                            RecordRowView(title: "거리", value: record.distanceInKilometers.to2f)
+                            RecordRowView(title: "소요시간", value: record.formattedDuration)
                         }
 
-                        Divider()
-                            .padding(.vertical, 10)
+                        HStack(spacing: 20) {
+                            RecordRowView(title: "평균 페이스", value: record.averagePace)
+                            RecordRowView(title: "평균 심박수", value: "\(record.averageHeartRate) bpm")
+                        }
+
+                        HStack(spacing: 20) {
+                            RecordRowView(title: "평균 케이던스", value: "\(record.averageCadence) spm")
+                        }
                     }
+
+                    Divider()
+                        .padding(.vertical, 10)
 
                     // 주법/스타일
                     if let style = record.runningStyle {

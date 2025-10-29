@@ -30,7 +30,7 @@ struct RunningRecord: Identifiable, Equatable {
         durationInSeconds * 0.621371
     }
 
-    var formattedDuration: String? {
+    var formattedDuration: String {
         let hours = Int(durationInSeconds) / 3600
         let minutes = (Int(durationInSeconds) % 3600) / 60
         let seconds = Int(durationInSeconds) % 60
