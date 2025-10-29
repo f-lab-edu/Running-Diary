@@ -17,15 +17,13 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
     }
 
     func fetch(for date: Date) async throws -> RunningRecord? {
+        let startTime = Date()
+        AppLogger.database.debug("fetch 시작 - date: \(date)")
+
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
-        guard
-            let endOfDay = calendar.date(
-                byAdding: .day,
-                value: 1,
-                to: startOfDay
-            )
-        else {
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            AppLogger.database.warning("fetch 실패 - endOfDay 계산 실패")
             return nil
         }
 
@@ -39,12 +37,22 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
 
         let models = try modelContext.fetch(descriptor)
 
-        return models.first?.toDomain()
+        let elapsed = Date().timeIntervalSince(startTime)
+        let result = models.first?.toDomain()
+
+        if result != nil {
+            AppLogger.database.info("fetch 성공 - date: \(startOfDay), elapsed: \(String(format: "%.3f", elapsed))s")
+        } else {
+            AppLogger.database.debug("fetch 결과 없음 - date: \(startOfDay), elapsed: \(String(format: "%.3f", elapsed))s")
+        }
+
+        return result
     }
 
-    func fetchRecords(from startDate: Date, to endDate: Date) async throws
-        -> [RunningRecord]
-    {
+    func fetchRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord] {
+        let startTime = Date()
+        AppLogger.database.debug("fetchRecords 시작 - startDate: \(startDate), endDate: \(endDate)")
+
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: startDate)
         let end = calendar.startOfDay(for: endDate)
@@ -60,21 +68,36 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
 
         let models = try modelContext.fetch(descriptor)
 
-        return models.map { $0.toDomain() }
+        let elapsed = Date().timeIntervalSince(startTime)
+        let records = models.map { $0.toDomain() }
+
+        AppLogger.database.info("fetchRecords 성공 - count: \(records.count), elapsed: \(String(format: "%.3f", elapsed))s")
+
+        return records
     }
 
     func save(_ record: RunningRecord) async throws {
+        let startTime = Date()
+        AppLogger.database.debug("save 시작 - recordId: \(record.id), date: \(record.date)")
+
         let model = RunningRecordModel.fromDomain(record)
         modelContext.insert(model)
 
         do {
             try modelContext.save()
+            let elapsed = Date().timeIntervalSince(startTime)
+            AppLogger.database.info("save 성공 - recordId: \(record.id), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
+            let elapsed = Date().timeIntervalSince(startTime)
+            AppLogger.database.error("save 실패 - recordId: \(record.id), error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
             throw RepositoryError.saveFailed
         }
     }
 
     func update(_ record: RunningRecord) async throws {
+        let startTime = Date()
+        AppLogger.database.debug("update 시작 - recordId: \(record.id), date: \(record.date)")
+
         // 기존 레코드 찾기
         let recordId = record.id
         let predicate = #Predicate<RunningRecordModel> { $0.id == recordId }
@@ -82,8 +105,8 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
             predicate: predicate
         )
 
-        guard let existingModel = try modelContext.fetch(descriptor).first
-        else {
+        guard let existingModel = try modelContext.fetch(descriptor).first else {
+            AppLogger.database.error("update 실패 - recordId: \(recordId), 기존 레코드를 찾을 수 없음")
             throw RepositoryError.notFound
         }
 
@@ -112,12 +135,19 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
 
         do {
             try modelContext.save()
+            let elapsed = Date().timeIntervalSince(startTime)
+            AppLogger.database.info("update 성공 - recordId: \(recordId), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
+            let elapsed = Date().timeIntervalSince(startTime)
+            AppLogger.database.error("update 실패 - recordId: \(recordId), error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
             throw RepositoryError.updateFailed
         }
     }
 
     func delete(_ record: RunningRecord) async throws {
+        let startTime = Date()
+        AppLogger.database.debug("delete 시작 - recordId: \(record.id)")
+
         let recordId = record.id
         let predicate = #Predicate<RunningRecordModel> { $0.id == recordId }
         let descriptor = FetchDescriptor<RunningRecordModel>(
@@ -125,6 +155,7 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
         )
 
         guard let model = try modelContext.fetch(descriptor).first else {
+            AppLogger.database.error("delete 실패 - recordId: \(recordId), 기존 레코드를 찾을 수 없음")
             throw RepositoryError.notFound
         }
 
@@ -132,7 +163,11 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
 
         do {
             try modelContext.save()
+            let elapsed = Date().timeIntervalSince(startTime)
+            AppLogger.database.info("delete 성공 - recordId: \(recordId), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
+            let elapsed = Date().timeIntervalSince(startTime)
+            AppLogger.database.error("delete 실패 - recordId: \(recordId), error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
             throw RepositoryError.deleteFailed
         }
     }

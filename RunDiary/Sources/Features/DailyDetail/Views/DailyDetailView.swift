@@ -70,7 +70,7 @@ private struct RecordContentSection: View {
             Group {
                 if store.isLoading {
                     ProgressView()
-                } else if let record = store.runningRecord {
+                } else if let record = store.currentRecord {
                     RecordView(record: record, onEdit: { store.send(.showAddRecord) })
                 } else {
                     EmptyRecordView(onAddRecord: { store.send(.showAddRecord) })
@@ -95,10 +95,14 @@ private struct RecordContentSection: View {
 }
 
 #Preview("With Record", traits: .sampleData) {
-    DailyDetailView(
+    let previewRecord = RunningRecordModel.preview.toDomain()
+    let previewDate = Calendar.current.startOfDay(for: previewRecord.date)
+
+    return DailyDetailView(
         store: Store(
             initialState: DailyDetailFeature.State(
-                runningRecord: RunningRecordModel.preview.toDomain()
+                selectedDate: previewDate,
+                cachedRecords: [previewDate: previewRecord]
             )
         ) {
             DailyDetailFeature()
