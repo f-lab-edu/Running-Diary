@@ -69,13 +69,13 @@ private struct FormContentView: View {
                 averageCadence: store.healthKitData.data?.formattedAverageCadence ?? ""
             )
 
-            // 통증 부위 섹션
-            PainAreasSectionView(
-                selectedPainAreas: Binding(
-                    get: { store.condition.selectedPainAreas },
-                    set: { store.send(.condition(.updateSelectedPainAreas($0))) }
+            // 신발 섹션
+            ShoesSectionView(
+                selectedShoe: Binding(
+                    get: { store.condition.selectedShoe },
+                    set: { store.send(.condition(.updateSelectedShoe($0))) }
                 ),
-                painAreaOptions: store.condition.painAreaOptions
+                shoes: store.condition.shoes
             )
 
             // 주법/스타일 섹션
@@ -87,12 +87,13 @@ private struct FormContentView: View {
                 styleOptions: store.condition.runningStyleOptions
             )
 
-            // 난이도 섹션
-            DifficultyLevelSectionView(
-                selectedLevel: Binding(
-                    get: { store.selectedDifficultyLevel },
-                    set: { store.send(.updateSelectedDifficultyLevel($0)) }
-                )
+            // 통증 부위 섹션
+            PainAreasSectionView(
+                selectedPainAreas: Binding(
+                    get: { store.condition.selectedPainAreas },
+                    set: { store.send(.condition(.updateSelectedPainAreas($0))) }
+                ),
+                painAreaOptions: store.condition.painAreaOptions
             )
 
             // 컨디션 섹션
@@ -115,13 +116,12 @@ private struct FormContentView: View {
                 )
             )
 
-            // 신발 섹션
-            ShoesSectionView(
-                selectedShoe: Binding(
-                    get: { store.condition.selectedShoe },
-                    set: { store.send(.condition(.updateSelectedShoe($0))) }
-                ),
-                shoes: store.condition.shoes
+            // 난이도 섹션
+            DifficultyLevelSectionView(
+                selectedLevel: Binding(
+                    get: { store.selectedDifficultyLevel },
+                    set: { store.send(.updateSelectedDifficultyLevel($0)) }
+                )
             )
         }
     }
@@ -200,8 +200,9 @@ private struct PainAreasSectionView: View {
                 } label: {
                     Text(area.rawValue)
                         .font(.subheadline)
+                        .bold(selectedPainAreas.contains(area))
                         .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 12)
                 }
                 .buttonStyle(PainAreaButtonStyle(isSelected: selectedPainAreas.contains(area)))
             }
@@ -214,7 +215,7 @@ private struct RunningStyleSectionView: View {
     let styleOptions: [RunninStyle]
 
     var body: some View {
-        Section("주법/스타일") {
+        Section("주법") {
             Menu {
                 ForEach(styleOptions, id: \.self) { style in
                     Button(style.rawValue) {
@@ -223,7 +224,7 @@ private struct RunningStyleSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedStyle?.rawValue ?? "선택하세요")
+                    Text(selectedStyle?.rawValue ?? "어떤 주법으로 달렸나요?")
                         .foregroundColor(selectedStyle == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -247,7 +248,7 @@ private struct DifficultyLevelSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedLevel?.displayName ?? "선택하세요")
+                    Text(selectedLevel?.displayName ?? "운동 강도를 선택해주세요!")
                         .foregroundColor(selectedLevel == nil ? .gray : .primary)
                     Spacer()
                     if let level = selectedLevel {
@@ -324,7 +325,7 @@ private struct ShoesSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedShoe ?? "선택하세요")
+                    Text(selectedShoe ?? "어떤 신발을 착용하셨나요?")
                         .foregroundColor(selectedShoe == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")

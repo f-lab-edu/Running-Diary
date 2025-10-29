@@ -15,9 +15,9 @@ public extension TimeInterval {
         seconds %= 60
 
         if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+            return String(format: "%d시간%02d분%02d초", hours, minutes, seconds)
         } else {
-            return String(format: "%d:%02d", minutes, seconds)
+            return String(format: "%d분%02d초", minutes, seconds)
         }
     }
 }
