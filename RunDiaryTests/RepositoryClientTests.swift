@@ -19,6 +19,10 @@ struct RepositoryClientTests {
             date: testDate,
             distanceInKilometers: 5.2,
             durationInSeconds: 1800,
+            averagePace: "5'46\"",
+            averageHeartRate: 150,
+            averageCadence: 170,
+            runningStyle: .midfoot,
             condition: RunningCondition(meal: true, alcohol: false)
         )
 
@@ -66,11 +70,21 @@ struct RepositoryClientTests {
             RunningRecord(
                 date: startDate,
                 distanceInKilometers: 5.0,
+                durationInSeconds: 1500,
+                averagePace: "5'00\"",
+                averageHeartRate: 145,
+                averageCadence: 165,
+                runningStyle: .forefoot,
                 condition: RunningCondition(meal: true, alcohol: false)
             ),
             RunningRecord(
                 date: Calendar.current.date(byAdding: .day, value: 3, to: startDate)!,
                 distanceInKilometers: 7.5,
+                durationInSeconds: 2250,
+                averagePace: "5'00\"",
+                averageHeartRate: 150,
+                averageCadence: 170,
+                runningStyle: .midfoot,
                 condition: RunningCondition(meal: true, alcohol: false)
             )
         ]
@@ -117,6 +131,11 @@ struct RepositoryClientTests {
         let newRecord = RunningRecord(
             date: Date(),
             distanceInKilometers: 10.0,
+            durationInSeconds: 3000,
+            averagePace: "5'00\"",
+            averageHeartRate: 160,
+            averageCadence: 180,
+            runningStyle: .midfoot,
             condition: RunningCondition(meal: true, alcohol: false)
         )
 
@@ -144,6 +163,11 @@ struct RepositoryClientTests {
             id: UUID(),
             date: Date(),
             distanceInKilometers: 6.0,
+            durationInSeconds: 1800,
+            averagePace: "5'00\"",
+            averageHeartRate: 155,
+            averageCadence: 175,
+            runningStyle: .forefoot,
             condition: RunningCondition(meal: false, alcohol: true)
         )
 
@@ -174,6 +198,11 @@ struct RepositoryClientTests {
             id: UUID(),
             date: Date(),
             distanceInKilometers: 3.0,
+            durationInSeconds: 1200,
+            averagePace: "6'40\"",
+            averageHeartRate: 140,
+            averageCadence: 160,
+            runningStyle: .midfoot,
             condition: RunningCondition(meal: true, alcohol: false)
         )
 

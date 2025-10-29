@@ -53,6 +53,15 @@ struct AddRecordFeatureTests {
             $0.healthKitData.isLoading = false
             $0.healthKitData.errorMessage = "HealthKit 데이터를 가져올 수 없습니다: 데이터를 찾을 수 없습니다"
             $0.healthKitData.isDataLoaded = false
+            $0.emptyHealthKitDataAlert = AlertState {
+                TextState("피트니스 데이터 가져오기 실패")
+            } actions: {
+                ButtonState(action: .goBack) {
+                    TextState("뒤로 가기")
+                }
+            } message: {
+                TextState("데이터를 찾을 수 없습니다")
+            }
         }
     }
 
@@ -76,7 +85,7 @@ struct AddRecordFeatureTests {
             ),
             shoes: "Nike Pegasus 40",
             weather: Weather(temperature: 18.5, humidity: 60, windSpeed: 2.3),
-            satisfaction: 4
+            difficultyLevel: .hard
         )
 
         let mockShoes = [ShoeModel(name: "Nike Pegasus 40", brand: "Nike")]
@@ -94,6 +103,7 @@ struct AddRecordFeatureTests {
 
         await store.send(.onAppear) {
             $0.weather = existingRecord.weather
+            $0.selectedDifficultyLevel = .hard
         }
 
         await store.receive(\.healthKitData.loadFromRecord) {
@@ -130,8 +140,8 @@ struct AddRecordFeatureTests {
 
     // MARK: - Save Record Tests
 
-    @Test("기록 저장 성공 시 날씨 조회 및 만족도 alert 표시")
-    func saveRecordSuccessShowsSatisfactionAlert() async {
+    @Test("기록 저장 성공 시 날씨 조회")
+    func saveRecordSuccessFetchesWeather() async {
         let testDate = Date()
         let mockWeather = Weather(temperature: 20.0, humidity: 55, windSpeed: 2.5)
         var savedRecord: RunningRecord?
@@ -140,12 +150,16 @@ struct AddRecordFeatureTests {
         initialState.healthKitData.data = HealthKitDataModel(
             distance: 5.0,
             durationInSeconds: 1800,
-            averagePace: "",
-            averageHeartRate: 0,
-            averageCadence: 0,
+            averagePace: "6'00\"",
+            averageHeartRate: 150,
+            averageCadence: 170,
             routeData: nil
         )
+        initialState.condition.selectedShoe = "Nike Pegasus 40"
+        initialState.condition.selectedRunningStyle = .midfoot
+        initialState.condition.sleepHours = "8"
         initialState.condition.hadMeal = true
+        initialState.selectedDifficultyLevel = .medium
 
         let store = TestStore(initialState: initialState) {
             AddRecordFeature()
@@ -167,31 +181,6 @@ struct AddRecordFeatureTests {
 
         await store.receive(\.recordSaved) {
             $0.isLoading = false
-            // satisfactionDialog is presented
-            $0.satisfactionDialog = ConfirmationDialogState {
-                TextState("러닝 만족도")
-            } actions: {
-                ButtonState(action: .rate(1)) {
-                    TextState("1점")
-                }
-                ButtonState(action: .rate(2)) {
-                    TextState("2점")
-                }
-                ButtonState(action: .rate(3)) {
-                    TextState("3점")
-                }
-                ButtonState(action: .rate(4)) {
-                    TextState("4점")
-                }
-                ButtonState(action: .rate(5)) {
-                    TextState("5점")
-                }
-                ButtonState(role: .cancel) {
-                    TextState("건너뛰기")
-                }
-            } message: {
-                TextState("오늘 러닝에 만족하셨나요?")
-            }
         }
 
         #expect(savedRecord != nil)
@@ -206,6 +195,11 @@ struct AddRecordFeatureTests {
             id: recordId,
             date: testDate,
             distanceInKilometers: 3.0,
+            durationInSeconds: 1500,
+            averagePace: "5'00\"",
+            averageHeartRate: 145,
+            averageCadence: 165,
+            runningStyle: .midfoot,
             condition: RunningCondition(meal: false, alcohol: false)
         )
 
@@ -219,11 +213,15 @@ struct AddRecordFeatureTests {
         initialState.healthKitData.data = HealthKitDataModel(
             distance: 5.5,
             durationInSeconds: 2100,
-            averagePace: "",
-            averageHeartRate: 0,
-            averageCadence: 0,
+            averagePace: "6'20\"",
+            averageHeartRate: 150,
+            averageCadence: 170,
             routeData: nil
         )
+        initialState.condition.selectedShoe = "Nike Pegasus 40"
+        initialState.condition.selectedRunningStyle = .forefoot
+        initialState.condition.sleepHours = "7"
+        initialState.selectedDifficultyLevel = .hard
 
         let store = TestStore(initialState: initialState) {
             AddRecordFeature()
@@ -236,6 +234,7 @@ struct AddRecordFeatureTests {
 
         await store.send(.saveRecord) {
             $0.isLoading = true
+            $0.errorMessage = nil
         }
 
         await store.receive(\.weatherFetched) {
@@ -244,31 +243,6 @@ struct AddRecordFeatureTests {
 
         await store.receive(\.recordSaved) {
             $0.isLoading = false
-            // satisfactionDialog is presented
-            $0.satisfactionDialog = ConfirmationDialogState {
-                TextState("러닝 만족도")
-            } actions: {
-                ButtonState(action: .rate(1)) {
-                    TextState("1점")
-                }
-                ButtonState(action: .rate(2)) {
-                    TextState("2점")
-                }
-                ButtonState(action: .rate(3)) {
-                    TextState("3점")
-                }
-                ButtonState(action: .rate(4)) {
-                    TextState("4점")
-                }
-                ButtonState(action: .rate(5)) {
-                    TextState("5점")
-                }
-                ButtonState(role: .cancel) {
-                    TextState("건너뛰기")
-                }
-            } message: {
-                TextState("오늘 러닝에 만족하셨나요?")
-            }
         }
 
         #expect(updatedRecord != nil)
@@ -282,9 +256,21 @@ struct AddRecordFeatureTests {
             var errorDescription: String? { "저장 실패" }
         }
 
-        let store = TestStore(
-            initialState: AddRecordFeature.State(date: Date())
-        ) {
+        var initialState = AddRecordFeature.State(date: Date())
+        initialState.healthKitData.data = HealthKitDataModel(
+            distance: 5.0,
+            durationInSeconds: 1800,
+            averagePace: "6'00\"",
+            averageHeartRate: 150,
+            averageCadence: 170,
+            routeData: nil
+        )
+        initialState.condition.selectedShoe = "Nike Pegasus 40"
+        initialState.condition.selectedRunningStyle = .midfoot
+        initialState.condition.sleepHours = "8"
+        initialState.selectedDifficultyLevel = .medium
+
+        let store = TestStore(initialState: initialState) {
             AddRecordFeature()
         } withDependencies: {
             $0.weatherClient.fetchWeather = { _, _ in
@@ -305,89 +291,6 @@ struct AddRecordFeatureTests {
         await store.receive(\.recordSaveFailed) {
             $0.isLoading = false
             $0.errorMessage = "기록 저장에 실패했습니다: 저장 실패"
-        }
-    }
-
-    // MARK: - Satisfaction Tests
-
-    @Test("만족도 선택 및 저장")
-    func setSatisfactionAndSave() async {
-        let testDate = Date()
-        let recordId = UUID()
-        let existingRecord = RunningRecord(
-            id: recordId,
-            date: testDate,
-            distanceInKilometers: 5.0,
-            condition: RunningCondition(meal: true, alcohol: false)
-        )
-
-        var updatedRecord: RunningRecord?
-
-        var initialState = AddRecordFeature.State(
-            date: testDate,
-            existingRecord: existingRecord
-        )
-        initialState.healthKitData.data = HealthKitDataModel(
-            distance: 5.0,
-            durationInSeconds: 1800,
-            averagePace: "",
-            averageHeartRate: 0,
-            averageCadence: 0,
-            routeData: nil
-        )
-
-        let store = TestStore(initialState: initialState) {
-            AddRecordFeature()
-        } withDependencies: {
-            $0.repositoryClient.update = { record in
-                updatedRecord = record
-            }
-        }
-
-        await store.send(.setSatisfaction(4)) {
-            $0.selectedSatisfaction = 4
-        }
-
-        await store.send(.saveSatisfaction) {
-            $0.isLoading = true
-        }
-
-        await store.receive(\.satisfactionSaved) {
-            $0.isLoading = false
-            $0.existingRecord = updatedRecord
-        }
-
-        #expect(updatedRecord != nil)
-        #expect(updatedRecord?.satisfaction == 4)
-    }
-
-    @Test("만족도 저장 실패 시 에러 메시지 표시")
-    func saveSatisfactionFailureShowsError() async {
-        struct SatisfactionError: Error, LocalizedError {
-            var errorDescription: String? { "만족도 저장 실패" }
-        }
-
-        let store = TestStore(
-            initialState: AddRecordFeature.State(date: Date())
-        ) {
-            AddRecordFeature()
-        } withDependencies: {
-            $0.repositoryClient.update = { _ in
-                throw SatisfactionError()
-            }
-        }
-
-        await store.send(.setSatisfaction(3)) {
-            $0.selectedSatisfaction = 3
-        }
-
-        await store.send(.saveSatisfaction) {
-            $0.isLoading = true
-        }
-
-        await store.receive(\.satisfactionSaveFailed) {
-            $0.isLoading = false
-            $0.errorMessage = "만족도 저장에 실패했습니다: 만족도 저장 실패"
         }
     }
 
@@ -415,26 +318,6 @@ struct AddRecordFeatureTests {
             } message: {
                 TextState("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
             }
-        }
-    }
-
-    @Test("만족도 dialog 닫기")
-    func dismissSatisfactionDialog() async {
-        var initialState = AddRecordFeature.State(date: Date())
-        initialState.satisfactionDialog = ConfirmationDialogState {
-            TextState("러닝 만족도")
-        } actions: {
-            ButtonState(action: .rate(3)) {
-                TextState("3점")
-            }
-        }
-
-        let store = TestStore(initialState: initialState) {
-            AddRecordFeature()
-        }
-
-        await store.send(.satisfactionDialog(.dismiss)) {
-            $0.satisfactionDialog = nil
         }
     }
 

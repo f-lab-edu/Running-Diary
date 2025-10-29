@@ -19,7 +19,12 @@ struct DailyDetailFeatureTests {
         let mockRecord = RunningRecord(
             date: testDate,
             distanceInKilometers: 5.0,
-            condition: RunningCondition(meal: false, alcohol: false)
+            durationInSeconds: 1800,
+            averagePace: "6'00\"",
+            averageHeartRate: 150,
+            averageCadence: 170,
+            runningStyle: .midfoot,
+            condition: RunningCondition(meal: true, alcohol: false)
         )
 
         let store = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
@@ -50,6 +55,11 @@ struct DailyDetailFeatureTests {
         let mockRecord = RunningRecord(
             date: selectedDate,
             distanceInKilometers: 3.0,
+            durationInSeconds: 1200,
+            averagePace: "6'40\"",
+            averageHeartRate: 145,
+            averageCadence: 165,
+            runningStyle: .forefoot,
             condition: RunningCondition(meal: true, alcohol: false)
         )
 
@@ -80,6 +90,11 @@ struct DailyDetailFeatureTests {
         let mockRecord = RunningRecord(
             date: Date(),
             distanceInKilometers: 10.0,
+            durationInSeconds: 3000,
+            averagePace: "5'00\"",
+            averageHeartRate: 160,
+            averageCadence: 180,
+            runningStyle: .midfoot,
             condition: RunningCondition(sleep: 7, meal: true, alcohol: false)
         )
 
@@ -135,6 +150,11 @@ struct DailyDetailFeatureTests {
         let mockRecord = RunningRecord(
             date: testDate,
             distanceInKilometers: 5.0,
+            durationInSeconds: 1500,
+            averagePace: "5'00\"",
+            averageHeartRate: 155,
+            averageCadence: 175,
+            runningStyle: .forefoot,
             condition: RunningCondition(meal: false, alcohol: false)
         )
 
@@ -161,6 +181,11 @@ struct DailyDetailFeatureTests {
         let savedRecord = RunningRecord(
             date: testDate,
             distanceInKilometers: 8.0,
+            durationInSeconds: 2400,
+            averagePace: "5'00\"",
+            averageHeartRate: 158,
+            averageCadence: 178,
+            runningStyle: .midfoot,
             condition: RunningCondition(meal: true, alcohol: false)
         )
 
@@ -175,7 +200,7 @@ struct DailyDetailFeatureTests {
             $0.repositoryClient.fetch = { _ in savedRecord }
         }
 
-        await store.send(.addRecord(.presented(.satisfactionSaved(savedRecord)))) {
+        await store.send(.addRecord(.presented(.recordSaved(savedRecord)))) {
             $0.addRecord = nil
         }
 
