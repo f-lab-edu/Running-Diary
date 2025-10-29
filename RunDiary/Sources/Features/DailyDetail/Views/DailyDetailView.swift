@@ -102,7 +102,7 @@ private struct RecordContentSection: View {
         store: Store(
             initialState: DailyDetailFeature.State(
                 selectedDate: previewDate,
-                cachedRecords: [previewDate: previewRecord]
+                cachedRecords: [previewDate: .some(previewRecord)]
             )
         ) {
             DailyDetailFeature()

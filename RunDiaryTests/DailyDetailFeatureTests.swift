@@ -47,8 +47,13 @@ struct DailyDetailFeatureTests {
         
         await store.receive(\.weekRecordsFetchedSuccess) {
             $0.isLoading = false
-            let normalizedDate = Calendar.current.startOfDay(for: mockRecord.date)
-            $0.cachedRecords = [normalizedDate: mockRecord]
+            // currentWeekDates의 모든 날짜가 캐시에 저장됨
+            let calendar = Calendar.current
+            let recordsByDate = [calendar.startOfDay(for: mockRecord.date): mockRecord]
+            for date in $0.currentWeekDates {
+                let normalizedDate = calendar.startOfDay(for: date)
+                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
+            }
             $0.errorMessage = nil
         }
     }
@@ -88,8 +93,12 @@ struct DailyDetailFeatureTests {
         
         await store.receive(\.weekRecordsFetchedSuccess) {
             $0.isLoading = false
-            let normalizedDate = calendar.startOfDay(for: mockRecord.date)
-            $0.cachedRecords = [normalizedDate: mockRecord]
+            // currentWeekDates의 모든 날짜가 캐시에 저장됨
+            let recordsByDate = [calendar.startOfDay(for: mockRecord.date): mockRecord]
+            for date in $0.currentWeekDates {
+                let normalizedDate = calendar.startOfDay(for: date)
+                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
+            }
             $0.errorMessage = nil
         }
     }
@@ -111,8 +120,8 @@ struct DailyDetailFeatureTests {
         )
         
         var initialState = DailyDetailFeature.State()
-        initialState.cachedRecords = [normalizedDate: mockRecord]
-        
+        initialState.cachedRecords = [normalizedDate: .some(mockRecord)]
+
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         }
@@ -137,17 +146,22 @@ struct DailyDetailFeatureTests {
             runningStyle: .midfoot,
             condition: RunningCondition(sleep: 7, meal: true, alcohol: false)
         )
-        
-        let store = TestStore(
-            initialState: DailyDetailFeature.State(isLoading: true)
-        ) {
+
+        var initialState = DailyDetailFeature.State(isLoading: true)
+        initialState.currentWeekDates = DateHelper.getWeekDates(for: testDate)
+
+        let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         }
         
         await store.send(.weekRecordsFetchedSuccess([mockRecord])) {
             $0.isLoading = false
-            let normalizedDate = calendar.startOfDay(for: mockRecord.date)
-            $0.cachedRecords = [normalizedDate: mockRecord]
+            // currentWeekDates의 모든 날짜가 캐시에 저장됨
+            let recordsByDate = [calendar.startOfDay(for: mockRecord.date): mockRecord]
+            for date in $0.currentWeekDates {
+                let normalizedDate = calendar.startOfDay(for: date)
+                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
+            }
             $0.errorMessage = nil
         }
     }
@@ -206,7 +220,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(
             initialState: DailyDetailFeature.State(
                 selectedDate: testDate,
-                cachedRecords: [normalizedDate: mockRecord]
+                cachedRecords: [normalizedDate: .some(mockRecord)]
             )
         ) {
             DailyDetailFeature()
@@ -259,8 +273,12 @@ struct DailyDetailFeatureTests {
         
         await store.receive(\.weekRecordsFetchedSuccess) {
             $0.isLoading = false
-            let normalizedDate = calendar.startOfDay(for: savedRecord.date)
-            $0.cachedRecords = [normalizedDate: savedRecord]
+            // currentWeekDates의 모든 날짜가 캐시에 저장됨
+            let recordsByDate = [calendar.startOfDay(for: savedRecord.date): savedRecord]
+            for date in $0.currentWeekDates {
+                let normalizedDate = calendar.startOfDay(for: date)
+                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
+            }
             $0.errorMessage = nil
         }
     }

@@ -17,7 +17,7 @@ struct DailyDetailFeature {
     struct State: Equatable {
         var selectedDate: Date = Calendar.current.startOfDay(for: Date())
         var currentWeekDates: [Date] = []
-        var cachedRecords: [Date: RunningRecord] = [:]
+        var cachedRecords: [Date: RunningRecord?] = [:]
         var isLoading: Bool = false
         var errorMessage: String?
         @Presents var addRecord: AddRecordFeature.State?
@@ -25,7 +25,11 @@ struct DailyDetailFeature {
         /// 선택된 날짜의 기록을 캐시에서 조회
         var currentRecord: RunningRecord? {
             let normalizedDate = Calendar.current.startOfDay(for: selectedDate)
-            return cachedRecords[normalizedDate]
+            // cachedRecords[normalizedDate]는 RunningRecord?? 타입이므로 flatMap으로 unwrap
+            if let value = cachedRecords[normalizedDate] {
+                return value
+            }
+            return nil
         }
     }
 
@@ -68,7 +72,7 @@ struct DailyDetailFeature {
                 // 캐시 히트 확인
                 let calendar = Calendar.current
                 let normalizedDate = calendar.startOfDay(for: date)
-                if state.cachedRecords[normalizedDate] != nil {
+                if state.cachedRecords.keys.contains(normalizedDate) {
                     // 캐시 히트: fetch 생략
                     AppLogger.dailyDetail.info("캐시 히트 - 날짜: \(normalizedDate), fetch 생략")
                     return .none
@@ -100,7 +104,7 @@ struct DailyDetailFeature {
 
                 // 새 주의 선택된 날짜가 캐시에 있는지 확인
                 let normalizedDate = calendar.startOfDay(for: state.selectedDate)
-                if state.cachedRecords[normalizedDate] != nil {
+                if state.cachedRecords.keys.contains(normalizedDate) {
                     // 캐시 히트: fetch 생략
                     AppLogger.dailyDetail.info("캐시 히트 - 날짜: \(normalizedDate), fetch 생략")
                     return .none
@@ -140,11 +144,18 @@ struct DailyDetailFeature {
                 state.isLoading = false
                 state.errorMessage = nil
 
-                // 캐시 업데이트: 배열을 Dictionary로 변환
+                // 캐시 업데이트: fetch한 기간의 모든 날짜를 캐시에 저장
                 let calendar = Calendar.current
-                for record in records {
-                    let normalizedDate = calendar.startOfDay(for: record.date)
-                    state.cachedRecords[normalizedDate] = record
+
+                // records를 날짜별로 매핑
+                let recordsByDate = Dictionary(uniqueKeysWithValues: records.map { record in
+                    (calendar.startOfDay(for: record.date), record)
+                })
+
+                // currentWeekDates의 모든 날짜에 대해 캐시 업데이트
+                for date in state.currentWeekDates {
+                    let normalizedDate = calendar.startOfDay(for: date)
+                    state.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
                 }
 
                 AppLogger.dailyDetail.info("weekRecordsFetchedSuccess - \(records.count)개 레코드 캐시에 저장 완료, 총 캐시 크기: \(state.cachedRecords.count)")
