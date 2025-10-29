@@ -34,7 +34,7 @@ final class RunningRecordModel {
 
     init(
         id: UUID = UUID(),
-        date: Date,
+        date: Date = Date(),
         distance: Double? = nil,
         duration: TimeInterval? = nil,
         averagePace: String? = nil,
@@ -165,7 +165,6 @@ extension RunningRecordModel {
     static var preview: RunningRecordModel {
         RunningRecordModel(
             id: UUID(),
-            date: date(year: 2025, month: 10, day: 23),
             distance: 5.32,
             duration: 1800,
             averagePace: "5'40\"",
@@ -235,7 +234,6 @@ extension RunningRecordModel {
             ),
             RunningRecordModel(
                 id: UUID(),
-                date: date(year: 2025, month: 10, day: 22),
                 distance: 3.5,
                 duration: 1200,
                 averagePace: "5'45\"",
