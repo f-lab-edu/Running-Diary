@@ -12,11 +12,11 @@ import CommonFoundation
 struct RunningRecord: Identifiable, Equatable {
     let id: UUID
     let date: Date
-    let distanceInKilometers: Double?
-    let durationInSeconds: TimeInterval?    // seconds
-    let averagePace: String?                // min/km
-    let averageHeartRate: Int?              // bpm
-    let averageCadence: Int?                // steps/min
+    let distanceInKilometers: Double
+    let durationInSeconds: TimeInterval    // seconds
+    let averagePace: String                // min/km
+    let averageHeartRate: Int              // bpm
+    let averageCadence: Int                // steps/min
     let painAreas: [PainArea]
     let runningStyle: RunninStyle?
     let condition: RunningCondition
@@ -26,15 +26,14 @@ struct RunningRecord: Identifiable, Equatable {
     let routeData: Data?                    // HealthKit route data
     let hasMap: Bool
 
-    var distanceInMiles: Double? {
-        distanceInKilometers.map { $0 * 0.621371 }
+    var distanceInMiles: Double {
+        durationInSeconds * 0.621371
     }
 
     var formattedDuration: String? {
-        guard let duration = durationInSeconds else { return nil }
-        let hours = Int(duration) / 3600
-        let minutes = (Int(duration) % 3600) / 60
-        let seconds = Int(duration) % 60
+        let hours = Int(durationInSeconds) / 3600
+        let minutes = (Int(durationInSeconds) % 3600) / 60
+        let seconds = Int(durationInSeconds) % 60
 
         if hours > 0 {
             return String(format: "%d:%02d:%02d", hours, minutes, seconds)
@@ -46,13 +45,13 @@ struct RunningRecord: Identifiable, Equatable {
     init(
         id: UUID = UUID(),
         date: Date,
-        distanceInKilometers: Double? = nil,
-        durationInSeconds: TimeInterval? = nil,
-        averagePace: String? = nil,
-        averageHeartRate: Int? = nil,
-        averageCadence: Int? = nil,
+        distanceInKilometers: Double,
+        durationInSeconds: TimeInterval,
+        averagePace: String,
+        averageHeartRate: Int,
+        averageCadence: Int,
         painAreas: [PainArea] = [],
-        runningStyle: RunninStyle? = nil,
+        runningStyle: RunninStyle?,
         condition: RunningCondition = RunningCondition(),
         shoes: String? = nil,
         weather: Weather? = nil,
