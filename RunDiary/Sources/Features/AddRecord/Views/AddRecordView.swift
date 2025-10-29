@@ -123,6 +123,14 @@ private struct FormContentView: View {
                     set: { store.send(.updateSelectedDifficultyLevel($0)) }
                 )
             )
+
+            // 메모 섹션
+            MemoSectionView(
+                memo: Binding(
+                    get: { store.condition.memo },
+                    set: { store.send(.condition(.updateMemo($0))) }
+                )
+            )
         }
     }
 }
@@ -321,13 +329,6 @@ private struct ConditionSectionView: View {
                 Spacer()
                 CheckboxView(isChecked: $hadAlcohol)
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("기타 메모")
-                    .foregroundColor(.gray)
-                TextEditor(text: $memo)
-                    .frame(minHeight: 100)
-            }
         }
     }
 }
@@ -353,6 +354,17 @@ private struct ShoesSectionView: View {
                         .foregroundColor(.gray)
                 }
             }
+        }
+    }
+}
+
+private struct MemoSectionView: View {
+    @Binding var memo: String
+
+    var body: some View {
+        Section("기타 메모") {
+            TextEditor(text: $memo)
+                .frame(minHeight: 100)
         }
     }
 }
