@@ -137,7 +137,7 @@ private struct HealthKitSectionView: View {
     let averageCadence: String
 
     var body: some View {
-        Section("주요 지표") {
+        Section("피트니스 기록") {
             HStack {
                 Text("거리")
                     .foregroundColor(.gray)
@@ -188,31 +188,22 @@ private struct PainAreasSectionView: View {
 
     var body: some View {
         Section("통증 부위") {
-            Menu {
-                ForEach(painAreaOptions, id: \.self) { area in
-                    Button(action: {
+            DynamicGridLayout(items: painAreaOptions) { area in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
                         if selectedPainAreas.contains(area) {
                             selectedPainAreas.remove(area)
                         } else {
                             selectedPainAreas.insert(area)
                         }
-                    }) {
-                        HStack {
-                            Text(area.rawValue)
-                            if selectedPainAreas.contains(area) {
-                                Image(systemName: "checkmark")
-                            }
-                        }
                     }
+                } label: {
+                    Text(area.rawValue)
+                        .font(.subheadline)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
                 }
-            } label: {
-                HStack {
-                    Text(selectedPainAreas.isEmpty ? "선택하세요" : selectedPainAreas.map({$0.rawValue}).joined(separator: ", "))
-                        .foregroundColor(selectedPainAreas.isEmpty ? .gray : .primary)
-                    Spacer()
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
-                }
+                .buttonStyle(PainAreaButtonStyle(isSelected: selectedPainAreas.contains(area)))
             }
         }
     }
@@ -358,6 +349,25 @@ private struct CheckboxView: View {
                 .font(.title2)
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Pain Area Button Style
+
+private struct PainAreaButtonStyle: ButtonStyle {
+    let isSelected: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundColor(isSelected ? .white : .primary)
+            .background(isSelected ? Color.blue : Color.clear)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(isSelected ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
+            )
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
