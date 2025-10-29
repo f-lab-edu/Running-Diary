@@ -280,9 +280,30 @@ private struct ConditionSectionView: View {
                 Text("수면 시간")
                     .foregroundColor(.gray)
                 Spacer()
-                TextField("0", text: $sleepHours)
+                TextField("8", text: $sleepHours)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
+                    .onChange(of: sleepHours) { oldValue, newValue in
+                        // 빈 값 허용 (입력 전/전체 삭제)
+                        if newValue.isEmpty {
+                            return
+                        }
+
+                        // 정수 변환 및 범위 검증
+                        if let value = Int(newValue) {
+                            if value < 1 {
+                                // 1 미만 → 1로 자동 보정
+                                sleepHours = "1"
+                            } else if value > 24 {
+                                // 24 초과 → 24로 자동 보정
+                                sleepHours = "24"
+                            }
+                            // 1~24 범위는 그대로 유지
+                        } else {
+                            // 숫자가 아닌 경우 → 이전 값으로 되돌림
+                            sleepHours = oldValue
+                        }
+                    }
                 Text("시간")
                     .foregroundColor(.gray)
             }
