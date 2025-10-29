@@ -13,12 +13,12 @@ final class RunningRecordModel {
     @Attribute(.unique)
     var id: UUID
     var date: Date
-    var distance: Double?
-    var duration: TimeInterval?
-    var averagePace: String?
-    var averageHeartRate: Int?
-    var averageCadence: Int?
-    var painAreasRaw: [String]
+    var distance: Double
+    var duration: TimeInterval
+    var averagePace: String
+    var averageHeartRate: Int
+    var averageCadence: Int
+    var painAreasRawData: String?
     var runningStyleRaw: String?
     var sleepHours: Int?
     var hadMeal: Bool
@@ -35,13 +35,13 @@ final class RunningRecordModel {
     init(
         id: UUID = UUID(),
         date: Date = Date(),
-        distance: Double? = nil,
-        duration: TimeInterval? = nil,
-        averagePace: String? = nil,
-        averageHeartRate: Int? = nil,
-        averageCadence: Int? = nil,
+        distance: Double,
+        duration: TimeInterval,
+        averagePace: String,
+        averageHeartRate: Int,
+        averageCadence: Int,
         painAreasRaw: [String] = [],
-        runningStyleRaw: String? = nil,
+        runningStyleRaw: String?,
         sleepHours: Int? = nil,
         hadMeal: Bool = false,
         hadAlcohol: Bool = false,
@@ -61,7 +61,6 @@ final class RunningRecordModel {
         self.averagePace = averagePace
         self.averageHeartRate = averageHeartRate
         self.averageCadence = averageCadence
-        self.painAreasRaw = painAreasRaw
         self.runningStyleRaw = runningStyleRaw
         self.sleepHours = sleepHours
         self.hadMeal = hadMeal
@@ -74,6 +73,8 @@ final class RunningRecordModel {
         self.difficultyLevelRaw = difficultyLevelRaw
         self.routeData = routeData
         self.hasMap = hasMap
+
+        self.painAreasRawData = PainAreasMapper.encodeRaw(painAreasRaw)
     }
 }
 
@@ -100,7 +101,7 @@ extension RunningRecordModel {
         }
 
         // Convert raw values to enums
-        let painAreas = painAreasRaw.compactMap { PainArea(rawValue: $0) }
+        let painAreas = PainAreasMapper.decode(painAreasRawData)
         let runningStyle = runningStyleRaw.flatMap { RunninStyle(rawValue: $0) }
         let difficultyLevel = difficultyLevelRaw.flatMap { DifficultyLevel(rawValue: $0) }
 
