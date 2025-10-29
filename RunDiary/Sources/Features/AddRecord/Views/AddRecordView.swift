@@ -36,7 +36,7 @@ struct AddRecordView: View {
                     Button("저장") {
                         store.send(.saveRecord)
                     }
-                    .disabled(store.isLoading)
+                    .disabled(store.isLoading || !store.isFormValid)
                 }
             }
             .task {
@@ -363,8 +363,18 @@ private struct MemoSectionView: View {
 
     var body: some View {
         Section("기타 메모") {
-            TextEditor(text: $memo)
-                .frame(minHeight: 100)
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $memo)
+                    .frame(minHeight: 150)
+
+                if memo.isEmpty {
+                    Text("메모를 남겨봐요!\n예) 바람이 불어서 뛰기 힘들었음😭")
+                        .foregroundColor(.gray)
+                        .padding(.top, 8)
+                        .padding(.leading, 5)
+                        .allowsHitTesting(false)
+                }
+            }
         }
     }
 }

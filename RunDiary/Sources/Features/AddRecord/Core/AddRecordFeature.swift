@@ -36,6 +36,18 @@ struct AddRecordFeature {
         @Presents var authorizationAlert: AlertState<AlertAction>?
         @Presents var emptyHealthKitDataAlert: AlertState<EmptyHealthKitDataAlertAction>?
 
+        /// 메모를 제외한 모든 필수 데이터가 입력되었는지 확인
+        var isFormValid: Bool {
+            guard healthKitData.data != nil else { return false }
+            guard condition.selectedShoe != nil else { return false }
+            guard condition.selectedRunningStyle != nil else { return false }
+            guard !condition.sleepHours.isEmpty,
+                  let sleepHoursValue = Int(condition.sleepHours),
+                  sleepHoursValue >= 1 && sleepHoursValue <= 24 else { return false }
+            guard selectedDifficultyLevel != nil else { return false }
+            return true
+        }
+
         init(date: Date, existingRecord: RunningRecord? = nil) {
             self.date = date
             self.existingRecord = existingRecord

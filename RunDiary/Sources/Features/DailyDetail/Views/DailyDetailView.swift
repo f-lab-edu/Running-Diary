@@ -72,7 +72,7 @@ private struct RecordContentSection: View {
                 if store.isLoading {
                     ProgressView()
                 } else if let record = store.runningRecord {
-                    RecordView(record: record)
+                    RecordView(record: record, onEdit: { store.send(.showAddRecord) })
                 } else {
                     EmptyRecordView(onAddRecord: { store.send(.showAddRecord) })
                 }

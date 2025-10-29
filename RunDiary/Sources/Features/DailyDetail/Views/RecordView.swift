@@ -9,13 +9,28 @@ import SwiftUI
 
 struct RecordView: View {
     let record: RunningRecord
-    
-    init(record: RunningRecord) {
+    let onEdit: () -> Void
+
+    init(record: RunningRecord, onEdit: @escaping () -> Void = {}) {
         self.record = record
+        self.onEdit = onEdit
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // 수정 버튼
+            HStack {
+                Spacer()
+                Button(action: onEdit) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil")
+                        Text("수정")
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                }
+            }
+            .padding(.bottom, 8)
             // 섹션 1: HealthKit 데이터 + 주법 + 통증 부위 + 신발
             SectionContainer {
                 VStack(alignment: .leading, spacing: 16) {
