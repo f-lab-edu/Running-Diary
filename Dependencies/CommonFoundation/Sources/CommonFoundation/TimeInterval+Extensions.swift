@@ -7,8 +7,8 @@
 
 import Foundation
 
-public extension TimeInterval {
-    var formatted: String {
+extension TimeInterval {
+    public var formatted: String {
         var seconds = Int(self)
         let hours = seconds / 3600
         let minutes = (seconds % 3600) / 60
