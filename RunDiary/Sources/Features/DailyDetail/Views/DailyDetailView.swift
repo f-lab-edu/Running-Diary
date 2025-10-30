@@ -68,9 +68,7 @@ private struct RecordContentSection: View {
     var body: some View {
         ScrollView {
             Group {
-                if store.isLoading {
-                    ProgressView()
-                } else if let record = store.currentRecord {
+                if let record = store.currentRecord {
                     RecordView(record: record, onEdit: { store.send(.showAddRecord) })
                 } else {
                     EmptyRecordView(onAddRecord: { store.send(.showAddRecord) })

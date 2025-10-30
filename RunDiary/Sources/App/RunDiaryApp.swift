@@ -15,13 +15,13 @@ struct RunDiaryApp: App {
 
   init() {}
 
-  var body: some Scene {
-    WindowGroup {
-      DailyDetailView(
-        store: Store(initialState: DailyDetailFeature.State()) {
-          DailyDetailFeature()
-        } withDependencies: {
-          $0.repositoryClient = .live(modelContext: modelContainer.mainContext)
+    var body: some Scene {
+        WindowGroup {
+            DailyDetailView(store: Store(initialState: DailyDetailFeature.State()) {
+                DailyDetailFeature()
+            } withDependencies: {
+                $0.repositoryClient = .live(modelContext: modelContainer.mainContext)
+            })
         }
       )
       .modelContainer(modelContainer)
