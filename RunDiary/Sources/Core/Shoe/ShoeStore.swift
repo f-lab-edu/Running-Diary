@@ -7,8 +7,15 @@
 
 import Foundation
 
-enum ShoeStoreError: Error {
+enum ShoeStoreError: LocalizedError {
     case fetchFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .fetchFailed:
+            return String(localized: "shoe.error.fetch_failed")
+        }
+    }
 }
 
 final class ShoeStore: Sendable {

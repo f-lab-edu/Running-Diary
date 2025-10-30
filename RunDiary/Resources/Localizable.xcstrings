@@ -1,0 +1,370 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "8" : {
+
+    },
+    "bpm" : {
+
+    },
+    "healthkit.error.authorization_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to request HealthKit authorization. Please try again later."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKitの権限リクエストに失敗しました。後でもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit 권한 요청에 실패했습니다. 잠시 후 다시 시도해주세요."
+          }
+        }
+      }
+    },
+    "healthkit.error.not_available" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit is not available on this device."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスではHealthKitを使用できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기에서는 HealthKit을 사용할 수 없습니다."
+          }
+        }
+      }
+    },
+    "km" : {
+
+    },
+    "repository.error.delete_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to delete record"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記録の削除に失敗しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기록 삭제에 실패했습니다."
+          }
+        }
+      }
+    },
+    "repository.error.not_found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record not found"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記録が見つかりませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기록을 찾을 수 없습니다."
+          }
+        }
+      }
+    },
+    "repository.error.save_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to save record"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記録の保存に失敗しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기록 저장에 실패했습니다."
+          }
+        }
+      }
+    },
+    "repository.error.update_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to update record"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記録の更新に失敗しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기록 업데이트에 실패했습니다."
+          }
+        }
+      }
+    },
+    "shoe.error.fetch_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to fetch shoes"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シューズ情報の取得に失敗しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "신발 정보를 가져올 수 없습니다."
+          }
+        }
+      }
+    },
+    "spm" : {
+
+    },
+    "weather.error.api_key_missing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weather API key is missing"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天気APIキーがありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "날씨 API 키가 없습니다."
+          }
+        }
+      }
+    },
+    "weather.error.invalid_response" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid response from weather API"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天気APIからの応答が無効です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "날씨 API 응답이 올바르지 않습니다."
+          }
+        }
+      }
+    },
+    "weather.error.location_required" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location is required to fetch weather data"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天気データを取得するには位置情報が必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "날씨 데이터를 가져오려면 위치 정보가 필요합니다."
+          }
+        }
+      }
+    },
+    "weather.error.network_error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network error occurred"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ネットワークエラーが発生しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "네트워크 오류가 발생했습니다."
+          }
+        }
+      }
+    },
+    "거리" : {
+
+    },
+    "건강 데이터 접근 거부됨" : {
+
+    },
+    "기록 수정" : {
+
+    },
+    "기록 추가" : {
+
+    },
+    "기록 추가하기" : {
+
+    },
+    "기타 메모" : {
+
+    },
+    "날씨 데이터 없음" : {
+
+    },
+    "뒤로 가기" : {
+
+    },
+    "러닝 기록이 없습니다" : {
+
+    },
+    "러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요." : {
+
+    },
+    "메모를 남겨봐요!\n예) 바람이 불어서 뛰기 힘들었음😭" : {
+
+    },
+    "설정으로 이동" : {
+
+    },
+    "소요시간" : {
+
+    },
+    "수면 시간" : {
+
+    },
+    "수정" : {
+
+    },
+    "시간" : {
+
+    },
+    "식사 여부" : {
+
+    },
+    "완료" : {
+
+    },
+    "운동 강도" : {
+
+    },
+    "음주 여부" : {
+
+    },
+    "저장" : {
+
+    },
+    "주법" : {
+
+    },
+    "지도 영역" : {
+
+    },
+    "착용 신발" : {
+
+    },
+    "취소" : {
+
+    },
+    "컨디션" : {
+
+    },
+    "통증 부위" : {
+
+    },
+    "평균 심박수" : {
+
+    },
+    "평균 케이던스" : {
+
+    },
+    "평균 페이스" : {
+
+    },
+    "피트니스 기록" : {
+
+    },
+    "피트니스 기록을 가져오는 중입니다!" : {
+
+    },
+    "피트니스 데이터 가져오기 실패" : {
+
+    }
+  },
+  "version" : "1.0"
+}

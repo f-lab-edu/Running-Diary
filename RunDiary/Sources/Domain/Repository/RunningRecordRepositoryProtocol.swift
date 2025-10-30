@@ -24,13 +24,13 @@ enum RepositoryError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notFound:
-            return "Record not found"
+            return String(localized: "repository.error.not_found")
         case .saveFailed:
-            return "Failed to save record"
+            return String(localized: "repository.error.save_failed")
         case .updateFailed:
-            return "Failed to update record"
+            return String(localized: "repository.error.update_failed")
         case .deleteFailed:
-            return "Failed to delete record"
+            return String(localized: "repository.error.delete_failed")
         }
     }
 }

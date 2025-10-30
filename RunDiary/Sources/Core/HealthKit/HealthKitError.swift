@@ -14,9 +14,9 @@ enum HealthKitError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notAvailable:
-            return "이 기기에서는 HealthKit을 사용할 수 없습니다."
+            return String(localized: "healthkit.error.not_available")
         case .authorizationFailed:
-            return "HealthKit 권한 요청에 실패했습니다. 잠시 후 다시 시도해주세요."
+            return String(localized: "healthkit.error.authorization_failed")
         }
     }
 }

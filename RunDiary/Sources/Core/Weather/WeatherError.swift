@@ -16,13 +16,13 @@ enum WeatherError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidResponse:
-            return "Invalid response from weather API"
+            return String(localized: "weather.error.invalid_response")
         case .networkError:
-            return "Network error occurred"
+            return String(localized: "weather.error.network_error")
         case .apiKeyMissing:
-            return "Weather API key is missing"
+            return String(localized: "weather.error.api_key_missing")
         case .locationRequired:
-            return "Location is required to fetch weather data"
+            return String(localized: "weather.error.location_required")
         }
     }
 }
