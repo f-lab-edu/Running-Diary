@@ -19,7 +19,7 @@ struct DailyDetailFeature {
         var currentWeekDates: [Date] = []
         var cachedRecords: [Date: RunningRecord?] = [:]
         var isLoading: Bool = false
-        var errorMessage: String?
+        var error: DailyDetailError?
         @Presents var addRecord: AddRecordFeature.State?
 
         /// 선택된 날짜의 기록을 캐시에서 조회
@@ -41,7 +41,7 @@ struct DailyDetailFeature {
         case weekChanged(offset: Int)
         case fetchWeekRecords
         case weekRecordsFetchedSuccess([RunningRecord])
-        case weekRecordsFetchedFailure(String)
+        case weekRecordsFetchedFailure(DailyDetailError)
         case showAddRecord
         case addRecord(PresentationAction<AddRecordFeature.Action>)
     }
@@ -122,7 +122,7 @@ struct DailyDetailFeature {
                 }
 
                 state.isLoading = true
-                state.errorMessage = nil
+                state.error = nil
                 AppLogger.dailyDetail.debug("fetchWeekRecords 시작 - weekStart: \(weekStart), weekEnd: \(weekEnd)")
 
                 return .run { send in
@@ -136,13 +136,13 @@ struct DailyDetailFeature {
                     } catch {
                         let elapsed = Date().timeIntervalSince(startTime)
                         AppLogger.dailyDetail.error("fetchWeekRecords 실패 - error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
-                        await send(.weekRecordsFetchedFailure(error.localizedDescription))
+                        await send(.weekRecordsFetchedFailure(.fetchFailed(underlyingError: error.localizedDescription)))
                     }
                 }
 
             case let .weekRecordsFetchedSuccess(records):
                 state.isLoading = false
-                state.errorMessage = nil
+                state.error = nil
 
                 // 캐시 업데이트: fetch한 기간의 모든 날짜를 캐시에 저장
                 let calendar = Calendar.current
@@ -162,10 +162,10 @@ struct DailyDetailFeature {
 
                 return .none
 
-            case let .weekRecordsFetchedFailure(errorMessage):
+            case let .weekRecordsFetchedFailure(error):
                 state.isLoading = false
-                state.errorMessage = "기록을 불러올 수 없습니다: \(errorMessage)"
-                AppLogger.dailyDetail.error("weekRecordsFetchedFailure - errorMessage: \(errorMessage)")
+                state.error = error
+                AppLogger.dailyDetail.error("weekRecordsFetchedFailure - error: \(error.localizedDescription)")
                 return .none
 
             case .showAddRecord:

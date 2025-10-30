@@ -71,7 +71,7 @@ struct DailyDetailFeatureTests {
         
         await store.receive(\.fetchWeekRecords) {
             $0.isLoading = true
-            $0.errorMessage = nil
+            $0.error = nil
         }
         
         await store.receive(\.weekRecordsFetchedSuccess) {
@@ -83,7 +83,7 @@ struct DailyDetailFeatureTests {
                 let normalizedDate = calendar.startOfDay(for: date)
                 $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
             }
-            $0.errorMessage = nil
+            $0.error = nil
         }
     }
     
@@ -117,7 +117,7 @@ struct DailyDetailFeatureTests {
         
         await store.receive(\.fetchWeekRecords) {
             $0.isLoading = true
-            $0.errorMessage = nil
+            $0.error = nil
         }
         
         await store.receive(\.weekRecordsFetchedSuccess) {
@@ -128,7 +128,7 @@ struct DailyDetailFeatureTests {
                 let normalizedDate = calendar.startOfDay(for: date)
                 $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
             }
-            $0.errorMessage = nil
+            $0.error = nil
         }
     }
     
@@ -191,23 +191,22 @@ struct DailyDetailFeatureTests {
                 let normalizedDate = calendar.startOfDay(for: date)
                 $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
             }
-            $0.errorMessage = nil
+            $0.error = nil
         }
     }
     
     @Test("주 단위 기록 조회 실패 시 에러 메시지 표시")
     func weekRecordsFetchFailureDisplaysError() async {
-        let errorMessage = "네트워크 연결 실패"
-        
-        let store = TestStore(
-            initialState: DailyDetailFeature.State(isLoading: true)
-        ) {
+        let underlyingErrorMessage = "네트워크 연결 실패"
+        let error = DailyDetailError.fetchFailed(underlyingError: underlyingErrorMessage)
+
+        let store = TestStore(initialState: DailyDetailFeature.State(isLoading: true)) {
             DailyDetailFeature()
         }
-        
-        await store.send(.weekRecordsFetchedFailure(errorMessage)) {
+
+        await store.send(.weekRecordsFetchedFailure(error)) {
             $0.isLoading = false
-            $0.errorMessage = "기록을 불러올 수 없습니다: \(errorMessage)"
+            $0.error = error
         }
     }
     
@@ -297,7 +296,7 @@ struct DailyDetailFeatureTests {
         
         await store.receive(\.fetchWeekRecords) {
             $0.isLoading = true
-            $0.errorMessage = nil
+            $0.error = nil
         }
         
         await store.receive(\.weekRecordsFetchedSuccess) {
@@ -308,7 +307,7 @@ struct DailyDetailFeatureTests {
                 let normalizedDate = calendar.startOfDay(for: date)
                 $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
             }
-            $0.errorMessage = nil
+            $0.error = nil
         }
     }
 
@@ -369,7 +368,7 @@ struct DailyDetailFeatureTests {
                 $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
             }
 
-            $0.errorMessage = nil
+            $0.error = nil
         }
 
         // 캐시에 7개 날짜 모두 저장되었는지 확인
@@ -436,7 +435,7 @@ struct DailyDetailFeatureTests {
         // 캐시 미스로 fetch 발생
         await store.receive(\.fetchWeekRecords) {
             $0.isLoading = true
-            $0.errorMessage = nil
+            $0.error = nil
         }
 
         await store.receive(\.weekRecordsFetchedSuccess) {
@@ -446,7 +445,7 @@ struct DailyDetailFeatureTests {
                 let normalizedDate = calendar.startOfDay(for: date)
                 $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
             }
-            $0.errorMessage = nil
+            $0.error = nil
         }
     }
 
@@ -538,7 +537,7 @@ struct DailyDetailFeatureTests {
         // 1단계: 현재 주 조회
         await store.send(.fetchWeekRecords) {
             $0.isLoading = true
-            $0.errorMessage = nil
+            $0.error = nil
         }
 
         await store.receive(\.weekRecordsFetchedSuccess) {
@@ -548,7 +547,7 @@ struct DailyDetailFeatureTests {
                 let normalizedDate = calendar.startOfDay(for: date)
                 $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
             }
-            $0.errorMessage = nil
+            $0.error = nil
         }
 
         // 캐시에 7개 날짜 저장됨
@@ -569,7 +568,7 @@ struct DailyDetailFeatureTests {
 
         await store.receive(\.fetchWeekRecords) {
             $0.isLoading = true
-            $0.errorMessage = nil
+            $0.error = nil
         }
 
         await store.receive(\.weekRecordsFetchedSuccess) {
@@ -579,7 +578,7 @@ struct DailyDetailFeatureTests {
                 let normalizedDate = calendar.startOfDay(for: date)
                 $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
             }
-            $0.errorMessage = nil
+            $0.error = nil
         }
 
         // 캐시에 14개 날짜 누적됨 (현재 주 7개 + 다음 주 7개)
@@ -651,37 +650,39 @@ struct DailyDetailFeatureTests {
         #expect(store.state.currentRecord == mockRecord)
     }
 
-    // TODO: Fix this test - it's currently failing with TCA exhaustive testing
-    // The test logic is correct but there may be an issue with state expectations
-//    @Test("조회 실패 시 캐시가 손상되지 않음")
-//    func fetchFailureDoesNotCorruptCache() async {
-//        let calendar = Calendar.current
-//        let testDate = Date()
-//
-//        // 빈 캐시에서 시작
-//        var initialState = DailyDetailFeature.State(selectedDate: testDate)
-//        initialState.currentWeekDates = DateHelper.getWeekDates(for: testDate)
-//
-//        let store = TestStore(initialState: initialState) {
-//            DailyDetailFeature()
-//        } withDependencies: {
-//            $0.repositoryClient.fetchRecords = { _, _ in
-//                throw NSError(domain: "TestError", code: -1, userInfo: nil)
-//            }
-//        }
-//
-//        // fetch 시도 (실패)
-//        await store.send(.fetchWeekRecords) {
-//            $0.isLoading = true
-//            $0.errorMessage = nil
-//        }
-//
-//        await store.receive(\.weekRecordsFetchedFailure) {
-//            $0.isLoading = false
-//            $0.errorMessage = "기록을 불러올 수 없습니다: The operation couldn't be completed. (TestError error -1.)"
-//        }
-//
-//        // 실패 시 캐시는 비어있어야 함 (손상되지 않음)
-//        #expect(store.state.cachedRecords.isEmpty)
-//    }
+    @Test("조회 실패 시 캐시가 손상되지 않음")
+    func fetchFailureDoesNotCorruptCache() async {
+        let calendar = Calendar.current
+        let testDate = Date()
+
+        // 빈 캐시에서 시작
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.currentWeekDates = DateHelper.getWeekDates(for: testDate)
+
+        struct TestError: Error, LocalizedError {
+            var errorDescription: String? { "Test network error" }
+        }
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.repositoryClient.fetchRecords = { _, _ in
+                throw TestError()
+            }
+        }
+
+        // fetch 시도 (실패)
+        await store.send(.fetchWeekRecords) {
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetchedFailure) {
+            $0.isLoading = false
+            $0.error = .fetchFailed(underlyingError: "Test network error")
+        }
+
+        // 실패 시 캐시는 비어있어야 함 (손상되지 않음)
+        #expect(store.state.cachedRecords.isEmpty)
+    }
 }
