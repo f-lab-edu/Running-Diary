@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum WeatherError: LocalizedError {
+enum WeatherError: LocalizedError, Equatable {
     case invalidResponse
     case networkError
     case apiKeyMissing
@@ -16,13 +16,13 @@ enum WeatherError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidResponse:
-            return String(localized: "weather.error.invalid_response")
+            return L10n.Weather.Error.invalidResponse
         case .networkError:
-            return String(localized: "weather.error.network_error")
+            return L10n.Weather.Error.networkError
         case .apiKeyMissing:
-            return String(localized: "weather.error.api_key_missing")
+            return L10n.Weather.Error.apiKeyMissing
         case .locationRequired:
-            return String(localized: "weather.error.location_required")
+            return L10n.Weather.Error.locationRequired
         }
     }
 }

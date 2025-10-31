@@ -7,16 +7,19 @@
 
 import Foundation
 
-enum HealthKitError: LocalizedError {
+enum HealthKitError: LocalizedError, Equatable {
     case notAvailable
     case authorizationFailed
+    case dataNotFound
 
     var errorDescription: String? {
         switch self {
         case .notAvailable:
-            return String(localized: "healthkit.error.not_available")
+            return L10n.Healthkit.Error.notAvailable
         case .authorizationFailed:
-            return String(localized: "healthkit.error.authorization_failed")
+            return L10n.Healthkit.Error.authorizationFailed
+        case .dataNotFound:
+            return L10n.Healthkit.Error.dataNotFound
         }
     }
 }

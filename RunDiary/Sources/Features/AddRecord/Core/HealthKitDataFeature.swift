@@ -44,7 +44,7 @@ struct HealthKitDataFeature {
                         if let data = try await healthKitClient.fetchRunningData(date) {
                             await send(.dataLoaded(data))
                         } else {
-                            await send(.dataLoadFailed("데이터를 찾을 수 없습니다"))
+                            throw HealthKitError.dataNotFound
                         }
                     } catch {
                         await send(.dataLoadFailed(error.localizedDescription))
@@ -66,7 +66,7 @@ struct HealthKitDataFeature {
 
             case let .dataLoadFailed(error):
                 state.isLoading = false
-                state.errorMessage = "HealthKit 데이터를 가져올 수 없습니다: \(error)"
+                state.errorMessage = "\(L10n.Healthkit.Error.fetchContext): \(error)"
                 state.isDataLoaded = false
                 return .none
 
@@ -75,11 +75,11 @@ struct HealthKitDataFeature {
 
             case let .loadFromRecord(record):
                 state.data = HealthKitDataModel(
-                    distance: record.distanceInKilometers ?? 0,
-                    durationInSeconds: record.durationInSeconds ?? 0,
-                    averagePace: record.averagePace ?? "",
-                    averageHeartRate: record.averageHeartRate ?? 0,
-                    averageCadence: record.averageCadence ?? 0,
+                    distance: record.distanceInKilometers,
+                    durationInSeconds: record.durationInSeconds,
+                    averagePace: record.averagePace,
+                    averageHeartRate: record.averageHeartRate,
+                    averageCadence: record.averageCadence,
                     routeData: record.routeData
                 )
                 state.isDataLoaded = true

@@ -30,16 +30,14 @@ struct HealthKitClientTests {
 
     @Test("ensureAuthorizationIfNeeded: 권한 거부 시 에러 발생")
     func authorizationThrowsErrorWhenDenied() async throws {
-        struct AuthorizationError: Error {}
-
         let client = HealthKitClient(
             ensureAuthorizationIfNeeded: {
-                throw AuthorizationError()
+                throw HealthKitError.authorizationFailed
             },
             fetchRunningData: { _ in nil }
         )
 
-        await #expect(throws: AuthorizationError.self) {
+        await #expect(throws: HealthKitError.self) {
             try await client.ensureAuthorizationIfNeeded()
         }
     }
@@ -87,16 +85,14 @@ struct HealthKitClientTests {
 
     @Test("fetchRunningData: 데이터 조회 중 에러 발생")
     func fetchRunningDataThrowsError() async throws {
-        struct FetchError: Error {}
-
         let client = HealthKitClient(
             ensureAuthorizationIfNeeded: {},
             fetchRunningData: { _ in
-                throw FetchError()
+                throw HealthKitError.notAvailable
             }
         )
 
-        await #expect(throws: FetchError.self) {
+        await #expect(throws: HealthKitError.self) {
             try await client.fetchRunningData(Date())
         }
     }

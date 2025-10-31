@@ -216,7 +216,7 @@ struct AddRecordFeature {
 
             case let .recordSaveFailed(error):
                 state.isLoading = false
-                state.errorMessage = "기록 저장에 실패했습니다: \(error)"
+                state.errorMessage = "\(L10n.Record.Error.saveContext): \(error)"
                 return .none
 
             case .authorizationAlert(.presented(.openSettings)):

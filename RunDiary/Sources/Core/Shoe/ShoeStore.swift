@@ -7,13 +7,13 @@
 
 import Foundation
 
-enum ShoeStoreError: LocalizedError {
+enum ShoeStoreError: LocalizedError, Equatable {
     case fetchFailed
 
     var errorDescription: String? {
         switch self {
         case .fetchFailed:
-            return String(localized: "shoe.error.fetch_failed")
+            return L10n.Shoe.Error.fetchFailed
         }
     }
 }

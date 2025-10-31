@@ -51,7 +51,7 @@ struct AddRecordFeatureTests {
 
         await store.receive(\.healthKitData.dataLoadFailed) {
             $0.healthKitData.isLoading = false
-            $0.healthKitData.errorMessage = "HealthKit 데이터를 가져올 수 없습니다: 데이터를 찾을 수 없습니다"
+            $0.healthKitData.errorMessage = "\(L10n.Healthkit.Error.fetchContext): \(L10n.Healthkit.Error.dataNotFound)"
             $0.healthKitData.isDataLoaded = false
             $0.emptyHealthKitDataAlert = AlertState {
                 TextState("피트니스 데이터 가져오기 실패")
@@ -60,7 +60,7 @@ struct AddRecordFeatureTests {
                     TextState("뒤로 가기")
                 }
             } message: {
-                TextState("데이터를 찾을 수 없습니다")
+                TextState(L10n.Healthkit.Error.dataNotFound)
             }
         }
     }
@@ -252,10 +252,6 @@ struct AddRecordFeatureTests {
 
     @Test("기록 저장 실패 시 에러 메시지 표시")
     func saveRecordFailureShowsError() async {
-        struct SaveError: Error, LocalizedError {
-            var errorDescription: String? { "저장 실패" }
-        }
-
         var initialState = AddRecordFeature.State(date: Date())
         initialState.healthKitData.data = HealthKitDataModel(
             distance: 5.0,
@@ -274,10 +270,10 @@ struct AddRecordFeatureTests {
             AddRecordFeature()
         } withDependencies: {
             $0.weatherClient.fetchWeather = { _, _ in
-                throw SaveError()
+                throw WeatherError.networkError
             }
             $0.repositoryClient.save = { _ in
-                throw SaveError()
+                throw RepositoryError.saveFailed
             }
         }
 
@@ -290,7 +286,7 @@ struct AddRecordFeatureTests {
 
         await store.receive(\.recordSaveFailed) {
             $0.isLoading = false
-            $0.errorMessage = "기록 저장에 실패했습니다: 저장 실패"
+            $0.errorMessage = "\(L10n.Record.Error.saveContext): \(L10n.Repository.Error.saveFailed)"
         }
     }
 

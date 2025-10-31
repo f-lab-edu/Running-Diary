@@ -111,7 +111,7 @@ struct DailyDetailFeatureTests {
 
     @Test("기록 조회 실패 시 에러 메시지 표시")
     func recordFetchFailureDisplaysError() async {
-        let errorMessage = "네트워크 연결 실패"
+        let errorMessage = L10n.Repository.Error.notFound
 
         let store = TestStore(initialState: DailyDetailFeature.State(isLoading: true)) {
             DailyDetailFeature()
@@ -120,7 +120,7 @@ struct DailyDetailFeatureTests {
         await store.send(.recordFetchedFailure(errorMessage)) {
             $0.isLoading = false
             $0.runningRecord = nil
-            $0.errorMessage = "기록을 불러올 수 없습니다: \(errorMessage)"
+            $0.errorMessage = "\(L10n.Record.Error.fetchContext): \(errorMessage)"
         }
     }
 

@@ -17,23 +17,23 @@ struct AddRecordView: View {
         NavigationStack {
             Group {
                 if store.healthKitData.isLoading {
-                    ProgressView("피트니스 기록을 가져오는 중입니다!")
+                    ProgressView(L10n.Healthkit.Data.loading)
                         .progressViewStyle(.circular)
                 } else {
                     FormContentView(store: store)
                 }
             }
-            .navigationTitle(store.mode == .add ? "기록 추가" : "기록 수정")
+            .navigationTitle(store.mode == .add ? L10n.Record.add : L10n.Record.edit)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("취소") {
+                    Button(L10n.UI.cancel) {
                         dismiss()
                     }
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("저장") {
+                    Button(L10n.UI.save) {
                         store.send(.saveRecord)
                     }
                     .disabled(store.isLoading || !store.isFormValid)
@@ -141,7 +141,7 @@ private struct FormContentView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("완료") {
+                Button(L10n.UI.done) {
                     hideKeyboard()
                 }
             }
@@ -163,45 +163,45 @@ private struct HealthKitSectionView: View {
     let averageCadence: String
 
     var body: some View {
-        Section("피트니스 기록") {
+        Section(L10n.Record.fitnessData) {
             HStack {
-                Text("거리")
+                Text(L10n.Record.Field.distance)
                     .foregroundColor(.gray)
                 Spacer()
                 Text(distance)
-                Text("km")
+                Text(L10n.Unit.km)
                     .foregroundColor(.gray)
             }
 
             HStack {
-                Text("소요시간")
+                Text(L10n.Record.Field.duration)
                     .foregroundColor(.gray)
                 Spacer()
                 Text(duration)
             }
 
             HStack {
-                Text("평균 페이스")
+                Text(L10n.Record.Field.pace)
                     .foregroundColor(.gray)
                 Spacer()
                 Text(averagePace)
             }
 
             HStack {
-                Text("평균 심박수")
+                Text(L10n.Record.Field.heartRate)
                     .foregroundColor(.gray)
                 Spacer()
                 Text(averageHeartRate)
-                Text("bpm")
+                Text(L10n.Unit.bpm)
                     .foregroundColor(.gray)
             }
 
             HStack {
-                Text("평균 케이던스")
+                Text(L10n.Record.Field.cadence)
                     .foregroundColor(.gray)
                 Spacer()
                 Text(averageCadence)
-                Text("spm")
+                Text(L10n.Unit.spm)
                     .foregroundColor(.gray)
             }
         }
@@ -213,7 +213,7 @@ private struct PainAreasSectionView: View {
     let painAreaOptions: [PainArea]
 
     var body: some View {
-        Section("통증 부위") {
+        Section(L10n.Record.Field.painAreas) {
             DynamicGridLayout(items: painAreaOptions) { area in
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
@@ -241,7 +241,7 @@ private struct RunningStyleSectionView: View {
     let styleOptions: [RunninStyle]
 
     var body: some View {
-        Section("주법") {
+        Section(L10n.Record.Field.runningStyle) {
             Menu {
                 ForEach(styleOptions, id: \.self) { style in
                     Button(style.rawValue) {
@@ -265,7 +265,7 @@ private struct DifficultyLevelSectionView: View {
     @Binding var selectedLevel: DifficultyLevel?
 
     var body: some View {
-        Section("운동 강도") {
+        Section(L10n.Record.Field.intensity) {
             Menu {
                 ForEach(DifficultyLevel.allCases, id: \.self) { level in
                     Button(level.displayName) {
@@ -301,9 +301,9 @@ private struct ConditionSectionView: View {
     @Binding var memo: String
 
     var body: some View {
-        Section("컨디션") {
+        Section(L10n.Record.Field.condition) {
             HStack {
-                Text("수면 시간")
+                Text(L10n.Record.Field.sleepDuration)
                     .foregroundColor(.gray)
                 Spacer()
                 TextField("8", text: $sleepHours)
@@ -330,19 +330,19 @@ private struct ConditionSectionView: View {
                             sleepHours = oldValue
                         }
                     }
-                Text("시간")
+                Text(L10n.Unit.hours)
                     .foregroundColor(.gray)
             }
 
             HStack {
-                Text("식사 여부")
+                Text(L10n.Record.Field.hasMeal)
                     .foregroundColor(.gray)
                 Spacer()
                 CheckboxView(isChecked: $hadMeal)
             }
 
             HStack {
-                Text("음주 여부")
+                Text(L10n.Record.Field.wasDrinking)
                     .foregroundColor(.gray)
                 Spacer()
                 CheckboxView(isChecked: $hadAlcohol)
@@ -356,7 +356,7 @@ private struct ShoesSectionView: View {
     let shoes: [ShoeModel]
 
     var body: some View {
-        Section("착용 신발") {
+        Section(L10n.Record.Field.shoes) {
             Menu {
                 ForEach(shoes, id: \.id) { shoe in
                     Button(shoe.name) {
@@ -380,13 +380,13 @@ private struct MemoSectionView: View {
     @Binding var memo: String
 
     var body: some View {
-        Section("기타 메모") {
+        Section(L10n.Record.Field.memo) {
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $memo)
                     .frame(minHeight: 150)
 
                 if memo.isEmpty {
-                    Text("메모를 남겨봐요!\n예) 바람이 불어서 뛰기 힘들었음😭")
+                    Text(L10n.Record.Field.memoPlaceholder)
                         .foregroundColor(.gray)
                         .padding(.top, 8)
                         .padding(.leading, 5)

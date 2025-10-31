@@ -71,7 +71,7 @@ struct RunningConditionFeature {
 
             case let .shoesLoadFailed(error):
                 state.isLoadingShoes = false
-                state.errorMessage = "신발 목록을 불러올 수 없습니다: \(error)"
+                state.errorMessage = "\(L10n.Shoe.Error.fetchContext): \(error)"
                 return .none
 
             case let .updateSelectedPainAreas(areas):

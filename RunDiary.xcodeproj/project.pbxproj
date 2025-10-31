@@ -157,7 +157,7 @@
 				};
 			};
 			buildConfigurationList = 3344D6042E81CD5B00982E36 /* Build configuration list for PBXProject "RunDiary" */;
-			developmentRegion = en;
+			developmentRegion = ko;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,

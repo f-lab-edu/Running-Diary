@@ -15,7 +15,7 @@ protocol RunningRecordRepositoryProtocol {
     func delete(_ record: RunningRecord) async throws
 }
 
-enum RepositoryError: LocalizedError {
+enum RepositoryError: LocalizedError, Equatable {
     case notFound
     case saveFailed
     case updateFailed
@@ -24,13 +24,13 @@ enum RepositoryError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notFound:
-            return String(localized: "repository.error.not_found")
+            return L10n.Repository.Error.notFound
         case .saveFailed:
-            return String(localized: "repository.error.save_failed")
+            return L10n.Repository.Error.saveFailed
         case .updateFailed:
-            return String(localized: "repository.error.update_failed")
+            return L10n.Repository.Error.updateFailed
         case .deleteFailed:
-            return String(localized: "repository.error.delete_failed")
+            return L10n.Repository.Error.deleteFailed
         }
     }
 }

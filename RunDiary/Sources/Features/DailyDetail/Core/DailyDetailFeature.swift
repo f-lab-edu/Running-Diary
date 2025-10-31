@@ -96,7 +96,7 @@ struct DailyDetailFeature {
             case let .recordFetchedFailure(errorMessage):
                 state.isLoading = false
                 state.runningRecord = nil
-                state.errorMessage = "기록을 불러올 수 없습니다: \(errorMessage)"
+                state.errorMessage = "\(L10n.Record.Error.fetchContext): \(errorMessage)"
                 return .none
 
             case .showAddRecord:
