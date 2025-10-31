@@ -10,22 +10,22 @@ import Foundation
 // MARK: - KMA API Response Models
 
 struct KMAWeatherResponse: Codable {
-    let response: KMAResponse
+  let response: KMAResponse
 }
 
 struct KMAResponse: Codable {
-    let body: KMABody
+  let body: KMABody
 }
 
 struct KMABody: Codable {
-    let items: KMAItems
+  let items: KMAItems
 }
 
 struct KMAItems: Codable {
-    let item: [KMAItem]?
+  let item: [KMAItem]?
 }
 
 struct KMAItem: Codable {
-    let category: String
-    let fcstValue: String
+  let category: String
+  let fcstValue: String
 }

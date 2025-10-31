@@ -8,21 +8,21 @@
 import Foundation
 
 enum WeatherError: LocalizedError, Equatable {
-    case invalidResponse
-    case networkError
-    case apiKeyMissing
-    case locationRequired
+  case invalidResponse
+  case networkError
+  case apiKeyMissing
+  case locationRequired
 
-    var errorDescription: String? {
-        switch self {
-        case .invalidResponse:
-            return L10n.Weather.Error.invalidResponse
-        case .networkError:
-            return L10n.Weather.Error.networkError
-        case .apiKeyMissing:
-            return L10n.Weather.Error.apiKeyMissing
-        case .locationRequired:
-            return L10n.Weather.Error.locationRequired
-        }
+  var errorDescription: String? {
+    switch self {
+    case .invalidResponse:
+      return L10n.Weather.Error.invalidResponse
+    case .networkError:
+      return L10n.Weather.Error.networkError
+    case .apiKeyMissing:
+      return L10n.Weather.Error.apiKeyMissing
+    case .locationRequired:
+      return L10n.Weather.Error.locationRequired
     }
+  }
 }

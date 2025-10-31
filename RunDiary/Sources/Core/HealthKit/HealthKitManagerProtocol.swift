@@ -8,6 +8,6 @@
 import Foundation
 
 protocol HealthKitManagerProtocol {
-    func ensureAuthorizationIfNeeded() async throws
-    func fetchRunningData(for date: Date) async throws -> HealthKitRunningData?
+  func ensureAuthorizationIfNeeded() async throws
+  func fetchRunningData(for date: Date) async throws -> HealthKitRunningData?
 }

@@ -9,7 +9,7 @@ import Foundation
 
 /// 러닝 주법/스타일
 enum RunninStyle: String, CaseIterable {
-    case forefoot = "포어풋"
-    case midfoot = "미드풋"
-    case heelfoot = "힐풋"
+  case forefoot = "포어풋"
+  case midfoot = "미드풋"
+  case heelfoot = "힐풋"
 }

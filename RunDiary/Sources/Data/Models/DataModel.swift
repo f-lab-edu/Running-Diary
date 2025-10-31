@@ -8,27 +8,27 @@
 import SwiftData
 
 actor DataModel {
-    static let shared = DataModel()
+  static let shared = DataModel()
 
-    private static let container: ModelContainer = {
-        let modelContainer: ModelContainer
-        do {
-            modelContainer = try ModelContainer(for: RunningRecordModel.self)
-        } catch {
-            fatalError("Failed to initialize ModelContainer: \(error)")
-        }
-        return modelContainer
-//        self.modelContainer = container
-//
-//        let mainContext = container.mainContext
-//        self.store = Store(initialState: DailyDetailFeature.State()) {
-//            DailyDetailFeature()
-//        } withDependencies: {
-//            $0.repositoryClient = .live(modelContext: mainContext)
-//        }
-    }()
-
-    nonisolated var modelContainer: ModelContainer {
-        Self.container
+  private static let container: ModelContainer = {
+    let modelContainer: ModelContainer
+    do {
+      modelContainer = try ModelContainer(for: RunningRecordModel.self)
+    } catch {
+      fatalError("Failed to initialize ModelContainer: \(error)")
     }
+    return modelContainer
+    //        self.modelContainer = container
+    //
+    //        let mainContext = container.mainContext
+    //        self.store = Store(initialState: DailyDetailFeature.State()) {
+    //            DailyDetailFeature()
+    //        } withDependencies: {
+    //            $0.repositoryClient = .live(modelContext: mainContext)
+    //        }
+  }()
+
+  nonisolated var modelContainer: ModelContainer {
+    Self.container
+  }
 }

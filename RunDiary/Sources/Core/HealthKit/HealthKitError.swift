@@ -8,18 +8,18 @@
 import Foundation
 
 enum HealthKitError: LocalizedError, Equatable {
-    case notAvailable
-    case authorizationFailed
-    case dataNotFound
+  case notAvailable
+  case authorizationFailed
+  case dataNotFound
 
-    var errorDescription: String? {
-        switch self {
-        case .notAvailable:
-            return L10n.Healthkit.Error.notAvailable
-        case .authorizationFailed:
-            return L10n.Healthkit.Error.authorizationFailed
-        case .dataNotFound:
-            return L10n.Healthkit.Error.dataNotFound
-        }
+  var errorDescription: String? {
+    switch self {
+    case .notAvailable:
+      return L10n.Healthkit.Error.notAvailable
+    case .authorizationFailed:
+      return L10n.Healthkit.Error.authorizationFailed
+    case .dataNotFound:
+      return L10n.Healthkit.Error.dataNotFound
     }
+  }
 }

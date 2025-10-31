@@ -8,15 +8,15 @@
 import Foundation
 
 struct HealthKitRunningData {
-    let distance: Double?           // km
-    let duration: TimeInterval?     // seconds
-    let averagePace: String?        // min/km
-    let averageHeartRate: Int?      // bpm
-    let averageCadence: Int?        // spm
-    let routeData: Data?
+  let distance: Double?  // km
+  let duration: TimeInterval?  // seconds
+  let averagePace: String?  // min/km
+  let averageHeartRate: Int?  // bpm
+  let averageCadence: Int?  // spm
+  let routeData: Data?
 }
 
 struct HealthKitCoordinateData: Codable {
-    let latitude: Double
-    let longitude: Double
+  let latitude: Double
+  let longitude: Double
 }
