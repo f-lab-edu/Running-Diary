@@ -5,9 +5,10 @@
 //  Created by Claude on 10/21/25.
 //
 
-import Testing
 import ComposableArchitecture
 import Foundation
+import Testing
+
 @testable import RunDiary
 
 @Suite("DailyDetail Feature")
@@ -27,7 +28,9 @@ struct DailyDetailFeatureTests {
             condition: RunningCondition(meal: true, alcohol: false)
         )
 
-        let store = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
+        let store = TestStore(
+            initialState: DailyDetailFeature.State(selectedDate: testDate)
+        ) {
             DailyDetailFeature()
         } withDependencies: {
             $0.repositoryClient.fetch = { _ in mockRecord }
@@ -51,7 +54,11 @@ struct DailyDetailFeatureTests {
 
     @Test("날짜 선택 시 기록 조회")
     func dateSelectionTriggersRecordFetch() async {
-        let selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+        let selectedDate = Calendar.current.date(
+            byAdding: .day,
+            value: 1,
+            to: Date()
+        )!
         let mockRecord = RunningRecord(
             date: selectedDate,
             distanceInKilometers: 3.0,
@@ -98,7 +105,9 @@ struct DailyDetailFeatureTests {
             condition: RunningCondition(sleep: 7, meal: true, alcohol: false)
         )
 
-        let store = TestStore(initialState: DailyDetailFeature.State(isLoading: true)) {
+        let store = TestStore(
+            initialState: DailyDetailFeature.State(isLoading: true)
+        ) {
             DailyDetailFeature()
         }
 
@@ -113,14 +122,17 @@ struct DailyDetailFeatureTests {
     func recordFetchFailureDisplaysError() async {
         let errorMessage = L10n.Repository.Error.notFound
 
-        let store = TestStore(initialState: DailyDetailFeature.State(isLoading: true)) {
+        let store = TestStore(
+            initialState: DailyDetailFeature.State(isLoading: true)
+        ) {
             DailyDetailFeature()
         }
 
         await store.send(.recordFetchedFailure(errorMessage)) {
             $0.isLoading = false
             $0.runningRecord = nil
-            $0.errorMessage = "\(L10n.Record.Error.fetchContext): \(errorMessage)"
+            $0.errorMessage =
+                "\(L10n.Record.Error.fetchContext): \(errorMessage)"
         }
     }
 

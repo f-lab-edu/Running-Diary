@@ -25,9 +25,12 @@ enum DateHelper {
         calendar: Calendar = .current
     ) -> Date {
         var modifiedCalendar = calendar
-        modifiedCalendar.firstWeekday = 2 // 월요일 시작
+        modifiedCalendar.firstWeekday = 2  // 월요일 시작
 
-        let components = modifiedCalendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+        let components = modifiedCalendar.dateComponents(
+            [.yearForWeekOfYear, .weekOfYear],
+            from: date
+        )
         return modifiedCalendar.date(from: components) ?? date
     }
 

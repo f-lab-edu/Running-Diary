@@ -49,20 +49,38 @@ enum AppLogger {
     private static let subsystem = "com.kimhyeji.RunDiary"
 
     /// DailyDetail 기능 관련 로거
-    static let dailyDetail = LoggerWrapper(subsystem: subsystem, category: "DailyDetail")
+    static let dailyDetail = LoggerWrapper(
+        subsystem: subsystem,
+        category: "DailyDetail"
+    )
 
     /// AddRecord 기능 관련 로거
-    static let addRecord = LoggerWrapper(subsystem: subsystem, category: "AddRecord")
+    static let addRecord = LoggerWrapper(
+        subsystem: subsystem,
+        category: "AddRecord"
+    )
 
     /// HealthKit 관련 로거
-    static let healthKit = LoggerWrapper(subsystem: subsystem, category: "HealthKit")
+    static let healthKit = LoggerWrapper(
+        subsystem: subsystem,
+        category: "HealthKit"
+    )
 
     /// 네트워크 관련 로거
-    static let network = LoggerWrapper(subsystem: subsystem, category: "Network")
+    static let network = LoggerWrapper(
+        subsystem: subsystem,
+        category: "Network"
+    )
 
     /// 데이터베이스 관련 로거
-    static let database = LoggerWrapper(subsystem: subsystem, category: "Database")
+    static let database = LoggerWrapper(
+        subsystem: subsystem,
+        category: "Database"
+    )
 
     /// 기타 로거
-    static let general = LoggerWrapper(subsystem: subsystem, category: "General")
+    static let general = LoggerWrapper(
+        subsystem: subsystem,
+        category: "General"
+    )
 }

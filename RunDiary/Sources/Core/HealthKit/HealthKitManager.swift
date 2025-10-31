@@ -5,9 +5,9 @@
 //  Created by 김혜지 on 9/23/25.
 //
 
+import CoreLocation
 import Foundation
 import HealthKit
-import CoreLocation
 
 final class HealthKitManager: HealthKitManagerProtocol {
     private let healthStore = HKHealthStore()
@@ -19,7 +19,7 @@ final class HealthKitManager: HealthKitManagerProtocol {
         HKObjectType.quantityType(forIdentifier: .runningSpeed)!,
         HKObjectType.quantityType(forIdentifier: .stepCount)!,
         HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
-        HKSeriesType.workoutRoute()
+        HKSeriesType.workoutRoute(),
     ]
 
     func ensureAuthorizationIfNeeded() async throws {
@@ -28,14 +28,21 @@ final class HealthKitManager: HealthKitManagerProtocol {
         }
 
         let statuses = currentAuthorizationStatuses()
-        let notDetermined = statuses.filter { $0.value == .notDetermined }.map { $0.key }
+        let notDetermined = statuses.filter { $0.value == .notDetermined }.map {
+            $0.key
+        }
 
         if !notDetermined.isEmpty {
-            try await healthStore.requestAuthorization(toShare: [], read: typesToRead)
+            try await healthStore.requestAuthorization(
+                toShare: [],
+                read: typesToRead
+            )
         }
     }
 
-    private func currentAuthorizationStatuses() -> [HKObjectType: HKAuthorizationStatus] {
+    private func currentAuthorizationStatuses() -> [HKObjectType:
+        HKAuthorizationStatus]
+    {
         var result: [HKObjectType: HKAuthorizationStatus] = [:]
         for type in typesToRead {
             result[type] = healthStore.authorizationStatus(for: type)
@@ -43,11 +50,18 @@ final class HealthKitManager: HealthKitManagerProtocol {
         return result
     }
 
-    func fetchRunningData(for date: Date) async throws -> HealthKitRunningData? {
+    func fetchRunningData(for date: Date) async throws -> HealthKitRunningData?
+    {
         // 날짜 범위 설정 (해당 날짜 하루)
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+        guard
+            let endOfDay = calendar.date(
+                byAdding: .day,
+                value: 1,
+                to: startOfDay
+            )
+        else {
             return nil
         }
 
@@ -57,19 +71,28 @@ final class HealthKitManager: HealthKitManagerProtocol {
             end: endOfDay,
             options: .strictStartDate
         )
-        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, datePredicate])
+        let compoundPredicate = NSCompoundPredicate(
+            andPredicateWithSubpredicates: [predicate, datePredicate])
 
-        let workouts = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKWorkout], Error>) in
+        let workouts = try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<[HKWorkout], Error>) in
             let query = HKSampleQuery(
                 sampleType: .workoutType(),
                 predicate: compoundPredicate,
                 limit: HKObjectQueryNoLimit,
-                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
+                sortDescriptors: [
+                    NSSortDescriptor(
+                        key: HKSampleSortIdentifierStartDate,
+                        ascending: false
+                    )
+                ]
             ) { _, samples, error in
                 if let error = error {
                     continuation.resume(throwing: error)
                 } else {
-                    continuation.resume(returning: samples as? [HKWorkout] ?? [])
+                    continuation.resume(
+                        returning: samples as? [HKWorkout] ?? []
+                    )
                 }
             }
             healthStore.execute(query)
@@ -80,7 +103,9 @@ final class HealthKitManager: HealthKitManagerProtocol {
         }
 
         // 거리 추출
-        let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo))
+        let distance = workout.totalDistance?.doubleValue(
+            for: .meterUnit(with: .kilo)
+        )
 
         // 평균 페이스 계산
         let averagePace = calculateAveragePace(from: workout)
@@ -105,8 +130,12 @@ final class HealthKitManager: HealthKitManagerProtocol {
     }
 
     private func calculateAveragePace(from workout: HKWorkout) -> String? {
-        guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
-              distance > 0 else {
+        guard
+            let distance = workout.totalDistance?.doubleValue(
+                for: .meterUnit(with: .kilo)
+            ),
+            distance > 0
+        else {
             return nil
         }
 
@@ -119,8 +148,14 @@ final class HealthKitManager: HealthKitManagerProtocol {
         return String(format: "%d'%02d\"", minutes, seconds)
     }
 
-    private func fetchAverageHeartRate(for workout: HKWorkout) async throws -> Int? {
-        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
+    private func fetchAverageHeartRate(for workout: HKWorkout) async throws
+        -> Int?
+    {
+        guard
+            let heartRateType = HKQuantityType.quantityType(
+                forIdentifier: .heartRate
+            )
+        else {
             return nil
         }
 
@@ -130,7 +165,8 @@ final class HealthKitManager: HealthKitManagerProtocol {
             options: .strictStartDate
         )
 
-        let samples = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKQuantitySample], Error>) in
+        let samples = try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<[HKQuantitySample], Error>) in
             let query = HKSampleQuery(
                 sampleType: heartRateType,
                 predicate: predicate,
@@ -140,7 +176,9 @@ final class HealthKitManager: HealthKitManagerProtocol {
                 if let error = error {
                     continuation.resume(throwing: error)
                 } else {
-                    continuation.resume(returning: samples as? [HKQuantitySample] ?? [])
+                    continuation.resume(
+                        returning: samples as? [HKQuantitySample] ?? []
+                    )
                 }
             }
             healthStore.execute(query)
@@ -150,14 +188,25 @@ final class HealthKitManager: HealthKitManagerProtocol {
             return nil
         }
 
-        let totalHeartRate = samples.reduce(0.0) { $0 + $1.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())) }
+        let totalHeartRate = samples.reduce(0.0) {
+            $0
+                + $1.quantity.doubleValue(
+                    for: HKUnit.count().unitDivided(by: .minute())
+                )
+        }
         let average = totalHeartRate / Double(samples.count)
 
         return Int(average)
     }
 
-    private func fetchAverageCadence(for workout: HKWorkout) async throws -> Int? {
-        guard let cadenceType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
+    private func fetchAverageCadence(for workout: HKWorkout) async throws
+        -> Int?
+    {
+        guard
+            let cadenceType = HKQuantityType.quantityType(
+                forIdentifier: .stepCount
+            )
+        else {
             return nil
         }
 
@@ -167,7 +216,8 @@ final class HealthKitManager: HealthKitManagerProtocol {
             options: .strictStartDate
         )
 
-        let samples = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKQuantitySample], Error>) in
+        let samples = try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<[HKQuantitySample], Error>) in
             let query = HKSampleQuery(
                 sampleType: cadenceType,
                 predicate: predicate,
@@ -177,7 +227,9 @@ final class HealthKitManager: HealthKitManagerProtocol {
                 if let error = error {
                     continuation.resume(throwing: error)
                 } else {
-                    continuation.resume(returning: samples as? [HKQuantitySample] ?? [])
+                    continuation.resume(
+                        returning: samples as? [HKQuantitySample] ?? []
+                    )
                 }
             }
             healthStore.execute(query)
@@ -187,7 +239,9 @@ final class HealthKitManager: HealthKitManagerProtocol {
             return nil
         }
 
-        let totalSteps = samples.reduce(0.0) { $0 + $1.quantity.doubleValue(for: .count()) }
+        let totalSteps = samples.reduce(0.0) {
+            $0 + $1.quantity.doubleValue(for: .count())
+        }
         let durationInMinutes = workout.duration / 60.0
 
         guard durationInMinutes > 0 else {
@@ -204,7 +258,8 @@ final class HealthKitManager: HealthKitManagerProtocol {
 
         let predicate = HKQuery.predicateForObjects(from: workout)
 
-        let routes = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKWorkoutRoute], Error>) in
+        let routes = try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<[HKWorkoutRoute], Error>) in
             let query = HKSampleQuery(
                 sampleType: routeType,
                 predicate: predicate,
@@ -214,7 +269,9 @@ final class HealthKitManager: HealthKitManagerProtocol {
                 if let error = error {
                     continuation.resume(throwing: error)
                 } else {
-                    continuation.resume(returning: samples as? [HKWorkoutRoute] ?? [])
+                    continuation.resume(
+                        returning: samples as? [HKWorkoutRoute] ?? []
+                    )
                 }
             }
             healthStore.execute(query)
@@ -226,15 +283,22 @@ final class HealthKitManager: HealthKitManagerProtocol {
 
         var coordinates: [CLLocationCoordinate2D] = []
 
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            let query = HKWorkoutRouteQuery(route: route) { _, locations, done, error in
+        try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<Void, Error>) in
+            let query = HKWorkoutRouteQuery(route: route) {
+                _,
+                locations,
+                done,
+                error in
                 if let error = error {
                     continuation.resume(throwing: error)
                     return
                 }
 
                 if let locations = locations {
-                    coordinates.append(contentsOf: locations.map { $0.coordinate })
+                    coordinates.append(
+                        contentsOf: locations.map { $0.coordinate }
+                    )
                 }
 
                 if done {
@@ -247,8 +311,15 @@ final class HealthKitManager: HealthKitManagerProtocol {
         return try encodeCoordinates(coordinates)
     }
 
-    private func encodeCoordinates(_ coordinates: [CLLocationCoordinate2D]) throws -> Data {
-        let coordinateStructs = coordinates.map { HealthKitCoordinateData(latitude: $0.latitude, longitude: $0.longitude) }
+    private func encodeCoordinates(_ coordinates: [CLLocationCoordinate2D])
+        throws -> Data
+    {
+        let coordinateStructs = coordinates.map {
+            HealthKitCoordinateData(
+                latitude: $0.latitude,
+                longitude: $0.longitude
+            )
+        }
         return try JSONEncoder().encode(coordinateStructs)
     }
 }
