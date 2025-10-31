@@ -28,7 +28,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		33INFOPLIST2E9D05250027F8B1 /* Info.plist Exceptions */ = {
+		33INFOPLIST2E9D05250027F8B1 /* Exceptions for "RunDiary" folder in "RunDiary" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"Sources/Supporting Files/Info.plist",
@@ -46,7 +46,7 @@
 		3367BB422E9D05250027F8B1 /* RunDiary */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				33INFOPLIST2E9D05250027F8B1 /* Info.plist Exceptions */,
+				33INFOPLIST2E9D05250027F8B1 /* Exceptions for "RunDiary" folder in "RunDiary" target */,
 			);
 			path = RunDiary;
 			sourceTree = "<group>";
