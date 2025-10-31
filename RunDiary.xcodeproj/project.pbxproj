@@ -27,6 +27,16 @@
 		3394D2472EAC74A300A46A16 /* CommonFoundation */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CommonFoundation; path = Dependencies/CommonFoundation; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		33INFOPLIST2E9D05250027F8B1 /* Info.plist Exceptions */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Sources/Supporting Files/Info.plist",
+			);
+			target = 3344D6082E81CD5B00982E36 /* RunDiary */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3317C6152EA774D900525269 /* RunDiaryTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -35,6 +45,9 @@
 		};
 		3367BB422E9D05250027F8B1 /* RunDiary */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				33INFOPLIST2E9D05250027F8B1 /* Info.plist Exceptions */,
+			);
 			path = RunDiary;
 			sourceTree = "<group>";
 		};
@@ -399,8 +412,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = DH9CS7PA5D;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "RunDiary/Sources/Supporting Files/Info.plist";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "러닝 기록을 불러오기 위해 HealthKit 데이터 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "러닝 기록을 저장하기 위해 HealthKit 데이터 쓰기 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -436,8 +449,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = DH9CS7PA5D;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "RunDiary/Sources/Supporting Files/Info.plist";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "러닝 기록을 불러오기 위해 HealthKit 데이터 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "러닝 기록을 저장하기 위해 HealthKit 데이터 쓰기 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
