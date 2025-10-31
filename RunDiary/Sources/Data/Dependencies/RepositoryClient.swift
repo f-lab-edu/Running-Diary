@@ -9,6 +9,7 @@ import Dependencies
 import DependenciesMacros
 import Foundation
 import SwiftData
+import Models
 
 @DependencyClient
 struct RepositoryClient {

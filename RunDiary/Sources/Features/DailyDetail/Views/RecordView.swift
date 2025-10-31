@@ -6,6 +6,7 @@
 //
 
 import CommonFoundation
+import Models
 import SwiftUI
 
 struct RecordView: View {

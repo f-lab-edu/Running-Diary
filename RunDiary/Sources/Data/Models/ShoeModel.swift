@@ -8,17 +8,17 @@
 import Foundation
 
 struct ShoeModel: Identifiable, Equatable, Hashable, Sendable {
-  let id: UUID
-  let name: String
-  let brand: String?
-
-  init(
-    id: UUID = UUID(),
-    name: String,
-    brand: String? = nil
-  ) {
-    self.id = id
-    self.name = name
-    self.brand = brand
-  }
+    let id: UUID
+    let name: String
+    let brand: String?
+    
+    init(
+        id: UUID = UUID(),
+        name: String,
+        brand: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.brand = brand
+    }
 }

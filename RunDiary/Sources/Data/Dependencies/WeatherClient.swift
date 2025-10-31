@@ -8,6 +8,7 @@
 import ComposableArchitecture
 import CoreLocation
 import Foundation
+import Models
 
 @DependencyClient
 struct WeatherClient {

@@ -7,6 +7,7 @@
 
 import CoreLocation
 import Foundation
+import Models
 
 final class KMAWeatherManager: WeatherManagerProtocol {
   private let apiKey: String?

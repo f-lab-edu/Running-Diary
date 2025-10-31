@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Models
 
 protocol RunningRecordRepositoryProtocol {
   func fetch(for date: Date) async throws -> RunningRecord?
