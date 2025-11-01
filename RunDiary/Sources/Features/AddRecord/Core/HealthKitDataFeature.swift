@@ -8,6 +8,7 @@
 import CommonFoundation
 import ComposableArchitecture
 import Foundation
+import HealthKitService
 import Models
 
 @Reducer

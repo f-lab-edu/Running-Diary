@@ -1,0 +1,75 @@
+{
+  "sourceLanguage" : "ko",
+  "strings" : {
+    "healthkit.error.authorization_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to request HealthKit authorization. Please try again later."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKitの権限リクエストに失敗しました。後でもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit 권한 요청에 실패했습니다. 잠시 후 다시 시도해주세요."
+          }
+        }
+      }
+    },
+    "healthkit.error.data_not_found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data not found"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データが見つかりませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터를 찾을 수 없습니다."
+          }
+        }
+      }
+    },
+    "healthkit.error.not_available" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit is not available on this device."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスではHealthKitを使用できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기에서는 HealthKit을 사용할 수 없습니다."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
