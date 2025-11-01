@@ -337,29 +337,28 @@ struct DailyDetailFeatureTests {
     @Test("주 단위 조회 시 일부 날짜만 기록 있을 때 전체 날짜 캐싱")
     func weekRecordsFetchWithPartialRecordsUpdatesAllDates() async {
         let calendar = Calendar.current
-        let testDate = Date()
+        let today = Date()
 
-        // 7일 중 2개만 레코드가 있는 경우
-        let mondayDate = testDate
-        let wednesdayDate = calendar.date(byAdding: .day, value: 2, to: testDate)!
-
-        let mondayRecord = makeMockRecord(date: mondayDate, distance: 5.0)
-        let wednesdayRecord = makeMockRecord(date: wednesdayDate, distance: 7.0)
+        let currentWeekDates = DateHelper.getWeekDates(for: today)
 
         var initialState = DailyDetailFeature.State(isLoading: true)
-        initialState.currentWeekDates = DateHelper.getWeekDates(for: testDate)
-
+        initialState.currentWeekDates = currentWeekDates
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         }
 
-        await store.send(.weekRecordsFetchedSuccess([mondayRecord, wednesdayRecord])) {
+        // 7일 중 2개만 레코드가 있는 경우
+        guard let first = currentWeekDates.first, let last = currentWeekDates.last else { return }
+        let record1 = makeMockRecord(date: first, distance: 5.0)
+        let record2 = makeMockRecord(date: last, distance: 7.0)
+
+        await store.send(.weekRecordsFetchedSuccess([record1, record2])) {
             $0.isLoading = false
 
             // currentWeekDates의 모든 날짜(7일)가 캐시에 저장됨
             let recordsByDate: [Date: RunningRecord] = [
-                calendar.startOfDay(for: mondayDate): mondayRecord,
-                calendar.startOfDay(for: wednesdayDate): wednesdayRecord
+                calendar.startOfDay(for: first): record1,
+                calendar.startOfDay(for: last): record2
             ]
 
             for date in $0.currentWeekDates {
@@ -375,15 +374,15 @@ struct DailyDetailFeatureTests {
         #expect(store.state.cachedRecords.count == 7)
 
         // 레코드가 있는 날짜는 값이 있고
-        let mondayKey = calendar.startOfDay(for: mondayDate)
-        #expect(store.state.cachedRecords[mondayKey] == mondayRecord)
+        let firstKey = calendar.startOfDay(for: first)
+        #expect(store.state.cachedRecords[firstKey] == record1)
 
         // 레코드가 없는 날짜는 nil로 저장됨 (키는 존재하지만 값은 nil)
-        let tuesdayDate = calendar.date(byAdding: .day, value: 1, to: testDate)!
-        let tuesdayKey = calendar.startOfDay(for: tuesdayDate)
-        #expect(store.state.cachedRecords.keys.contains(tuesdayKey))
+        let firstNextDate = calendar.date(byAdding: .day, value: 1, to: first)!
+        let firstNextDateKey = calendar.startOfDay(for: firstNextDate)
+        #expect(store.state.cachedRecords.keys.contains(firstNextDateKey))
         // Double optional: dictionary returns RunningRecord??, unwrap outer to check inner nil
-        if let wrappedValue = store.state.cachedRecords[tuesdayKey] {
+        if let wrappedValue = store.state.cachedRecords[firstNextDateKey] {
             #expect(wrappedValue == nil)
         } else {
             Issue.record("Expected key to exist in cache")
