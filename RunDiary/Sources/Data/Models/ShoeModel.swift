@@ -11,7 +11,7 @@ struct ShoeModel: Identifiable, Equatable, Hashable, Sendable {
     let id: UUID
     let name: String
     let brand: String?
-
+    
     init(
         id: UUID = UUID(),
         name: String,

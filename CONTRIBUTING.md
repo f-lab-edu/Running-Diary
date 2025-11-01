@@ -1,24 +1,38 @@
-# 기여 가이드
+# Contributing Guidelines
 
-## 브랜치
-- `main`: 기본
-- 작업: `feature/`, `fix/`, `refactor/` (예: `feature/calendar-view`)
+## Branch
 
-## 이슈
-- 제목: `타입: 설명` (예: `feat: 캘린더 뷰 구현`)
-- 템플릿: `.github/ISSUE_TEMPLATE/feature.md` 준수
-- Assignee: 본인
+- default: `main`
+- task: `feature/`, `fix/`, `refactor/` (ex: `feature/calendar-view`)
 
-## 커밋
-- 형식: `타입: 설명` (예: `feat: 캘린더 뷰 구현`)
-- 타입: feat, fix, refactor, docs, test, chore
-- 원자적 커밋, 빌드 유지
-- 관련 이슈: `feat: 캘린더 뷰 구현 (#이슈번호)`
-- 주의사항: "Generated with Claude Code" 제외
+## Issue
+
+- title format: `type: description` (ex: `feat: 캘린더 뷰 구현`)
+  - type: English (feat, fix, refactor, docs, chore, etc)
+  - description: Korean
+- template: follow `.github/ISSUE_TEMPLATE/feature.md`
+  - content: Korean
+- assignee: self
+
+## Commit
+
+- format: `type: description (#issue_number)` (ex: `feat: 캘린더 뷰 구현 (#1)`)
+  - type: English (feat, fix, refactor, docs, test, chore)
+  - description: Korean
+  - issue_number: related issue's number
+- body(optional): brief explanation in Korean
+  - what changed and why
+  - keep concise but informative
+- atomic commits: one logical change per commit, keep each commit buildable
+- **forbidden**: "Generated with Claude Code" phrase, "Co-Authored-By" attribution
 
 ## PR
-- 제목: `타입: 설명`
-- 내용: `.github/PULL_REQUEST_TEMPLATE.md` 기반 작성
-- 크기: 500줄 이내 권장
-- Assignee: 본인
-- 관련 이슈: `Closes #번호`
+
+- title format: `type: description`
+  - type: English
+  - description: Korean
+- content: follow `.github/PULL_REQUEST_TEMPLATE.md`
+  - content: Korean
+- size: recommend under 500 lines
+- assignee: self
+- close issue: `Closes #number`

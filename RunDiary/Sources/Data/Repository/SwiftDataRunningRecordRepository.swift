@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Models
 import SwiftData
 
 final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
@@ -18,7 +19,13 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
     func fetch(for date: Date) async throws -> RunningRecord? {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+        guard
+            let endOfDay = calendar.date(
+                byAdding: .day,
+                value: 1,
+                to: startOfDay
+            )
+        else {
             return nil
         }
 
@@ -26,14 +33,18 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
             record.date >= startOfDay && record.date < endOfDay
         }
 
-        let descriptor = FetchDescriptor<RunningRecordModel>(predicate: predicate)
+        let descriptor = FetchDescriptor<RunningRecordModel>(
+            predicate: predicate
+        )
 
         let models = try modelContext.fetch(descriptor)
 
         return models.first?.toDomain()
     }
 
-    func fetchRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord] {
+    func fetchRecords(from startDate: Date, to endDate: Date) async throws
+        -> [RunningRecord]
+    {
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: startDate)
         let end = calendar.startOfDay(for: endDate)
@@ -67,9 +78,12 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
         // 기존 레코드 찾기
         let recordId = record.id
         let predicate = #Predicate<RunningRecordModel> { $0.id == recordId }
-        let descriptor = FetchDescriptor<RunningRecordModel>(predicate: predicate)
+        let descriptor = FetchDescriptor<RunningRecordModel>(
+            predicate: predicate
+        )
 
-        guard let existingModel = try modelContext.fetch(descriptor).first else {
+        guard let existingModel = try modelContext.fetch(descriptor).first
+        else {
             throw RepositoryError.notFound
         }
 
@@ -80,7 +94,9 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
         existingModel.averagePace = record.averagePace
         existingModel.averageHeartRate = record.averageHeartRate
         existingModel.averageCadence = record.averageCadence
-        existingModel.painAreasRaw = record.painAreas.map { $0.rawValue }
+        existingModel.painAreasRawData = PainAreasMapper.encode(
+            record.painAreas
+        )
         existingModel.runningStyleRaw = record.runningStyle?.rawValue
         existingModel.sleepHours = record.condition.sleep
         existingModel.hadMeal = record.condition.meal
@@ -90,7 +106,7 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
         existingModel.temperature = record.weather?.temperature
         existingModel.humidity = record.weather?.humidity
         existingModel.windSpeed = record.weather?.windSpeed
-        existingModel.satisfaction = record.satisfaction
+        existingModel.difficultyLevelRaw = record.difficultyLevel?.rawValue
         existingModel.routeData = record.routeData
         existingModel.hasMap = record.hasMap
 
@@ -104,7 +120,9 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
     func delete(_ record: RunningRecord) async throws {
         let recordId = record.id
         let predicate = #Predicate<RunningRecordModel> { $0.id == recordId }
-        let descriptor = FetchDescriptor<RunningRecordModel>(predicate: predicate)
+        let descriptor = FetchDescriptor<RunningRecordModel>(
+            predicate: predicate
+        )
 
         guard let model = try modelContext.fetch(descriptor).first else {
             throw RepositoryError.notFound

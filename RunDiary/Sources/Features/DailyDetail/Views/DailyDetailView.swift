@@ -5,13 +5,12 @@
 //  Created by 김혜지 on 9/23/25.
 //
 
-import SwiftUI
-import SwiftData
 import ComposableArchitecture
+import Models
+import SwiftUI
 
 struct DailyDetailView: View {
     let store: StoreOf<DailyDetailFeature>
-    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         NavigationStack {
@@ -72,7 +71,7 @@ private struct RecordContentSection: View {
                 if store.isLoading {
                     ProgressView()
                 } else if let record = store.runningRecord {
-                    RecordView(record: record)
+                    RecordView(record: record, onEdit: { store.send(.showAddRecord) })
                 } else {
                     EmptyRecordView(onAddRecord: { store.send(.showAddRecord) })
                 }

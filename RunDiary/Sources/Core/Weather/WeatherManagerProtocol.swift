@@ -5,9 +5,10 @@
 //  Created by 김혜지 on 9/23/25.
 //
 
-import Foundation
 import CoreLocation
+import Foundation
+import Models
 
 protocol WeatherManagerProtocol {
-    func fetchWeather(for date: Date, location: CLLocationCoordinate2D?) async throws -> Weather
+  func fetchWeather(for date: Date, location: CLLocationCoordinate2D?) async throws -> Weather
 }

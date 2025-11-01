@@ -7,22 +7,22 @@
 
 import Foundation
 
-enum WeatherError: LocalizedError {
-    case invalidResponse
-    case networkError
-    case apiKeyMissing
-    case locationRequired
+enum WeatherError: LocalizedError, Equatable {
+  case invalidResponse
+  case networkError
+  case apiKeyMissing
+  case locationRequired
 
-    var errorDescription: String? {
-        switch self {
-        case .invalidResponse:
-            return "Invalid response from weather API"
-        case .networkError:
-            return "Network error occurred"
-        case .apiKeyMissing:
-            return "Weather API key is missing"
-        case .locationRequired:
-            return "Location is required to fetch weather data"
-        }
+  var errorDescription: String? {
+    switch self {
+    case .invalidResponse:
+      return L10n.Weather.Error.invalidResponse
+    case .networkError:
+      return L10n.Weather.Error.networkError
+    case .apiKeyMissing:
+      return L10n.Weather.Error.apiKeyMissing
+    case .locationRequired:
+      return L10n.Weather.Error.locationRequired
     }
+  }
 }

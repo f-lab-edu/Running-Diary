@@ -5,404 +5,458 @@
 //  Created by 김혜지 on 9/23/25.
 //
 
-import SwiftUI
 import ComposableArchitecture
+import SwiftUI
+import Models
 
 struct AddRecordView: View {
-    @Bindable var store: StoreOf<AddRecordFeature>
-    @Environment(\.dismiss) private var dismiss
+  @Bindable var store: StoreOf<AddRecordFeature>
+  @Environment(\.dismiss) private var dismiss
 
-    var body: some View {
-        NavigationStack {
-            Form {
-                // HealthKit 데이터 섹션
-                HealthKitSectionView(
-                    distance: Binding(
-                        get: { store.healthKitData.distance.to2f },
-                        set: { store.send(.healthKitData(.updateDistance($0))) }
-                    ),
-                    duration: Binding(
-                        get: { store.healthKitData.duration },
-                        set: { store.send(.healthKitData(.updateDuration($0))) }
-                    ),
-                    averagePace: Binding(
-                        get: { store.healthKitData.averagePace },
-                        set: { store.send(.healthKitData(.updateAveragePace($0))) }
-                    ),
-                    averageHeartRate: Binding(
-                        get: { store.healthKitData.averageHeartRate.toString },
-                        set: { store.send(.healthKitData(.updateAverageHeartRate($0))) }
-                    ),
-                    averageCadence: Binding(
-                        get: { store.healthKitData.averageCadence.toString },
-                        set: { store.send(.healthKitData(.updateAverageCadence($0))) }
-                    ),
-                    isDataLoaded: store.healthKitData.isDataLoaded
-                )
-
-                // 통증 부위 섹션
-                PainAreasSectionView(
-                    selectedPainAreas: Binding(
-                        get: { store.condition.selectedPainAreas },
-                        set: { store.send(.condition(.updateSelectedPainAreas($0))) }
-                    ),
-                    painAreaOptions: store.condition.painAreaOptions
-                )
-
-                // 주법/스타일 섹션
-                RunningStyleSectionView(
-                    selectedStyle: Binding(
-                        get: { store.condition.selectedRunningStyle },
-                        set: { store.send(.condition(.updateSelectedRunningStyle($0))) }
-                    ),
-                    styleOptions: store.condition.runningStyleOptions
-                )
-
-                // 컨디션 섹션
-                ConditionSectionView(
-                    sleepHours: Binding(
-                        get: { store.condition.sleepHours },
-                        set: { store.send(.condition(.updateSleepHours($0))) }
-                    ),
-                    hadMeal: Binding(
-                        get: { store.condition.hadMeal },
-                        set: { store.send(.condition(.updateHadMeal($0))) }
-                    ),
-                    hadAlcohol: Binding(
-                        get: { store.condition.hadAlcohol },
-                        set: { store.send(.condition(.updateHadAlcohol($0))) }
-                    ),
-                    memo: Binding(
-                        get: { store.condition.memo },
-                        set: { store.send(.condition(.updateMemo($0))) }
-                    )
-                )
-
-                // 신발 섹션
-                ShoesSectionView(
-                    selectedShoe: Binding(
-                        get: { store.condition.selectedShoe },
-                        set: { store.send(.condition(.updateSelectedShoe($0))) }
-                    ),
-                    shoes: store.condition.shoes
-                )
-            }
-            .navigationTitle(store.mode == .add ? "기록 추가" : "기록 수정")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("취소") {
-                        dismiss()
-                    }
-                }
-
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("저장") {
-                        store.send(.saveRecord)
-                    }
-                    .disabled(store.isLoading)
-                }
-            }
-            .task {
-                store.send(.onAppear)
-                if store.mode == .add {
-                    store.send(.healthKitData(.loadData(store.date)))
-                }
-            }
-            .alert("건강 데이터 접근 거부됨", isPresented: Binding(
-                get: { store.showAuthorizationDeniedAlert },
-                set: { if !$0 { store.send(.dismissAuthorizationDeniedAlert) } }
-            )) {
-                Button("설정으로 이동") {
-                    store.send(.openSettings)
-                }
-                Button("취소") {
-                    dismiss()
-                }
-            } message: {
-                Text("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
-            }
-            .alert("러닝 만족도", isPresented: Binding(
-                get: { store.showSatisfactionAlert },
-                set: { if !$0 { store.send(.dismissSatisfactionAlert) } }
-            )) {
-                Button("1점") {
-                    saveSatisfactionAndDismiss(satisfaction: 1)
-                }
-                Button("2점") {
-                    saveSatisfactionAndDismiss(satisfaction: 2)
-                }
-                Button("3점") {
-                    saveSatisfactionAndDismiss(satisfaction: 3)
-                }
-                Button("4점") {
-                    saveSatisfactionAndDismiss(satisfaction: 4)
-                }
-                Button("5점") {
-                    saveSatisfactionAndDismiss(satisfaction: 5)
-                }
-                Button("건너뛰기", role: .cancel) {
-                    dismiss()
-                }
-            } message: {
-                Text("오늘 러닝에 만족하셨나요?")
-            }
-            .overlay {
-                if store.isLoading {
-                    ProgressView()
-                }
-            }
+  var body: some View {
+    NavigationStack {
+      Group {
+        if store.healthKitData.isLoading {
+          ProgressView(L10n.Healthkit.Data.loading)
+            .progressViewStyle(.circular)
+        } else {
+          FormContentView(store: store)
         }
-    }
+      }
+      .navigationTitle(store.mode == .add ? L10n.Record.add : L10n.Record.edit)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button(L10n.UI.cancel) {
+            dismiss()
+          }
+        }
 
-    // MARK: - Helper Methods
-
-    private func saveSatisfactionAndDismiss(satisfaction: Int) {
-        store.send(.setSatisfaction(satisfaction))
-        store.send(.saveSatisfaction)
+        ToolbarItem(placement: .confirmationAction) {
+          Button(L10n.UI.save) {
+            store.send(.saveRecord)
+          }
+          .disabled(store.isLoading || !store.isFormValid)
+        }
+      }
+      .task {
+        store.send(.onAppear)
+      }
+      .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
+      .alert($store.scope(state: \.emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert))
+      .overlay {
+        if store.isLoading {
+          ProgressView()
+        }
+      }
     }
+  }
+}
+
+// MARK: - Form Content
+
+private struct FormContentView: View {
+  @Bindable var store: StoreOf<AddRecordFeature>
+
+  var body: some View {
+    Form {
+      // HealthKit 데이터 섹션
+      HealthKitSectionView(
+        distance: store.healthKitData.data?.formattedDistance ?? "",
+        duration: store.healthKitData.data?.formattedDuration ?? "",
+        averagePace: store.healthKitData.data?.averagePace ?? "",
+        averageHeartRate: store.healthKitData.data?.formattedAverageHeartRate ?? "",
+        averageCadence: store.healthKitData.data?.formattedAverageCadence ?? ""
+      )
+
+      // 신발 섹션
+      ShoesSectionView(
+        selectedShoe: Binding(
+          get: { store.condition.selectedShoe },
+          set: { store.send(.condition(.updateSelectedShoe($0))) }
+        ),
+        shoes: store.condition.shoes
+      )
+
+      // 주법/스타일 섹션
+      RunningStyleSectionView(
+        selectedStyle: Binding(
+          get: { store.condition.selectedRunningStyle },
+          set: { store.send(.condition(.updateSelectedRunningStyle($0))) }
+        ),
+        styleOptions: store.condition.runningStyleOptions
+      )
+
+      // 통증 부위 섹션
+      PainAreasSectionView(
+        selectedPainAreas: Binding(
+          get: { store.condition.selectedPainAreas },
+          set: { store.send(.condition(.updateSelectedPainAreas($0))) }
+        ),
+        painAreaOptions: store.condition.painAreaOptions
+      )
+
+      // 컨디션 섹션
+      ConditionSectionView(
+        sleepHours: Binding(
+          get: { store.condition.sleepHours },
+          set: { store.send(.condition(.updateSleepHours($0))) }
+        ),
+        hadMeal: Binding(
+          get: { store.condition.hadMeal },
+          set: { store.send(.condition(.updateHadMeal($0))) }
+        ),
+        hadAlcohol: Binding(
+          get: { store.condition.hadAlcohol },
+          set: { store.send(.condition(.updateHadAlcohol($0))) }
+        ),
+        memo: Binding(
+          get: { store.condition.memo },
+          set: { store.send(.condition(.updateMemo($0))) }
+        )
+      )
+
+      // 난이도 섹션
+      DifficultyLevelSectionView(
+        selectedLevel: Binding(
+          get: { store.selectedDifficultyLevel },
+          set: { store.send(.updateSelectedDifficultyLevel($0)) }
+        )
+      )
+
+      // 메모 섹션
+      MemoSectionView(
+        memo: Binding(
+          get: { store.condition.memo },
+          set: { store.send(.condition(.updateMemo($0))) }
+        )
+      )
+    }
+    .scrollDismissesKeyboard(.interactively)
+    .simultaneousGesture(
+      TapGesture().onEnded {
+        hideKeyboard()
+      }
+    )
+    .toolbar {
+      ToolbarItemGroup(placement: .keyboard) {
+        Spacer()
+        Button(L10n.UI.done) {
+          hideKeyboard()
+        }
+      }
+    }
+  }
+
+  private func hideKeyboard() {
+    UIApplication.shared.sendAction(
+      #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+  }
 }
 
 // MARK: - Section Views
 
 private struct HealthKitSectionView: View {
-    @Binding var distance: String
-    @Binding var duration: String
-    @Binding var averagePace: String
-    @Binding var averageHeartRate: String
-    @Binding var averageCadence: String
-    let isDataLoaded: Bool
+  let distance: String
+  let duration: String
+  let averagePace: String
+  let averageHeartRate: String
+  let averageCadence: String
 
-    var body: some View {
-        Section("주요 지표") {
-            HStack {
-                Text("거리")
-                    .foregroundColor(.gray)
-                Spacer()
-                TextField("0.00", text: $distance)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
-                Text("km")
-                    .foregroundColor(.gray)
-            }
+  var body: some View {
+    Section(L10n.Record.fitnessData) {
+      HStack {
+        Text(L10n.Record.Field.distance)
+          .foregroundColor(.gray)
+        Spacer()
+        Text(distance)
+        Text(L10n.Unit.km)
+          .foregroundColor(.gray)
+      }
 
-            HStack {
-                Text("소요시간")
-                    .foregroundColor(.gray)
-                Spacer()
-                TextField("0:00", text: $duration)
-                    .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
-            }
+      HStack {
+        Text(L10n.Record.Field.duration)
+          .foregroundColor(.gray)
+        Spacer()
+        Text(duration)
+      }
 
-            HStack {
-                Text("평균 페이스")
-                    .foregroundColor(.gray)
-                Spacer()
-                TextField("0'00\"", text: $averagePace)
-                    .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
-            }
+      HStack {
+        Text(L10n.Record.Field.pace)
+          .foregroundColor(.gray)
+        Spacer()
+        Text(averagePace)
+      }
 
-            HStack {
-                Text("평균 심박수")
-                    .foregroundColor(.gray)
-                Spacer()
-                TextField("0", text: $averageHeartRate)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
-                Text("bpm")
-                    .foregroundColor(.gray)
-            }
+      HStack {
+        Text(L10n.Record.Field.heartRate)
+          .foregroundColor(.gray)
+        Spacer()
+        Text(averageHeartRate)
+        Text(L10n.Unit.bpm)
+          .foregroundColor(.gray)
+      }
 
-            HStack {
-                Text("평균 케이던스")
-                    .foregroundColor(.gray)
-                Spacer()
-                TextField("0", text: $averageCadence)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .allowsHitTesting(!isDataLoaded)
-                Text("spm")
-                    .foregroundColor(.gray)
-            }
-        }
+      HStack {
+        Text(L10n.Record.Field.cadence)
+          .foregroundColor(.gray)
+        Spacer()
+        Text(averageCadence)
+        Text(L10n.Unit.spm)
+          .foregroundColor(.gray)
+      }
     }
+  }
 }
 
 private struct PainAreasSectionView: View {
-    @Binding var selectedPainAreas: Set<PainArea>
-    let painAreaOptions: [PainArea]
+  @Binding var selectedPainAreas: Set<PainArea>
+  let painAreaOptions: [PainArea]
 
-    var body: some View {
-        Section("통증 부위") {
-            Menu {
-                ForEach(painAreaOptions, id: \.self) { area in
-                    Button(action: {
-                        if selectedPainAreas.contains(area) {
-                            selectedPainAreas.remove(area)
-                        } else {
-                            selectedPainAreas.insert(area)
-                        }
-                    }) {
-                        HStack {
-                            Text(area.rawValue)
-                            if selectedPainAreas.contains(area) {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack {
-                    Text(selectedPainAreas.isEmpty ? "선택하세요" : selectedPainAreas.map({$0.rawValue}).joined(separator: ", "))
-                        .foregroundColor(selectedPainAreas.isEmpty ? .gray : .primary)
-                    Spacer()
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
-                }
+  var body: some View {
+    Section(L10n.Record.Field.painAreas) {
+      DynamicGridLayout(items: painAreaOptions) { area in
+        Button {
+          withAnimation(.easeInOut(duration: 0.2)) {
+            if selectedPainAreas.contains(area) {
+              selectedPainAreas.remove(area)
+            } else {
+              selectedPainAreas.insert(area)
             }
+          }
+        } label: {
+          Text(area.rawValue)
+            .font(.subheadline)
+            .bold(selectedPainAreas.contains(area))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 12)
         }
+        .buttonStyle(PainAreaButtonStyle(isSelected: selectedPainAreas.contains(area)))
+      }
     }
+  }
 }
 
 private struct RunningStyleSectionView: View {
-    @Binding var selectedStyle: RunninStyle?
-    let styleOptions: [RunninStyle]
+  @Binding var selectedStyle: RunninStyle?
+  let styleOptions: [RunninStyle]
 
-    var body: some View {
-        Section("주법/스타일") {
-            Menu {
-                ForEach(styleOptions, id: \.self) { style in
-                    Button(style.rawValue) {
-                        selectedStyle = style
-                    }
-                }
-            } label: {
-                HStack {
-                    Text(selectedStyle?.rawValue ?? "선택하세요")
-                        .foregroundColor(selectedStyle == nil ? .gray : .primary)
-                    Spacer()
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
-                }
-            }
+  var body: some View {
+    Section(L10n.Record.Field.runningStyle) {
+      Menu {
+        ForEach(styleOptions, id: \.self) { style in
+          Button(style.rawValue) {
+            selectedStyle = style
+          }
         }
+      } label: {
+        HStack {
+          Text(selectedStyle?.rawValue ?? "어떤 주법으로 달렸나요?")
+            .foregroundColor(selectedStyle == nil ? .gray : .primary)
+          Spacer()
+          Image(systemName: "chevron.down")
+            .foregroundColor(.gray)
+        }
+      }
     }
+  }
+}
+
+private struct DifficultyLevelSectionView: View {
+  @Binding var selectedLevel: DifficultyLevel?
+
+  var body: some View {
+    Section(L10n.Record.Field.intensity) {
+      Menu {
+        ForEach(DifficultyLevel.allCases, id: \.self) { level in
+          Button(level.displayName) {
+            selectedLevel = level
+          }
+        }
+      } label: {
+        HStack {
+          Text(selectedLevel?.displayName ?? "운동 강도를 선택해주세요!")
+            .foregroundColor(selectedLevel == nil ? .gray : .primary)
+          Spacer()
+          if let level = selectedLevel {
+            HStack(spacing: 2) {
+              ForEach(1...5, id: \.self) { index in
+                Image(systemName: index <= level.rawValue ? "star.fill" : "star")
+                  .foregroundColor(index <= level.rawValue ? .yellow : .gray)
+                  .font(.caption)
+              }
+            }
+          }
+          Image(systemName: "chevron.down")
+            .foregroundColor(.gray)
+        }
+      }
+    }
+  }
 }
 
 private struct ConditionSectionView: View {
-    @Binding var sleepHours: String
-    @Binding var hadMeal: Bool
-    @Binding var hadAlcohol: Bool
-    @Binding var memo: String
+  @Binding var sleepHours: String
+  @Binding var hadMeal: Bool
+  @Binding var hadAlcohol: Bool
+  @Binding var memo: String
 
-    var body: some View {
-        Section("컨디션") {
-            HStack {
-                Text("수면 시간")
-                    .foregroundColor(.gray)
-                Spacer()
-                TextField("0", text: $sleepHours)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                Text("시간")
-                    .foregroundColor(.gray)
+  var body: some View {
+    Section(L10n.Record.Field.condition) {
+      HStack {
+        Text(L10n.Record.Field.sleepDuration)
+          .foregroundColor(.gray)
+        Spacer()
+        TextField("8", text: $sleepHours)
+          .keyboardType(.numberPad)
+          .multilineTextAlignment(.trailing)
+          .onChange(of: sleepHours) { oldValue, newValue in
+            // 빈 값 허용 (입력 전/전체 삭제)
+            if newValue.isEmpty {
+              return
             }
 
-            HStack {
-                Text("식사 여부")
-                    .foregroundColor(.gray)
-                Spacer()
-                CheckboxView(isChecked: $hadMeal)
+            // 정수 변환 및 범위 검증
+            if let value = Int(newValue) {
+              if value < 1 {
+                // 1 미만 → 1로 자동 보정
+                sleepHours = "1"
+              } else if value > 24 {
+                // 24 초과 → 24로 자동 보정
+                sleepHours = "24"
+              }
+              // 1~24 범위는 그대로 유지
+            } else {
+              // 숫자가 아닌 경우 → 이전 값으로 되돌림
+              sleepHours = oldValue
             }
+          }
+        Text(L10n.Unit.hours)
+          .foregroundColor(.gray)
+      }
 
-            HStack {
-                Text("음주 여부")
-                    .foregroundColor(.gray)
-                Spacer()
-                CheckboxView(isChecked: $hadAlcohol)
-            }
+      HStack {
+        Text(L10n.Record.Field.hasMeal)
+          .foregroundColor(.gray)
+        Spacer()
+        CheckboxView(isChecked: $hadMeal)
+      }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("기타 메모")
-                    .foregroundColor(.gray)
-                TextEditor(text: $memo)
-                    .frame(minHeight: 100)
-            }
-        }
+      HStack {
+        Text(L10n.Record.Field.wasDrinking)
+          .foregroundColor(.gray)
+        Spacer()
+        CheckboxView(isChecked: $hadAlcohol)
+      }
     }
+  }
 }
 
 private struct ShoesSectionView: View {
-    @Binding var selectedShoe: String?
-    let shoes: [ShoeModel]
+  @Binding var selectedShoe: String?
+  let shoes: [ShoeModel]
 
-    var body: some View {
-        Section("착용 신발") {
-            Menu {
-                ForEach(shoes, id: \.id) { shoe in
-                    Button(shoe.name) {
-                        selectedShoe = shoe.name
-                    }
-                }
-            } label: {
-                HStack {
-                    Text(selectedShoe ?? "선택하세요")
-                        .foregroundColor(selectedShoe == nil ? .gray : .primary)
-                    Spacer()
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
-                }
-            }
+  var body: some View {
+    Section(L10n.Record.Field.shoes) {
+      Menu {
+        ForEach(shoes, id: \.id) { shoe in
+          Button(shoe.name) {
+            selectedShoe = shoe.name
+          }
         }
+      } label: {
+        HStack {
+          Text(selectedShoe ?? "어떤 신발을 착용하셨나요?")
+            .foregroundColor(selectedShoe == nil ? .gray : .primary)
+          Spacer()
+          Image(systemName: "chevron.down")
+            .foregroundColor(.gray)
+        }
+      }
     }
+  }
+}
+
+private struct MemoSectionView: View {
+  @Binding var memo: String
+
+  var body: some View {
+    Section(L10n.Record.Field.memo) {
+      ZStack(alignment: .topLeading) {
+        TextEditor(text: $memo)
+          .frame(minHeight: 150)
+
+        if memo.isEmpty {
+          Text(L10n.Record.Field.memoPlaceholder)
+            .foregroundColor(.gray)
+            .padding(.top, 8)
+            .padding(.leading, 5)
+            .allowsHitTesting(false)
+        }
+      }
+    }
+  }
 }
 
 // MARK: - Checkbox Component
 
 private struct CheckboxView: View {
-    @Binding var isChecked: Bool
+  @Binding var isChecked: Bool
 
-    var body: some View {
-        Button(action: {
-            isChecked.toggle()
-        }) {
-            Image(systemName: isChecked ? "checkmark.square.fill" : "square")
-                .foregroundColor(isChecked ? .blue : .gray)
-                .font(.title2)
-        }
-        .buttonStyle(.plain)
+  var body: some View {
+    Button(action: {
+      isChecked.toggle()
+    }) {
+      Image(systemName: isChecked ? "checkmark.square.fill" : "square")
+        .foregroundColor(isChecked ? .blue : .gray)
+        .font(.title2)
     }
+    .buttonStyle(.plain)
+  }
+}
+
+// MARK: - Pain Area Button Style
+
+private struct PainAreaButtonStyle: ButtonStyle {
+  let isSelected: Bool
+
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .foregroundColor(isSelected ? .white : .primary)
+      .background(isSelected ? Color.blue : Color.clear)
+      .clipShape(Capsule())
+      .overlay(
+        Capsule()
+          .stroke(isSelected ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
+      )
+      .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+      .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+  }
 }
 
 // MARK: - Preview
 
 #Preview("Add Mode", traits: .sampleData) {
-    AddRecordView(
-        store: Store(
-            initialState: AddRecordFeature.State(
-                mode: .add,
-                date: Date()
-            )
-        ) {
-            AddRecordFeature()
-        }
-    )
+  AddRecordView(
+    store: Store(
+      initialState: AddRecordFeature.State(
+        date: Date()
+      )
+    ) {
+      AddRecordFeature()
+    }
+  )
 }
 
 #Preview("Edit Mode", traits: .sampleData) {
-    AddRecordView(
-        store: Store(
-            initialState: AddRecordFeature.State(
-                mode: .edit,
-                date: Date(),
-                existingRecord: RunningRecordModel.preview.toDomain()
-            )
-        ) {
-            AddRecordFeature()
-        }
-    )
+  AddRecordView(
+    store: Store(
+      initialState: AddRecordFeature.State(
+        date: Date(),
+        existingRecord: RunningRecordModel.preview.toDomain()
+      )
+    ) {
+      AddRecordFeature()
+    }
+  )
 }

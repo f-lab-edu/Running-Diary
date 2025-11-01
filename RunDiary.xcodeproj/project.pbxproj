@@ -7,7 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		334AFAF22EB4AA0000BDBE9F /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = 334AFAF12EB4AA0000BDBE9F /* Models */; };
+		3394D2C32EAC74C700A46A16 /* CommonFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 3394D2C22EAC74C700A46A16 /* CommonFoundation */; };
 		339637502EA4F89B00640DBF /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 33TCA0022EA1600000000002 /* ComposableArchitecture */; };
+		339DA0CC2EB58D9F0013B0E2 /* HealthKitService in Frameworks */ = {isa = PBXBuildFile; productRef = 339DA0CB2EB58D9F0013B0E2 /* HealthKitService */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -23,13 +26,16 @@
 /* Begin PBXFileReference section */
 		3317C6142EA774D900525269 /* RunDiaryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunDiaryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3344D6092E81CD5B00982E36 /* RunDiary.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RunDiary.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		334AFAF02EB4A9F700BDBE9F /* Models */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Models; path = Dependencies/Models; sourceTree = "<group>"; };
+		3394D2472EAC74A300A46A16 /* CommonFoundation */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CommonFoundation; path = Dependencies/CommonFoundation; sourceTree = "<group>"; };
+		339DA0CA2EB58D910013B0E2 /* HealthKitService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = HealthKitService; path = Dependencies/HealthKitService; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		330521562EA1537C00000222 /* Exceptions for "RunDiary" folder in "RunDiary" target */ = {
+		33INFOPLIST2E9D05250027F8B1 /* Exceptions for "RunDiary" folder in "RunDiary" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Resources/Info.plist,
+				"Sources/Supporting Files/Info.plist",
 			);
 			target = 3344D6082E81CD5B00982E36 /* RunDiary */;
 		};
@@ -44,7 +50,7 @@
 		3367BB422E9D05250027F8B1 /* RunDiary */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				330521562EA1537C00000222 /* Exceptions for "RunDiary" folder in "RunDiary" target */,
+				33INFOPLIST2E9D05250027F8B1 /* Exceptions for "RunDiary" folder in "RunDiary" target */,
 			);
 			path = RunDiary;
 			sourceTree = "<group>";
@@ -63,7 +69,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				334AFAF22EB4AA0000BDBE9F /* Models in Frameworks */,
+				3394D2C32EAC74C700A46A16 /* CommonFoundation in Frameworks */,
 				339637502EA4F89B00640DBF /* ComposableArchitecture in Frameworks */,
+				339DA0CC2EB58D9F0013B0E2 /* HealthKitService in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -73,9 +82,13 @@
 		3344D6002E81CD5B00982E36 = {
 			isa = PBXGroup;
 			children = (
-				3317C6152EA774D900525269 /* RunDiaryTests */,
+				339DA0CA2EB58D910013B0E2 /* HealthKitService */,
+				334AFAF02EB4A9F700BDBE9F /* Models */,
+				3394D2472EAC74A300A46A16 /* CommonFoundation */,
+				3394D2C12EAC74C700A46A16 /* Frameworks */,
 				3344D60A2E81CD5B00982E36 /* Products */,
 				3367BB422E9D05250027F8B1 /* RunDiary */,
+				3317C6152EA774D900525269 /* RunDiaryTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -86,6 +99,13 @@
 				3317C6142EA774D900525269 /* RunDiaryTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3394D2C12EAC74C700A46A16 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -132,6 +152,9 @@
 			name = RunDiary;
 			packageProductDependencies = (
 				33TCA0022EA1600000000002 /* ComposableArchitecture */,
+				3394D2C22EAC74C700A46A16 /* CommonFoundation */,
+				334AFAF12EB4AA0000BDBE9F /* Models */,
+				339DA0CB2EB58D9F0013B0E2 /* HealthKitService */,
 			);
 			productName = RunDiary;
 			productReference = 3344D6092E81CD5B00982E36 /* RunDiary.app */;
@@ -157,11 +180,13 @@
 				};
 			};
 			buildConfigurationList = 3344D6042E81CD5B00982E36 /* Build configuration list for PBXProject "RunDiary" */;
-			developmentRegion = en;
+			developmentRegion = ko;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				ko,
+				ja,
 			);
 			mainGroup = 3344D6002E81CD5B00982E36;
 			minimizedProjectReferenceProxies = 1;
@@ -230,6 +255,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = DH9CS7PA5D;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kimhyeji.RunDiaryTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -251,6 +277,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = DH9CS7PA5D;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kimhyeji.RunDiaryTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -390,17 +417,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = RunDiary/RunDiary.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = DH9CS7PA5D;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RunDiary/Resources/Info.plist;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "RunDiary/Sources/Supporting Files/Info.plist";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "러닝 기록을 불러오기 위해 HealthKit 데이터 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "러닝 기록을 저장하기 위해 HealthKit 데이터 쓰기 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -423,17 +454,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = RunDiary/RunDiary.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = DH9CS7PA5D;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RunDiary/Resources/Info.plist;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "RunDiary/Sources/Supporting Files/Info.plist";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "러닝 기록을 불러오기 위해 HealthKit 데이터 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "러닝 기록을 저장하기 위해 HealthKit 데이터 쓰기 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -495,6 +530,18 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		334AFAF12EB4AA0000BDBE9F /* Models */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Models;
+		};
+		3394D2C22EAC74C700A46A16 /* CommonFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CommonFoundation;
+		};
+		339DA0CB2EB58D9F0013B0E2 /* HealthKitService */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HealthKitService;
+		};
 		33TCA0022EA1600000000002 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;

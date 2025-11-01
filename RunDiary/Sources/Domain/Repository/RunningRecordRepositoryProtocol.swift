@@ -6,31 +6,32 @@
 //
 
 import Foundation
+import Models
 
 protocol RunningRecordRepositoryProtocol {
-    func fetch(for date: Date) async throws -> RunningRecord?
-    func fetchRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord]
-    func save(_ record: RunningRecord) async throws
-    func update(_ record: RunningRecord) async throws
-    func delete(_ record: RunningRecord) async throws
+  func fetch(for date: Date) async throws -> RunningRecord?
+  func fetchRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord]
+  func save(_ record: RunningRecord) async throws
+  func update(_ record: RunningRecord) async throws
+  func delete(_ record: RunningRecord) async throws
 }
 
-enum RepositoryError: LocalizedError {
-    case notFound
-    case saveFailed
-    case updateFailed
-    case deleteFailed
+enum RepositoryError: LocalizedError, Equatable {
+  case notFound
+  case saveFailed
+  case updateFailed
+  case deleteFailed
 
-    var errorDescription: String? {
-        switch self {
-        case .notFound:
-            return "Record not found"
-        case .saveFailed:
-            return "Failed to save record"
-        case .updateFailed:
-            return "Failed to update record"
-        case .deleteFailed:
-            return "Failed to delete record"
-        }
+  var errorDescription: String? {
+    switch self {
+    case .notFound:
+      return L10n.Repository.Error.notFound
+    case .saveFailed:
+      return L10n.Repository.Error.saveFailed
+    case .updateFailed:
+      return L10n.Repository.Error.updateFailed
+    case .deleteFailed:
+      return L10n.Repository.Error.deleteFailed
     }
+  }
 }
