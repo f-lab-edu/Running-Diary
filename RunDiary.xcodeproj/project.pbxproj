@@ -527,8 +527,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/HorizonCalendar.git";
 			requirement = {
-				kind = exactVersion;
-				version = 2.0.0;
+				branch = master;
+				kind = branch;
 			};
 		};
 		33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {

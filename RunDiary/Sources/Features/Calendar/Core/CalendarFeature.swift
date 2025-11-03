@@ -15,6 +15,7 @@ struct CalendarFeature {
 
     @ObservableState
     struct State: Equatable {
+        let calendar: Calendar
         var startDate: Date
         var endDate: Date
         var recordsByDate: [Date: RunningRecord?] = [:]
@@ -22,12 +23,17 @@ struct CalendarFeature {
         var isLoading: Bool = false
         var error: CalendarError?
 
+        var startDateComponents: DateComponents {
+            calendar.dateComponents([.year, .month], from: startDate)
+        }
+
         init(
             startDate: Date? = nil,
             endDate: Date? = nil
         ) {
             let calendar = Calendar.current
             let today = Date()
+            self.calendar = calendar
             self.startDate = startDate ?? calendar.date(byAdding: .year, value: -1, to: today)!
             self.endDate = endDate ?? calendar.date(byAdding: .month, value: 1, to: today)!
         }

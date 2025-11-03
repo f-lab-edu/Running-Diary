@@ -64,9 +64,12 @@ struct CalendarView: View {
                 record: record
             )
         }
-        .onScroll { _, _ in
-            // TODO: HorizonCalendar API를 사용하여 가장 오래된 달이 화면에 보일 때 감지하고
-            // store.send(.oldestMonthBecameVisible) 호출
+        .onScroll { _, isUserDragging in
+            // HorizonCalendar API를 사용하여 가장 오래된 달이 화면에 보이는 때를 감지합니다.
+            guard isUserDragging, let firstVisibleMonth = proxy.visibleMonthRange?.lowerBound else { return }
+            let oldestDateComponents = store.state.startDateComponents
+            guard oldestDateComponents.year == firstVisibleMonth.year, oldestDateComponents.month == firstVisibleMonth.month else { return }
+            store.send(.oldestMonthBecameVisible)
         }
         .onAppear {
             store.send(.onAppear)
