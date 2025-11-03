@@ -147,10 +147,10 @@ private struct DayView: View {
                     .opacity(isToday ? 1 : 0.7)
                     .bold()
                 Spacer()
-                Text(record.map { "\($0.distanceInKilometers.to1f)km" } ?? "0.0km")
+                Text(record.map { "\($0.distanceInKilometers.to1f)km" } ?? "-")
                     .font(.caption)
                     .foregroundStyle(isToday ? .black : .gray)
-                    .opacity(record != nil ? 1 : 0)
+                    .opacity(record != nil ? 1 : 0.2)
             }
             .padding(10)
         }
