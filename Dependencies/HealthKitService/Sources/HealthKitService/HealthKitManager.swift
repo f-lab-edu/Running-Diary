@@ -99,25 +99,11 @@ public final class HealthKitManager: HealthKitManagerProtocol {
             healthStore.execute(query)
         }
 
-        guard let workout = workouts.first else {
-            return nil
-        }
-
-        // 거리 추출
-        let distance = workout.totalDistance?.doubleValue(
-            for: .meterUnit(with: .kilo)
-        )
-
-        // 평균 페이스 계산
+        guard let workout = workouts.first else { return nil }
+        let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo))
         let averagePace = calculateAveragePace(from: workout)
-
-        // 평균 심박수 조회
         let averageHeartRate = try await fetchAverageHeartRate(for: workout)
-
-        // 평균 케이던스 조회
         let averageCadence = try await fetchAverageCadence(for: workout)
-
-        // 경로 데이터 조회
         let routeData = try await fetchRouteData(for: workout)
 
         return HealthKitRunningData(

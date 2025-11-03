@@ -10,7 +10,7 @@
 		334AFAF22EB4AA0000BDBE9F /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = 334AFAF12EB4AA0000BDBE9F /* Models */; };
 		3394D2C32EAC74C700A46A16 /* CommonFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 3394D2C22EAC74C700A46A16 /* CommonFoundation */; };
 		339637502EA4F89B00640DBF /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 33TCA0022EA1600000000002 /* ComposableArchitecture */; };
-		339DA0CC2EB58D9F0013B0E2 /* HealthKitService in Frameworks */ = {isa = PBXBuildFile; productRef = 339DA0CB2EB58D9F0013B0E2 /* HealthKitService */; };
+		339DA1592EB684610013B0E2 /* HealthKitService in Frameworks */ = {isa = PBXBuildFile; productRef = 339DA1582EB684610013B0E2 /* HealthKitService */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,7 +28,7 @@
 		3344D6092E81CD5B00982E36 /* RunDiary.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RunDiary.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		334AFAF02EB4A9F700BDBE9F /* Models */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Models; path = Dependencies/Models; sourceTree = "<group>"; };
 		3394D2472EAC74A300A46A16 /* CommonFoundation */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CommonFoundation; path = Dependencies/CommonFoundation; sourceTree = "<group>"; };
-		339DA0CA2EB58D910013B0E2 /* HealthKitService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = HealthKitService; path = Dependencies/HealthKitService; sourceTree = "<group>"; };
+		339DA1572EB684340013B0E2 /* HealthKitService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = HealthKitService; path = Dependencies/HealthKitService; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -72,7 +72,7 @@
 				334AFAF22EB4AA0000BDBE9F /* Models in Frameworks */,
 				3394D2C32EAC74C700A46A16 /* CommonFoundation in Frameworks */,
 				339637502EA4F89B00640DBF /* ComposableArchitecture in Frameworks */,
-				339DA0CC2EB58D9F0013B0E2 /* HealthKitService in Frameworks */,
+				339DA1592EB684610013B0E2 /* HealthKitService in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,7 +82,7 @@
 		3344D6002E81CD5B00982E36 = {
 			isa = PBXGroup;
 			children = (
-				339DA0CA2EB58D910013B0E2 /* HealthKitService */,
+				339DA1572EB684340013B0E2 /* HealthKitService */,
 				334AFAF02EB4A9F700BDBE9F /* Models */,
 				3394D2472EAC74A300A46A16 /* CommonFoundation */,
 				3394D2C12EAC74C700A46A16 /* Frameworks */,
@@ -154,7 +154,7 @@
 				33TCA0022EA1600000000002 /* ComposableArchitecture */,
 				3394D2C22EAC74C700A46A16 /* CommonFoundation */,
 				334AFAF12EB4AA0000BDBE9F /* Models */,
-				339DA0CB2EB58D9F0013B0E2 /* HealthKitService */,
+				339DA1582EB684610013B0E2 /* HealthKitService */,
 			);
 			productName = RunDiary;
 			productReference = 3344D6092E81CD5B00982E36 /* RunDiary.app */;
@@ -538,7 +538,7 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = CommonFoundation;
 		};
-		339DA0CB2EB58D9F0013B0E2 /* HealthKitService */ = {
+		339DA1582EB684610013B0E2 /* HealthKitService */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HealthKitService;
 		};
