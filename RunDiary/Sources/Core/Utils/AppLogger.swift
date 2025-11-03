@@ -60,6 +60,12 @@ enum AppLogger {
     category: "AddRecord"
   )
 
+  /// Calendar 기능 관련 로거
+  static let calendar = LoggerWrapper(
+    subsystem: subsystem,
+    category: "Calendar"
+  )
+
   /// HealthKit 관련 로거
   static let healthKit = LoggerWrapper(
     subsystem: subsystem,

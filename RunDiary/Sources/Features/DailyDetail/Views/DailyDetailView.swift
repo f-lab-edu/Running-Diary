@@ -15,7 +15,9 @@ struct DailyDetailView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                YearAndMonthSection(date: store.selectedDate)
+                YearAndMonthSection(date: store.selectedDate) {
+                    store.send(.calendarButtonTapped)
+                }
 
                 DateCarouselSection(store: store)
 
@@ -25,6 +27,18 @@ struct DailyDetailView: View {
             }
             .sheet(store: store.scope(state: \.$addRecord, action: \.addRecord)) { addRecordStore in
                 AddRecordView(store: addRecordStore)
+            }
+            .sheet(store: store.scope(state: \.$calendar, action: \.calendar)) { calendarStore in
+                NavigationStack {
+                    CalendarView(store: calendarStore)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("닫기") {
+                                    store.send(.calendar(.dismiss))
+                                }
+                            }
+                        }
+                }
             }
             .task {
                 store.send(.onAppear)
@@ -37,19 +51,44 @@ struct DailyDetailView: View {
 
 private struct YearAndMonthSection: View {
     let yearAndMonth: String
+    let onCalendarTap: () -> Void
 
-    init(date: Date) {
+    init(date: Date, onCalendarTap: @escaping () -> Void) {
         let formatter = DateFormatter()
         formatter.dateFormat = "YYYY년 M월"
         self.yearAndMonth = formatter.string(from: date)
+        self.onCalendarTap = onCalendarTap
     }
 
     var body: some View {
-        Text(yearAndMonth)
-            .font(.title2)
-            .fontWeight(.bold)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.leading, 14)
+        HStack {
+            Text(yearAndMonth)
+                .font(.title2)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 14)
+
+            Spacer()
+
+            Button {
+                onCalendarTap()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "calendar")
+                        .font(.body)
+                    Text("캘린더 보기")
+                        .font(.footnote)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(lineWidth: 1)
+                )
+            }
+            .foregroundStyle(.gray)
+            .padding(.trailing, 14)
+        }
     }
 }
 
