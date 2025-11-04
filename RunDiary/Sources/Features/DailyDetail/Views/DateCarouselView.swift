@@ -59,38 +59,42 @@ struct DateCarouselView: View {
             .offset(x: -screenWidth + dragOffset + currentOffset)
             .gesture(
                 DragGesture()
-                    .onChanged { value in
-                        dragOffset = value.translation.width
-                    }
-                    .onEnded { value in
-                        let threshold = screenWidth * 0.3
-                        let swipeDistance = value.translation.width
-                        
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            if swipeDistance > threshold {
-                                // 오른쪽 스와이프 → 이전 주
-                                currentOffset = screenWidth
-                            } else if swipeDistance < -threshold {
-                                // 왼쪽 스와이프 → 다음 주
-                                currentOffset = -screenWidth
-                            }
-                            dragOffset = 0
-                        }
-                        
-                        if abs(swipeDistance) > threshold {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                if swipeDistance > threshold {
-                                    store.send(.weekChanged(offset: -1))
-                                } else {
-                                    store.send(.weekChanged(offset: 1))
-                                }
-                                currentOffset = 0
-                            }
-                        }
-                    }
+                    .onChanged { handleDragChanged($0) }
+                    .onEnded { handleDragEnded($0, screenWidth: screenWidth) }
             )
         }
         .frame(height: 80)
+    }
+
+    private func handleDragChanged(_ value: DragGesture.Value) {
+        dragOffset = value.translation.width
+    }
+
+    private func handleDragEnded(_ value: DragGesture.Value, screenWidth: CGFloat) {
+        let threshold = screenWidth * 0.3
+        let swipeDistance = value.translation.width
+
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            if swipeDistance > threshold {
+                // 오른쪽 스와이프 → 이전 주
+                currentOffset = screenWidth
+            } else if swipeDistance < -threshold {
+                // 왼쪽 스와이프 → 다음 주
+                currentOffset = -screenWidth
+            }
+            dragOffset = 0
+        }
+
+        if abs(swipeDistance) > threshold {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                if swipeDistance > threshold {
+                    store.send(.weekChanged(offset: -1))
+                } else {
+                    store.send(.weekChanged(offset: 1))
+                }
+                currentOffset = 0
+            }
+        }
     }
 }
 

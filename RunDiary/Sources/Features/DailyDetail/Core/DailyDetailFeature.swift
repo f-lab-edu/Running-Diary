@@ -118,7 +118,6 @@ struct DailyDetailFeature {
                 }
 
             case .fetchWeekRecords:
-                debugPrint(#function)
                 guard let weekStart = state.currentWeekDates.first,
                       let weekEnd = state.currentWeekDates.last else {
                     AppLogger.dailyDetail.warning("fetchWeekRecords 실패 - currentWeekDates가 비어있음")

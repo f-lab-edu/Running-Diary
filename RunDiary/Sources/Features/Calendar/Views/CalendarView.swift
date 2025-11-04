@@ -41,16 +41,14 @@ struct CalendarView: View {
         .monthHeaders { month in
             let yearMonth = String(format: "%04d-%02d", month.year, month.month)
             let totalDistance = store.monthlyTotals[yearMonth] ?? 0.0
-            let isToday = isSameMonthToday(with: month)
 
             MonthHeaderView(
                 month: month,
                 totalDistance: totalDistance,
-                isToday: isToday
+                isToday: isSameMonthToday(with: month)
             )
         }
         .days { day in
-            let isToday = isSameDayToday(with: day)
             let date = calendar.date(from: day.components)
             let record = date.flatMap { date in
                 let normalizedDate = calendar.startOfDay(for: date)
@@ -59,7 +57,7 @@ struct CalendarView: View {
 
             DayView(
                 day: day,
-                isToday: isToday,
+                isToday: isSameDayToday(with: day),
                 isSunday: isSunday(currentDay: day),
                 record: record
             )
