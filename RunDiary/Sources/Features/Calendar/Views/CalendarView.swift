@@ -73,7 +73,7 @@ struct CalendarView: View {
             store.send(.onAppear)
             proxy.scrollToDay(
                 containing: today,
-                scrollPosition: .lastFullyVisiblePosition(padding: UIScreen.main.bounds.height * 0.35),
+                scrollPosition: .lastFullyVisiblePosition(padding: screenHeight * 0.35),
                 animated: false
             )
         }
@@ -132,7 +132,7 @@ private struct DayView: View {
     let record: RunningRecord?
 
     private var cellHeight: CGFloat {
-        UIScreen.main.bounds.width / 7
+        screenWidth / 7
     }
 
     var body: some View {

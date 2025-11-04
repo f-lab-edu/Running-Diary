@@ -5,11 +5,13 @@
 //  Created by 김혜지 on 9/23/25.
 //
 
+import CommonFoundation
 import ComposableArchitecture
 import SwiftUI
 
 struct DateCarouselView: View {
     let store: StoreOf<DailyDetailFeature>
+
     @State private var dragOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
     
@@ -115,7 +117,7 @@ private struct WeekView: View {
         GeometryReader { geometry in
             let totalPadding = horizontalPadding * 2
             let totalSpacing = itemSpacing * (numberOfItems - 1)
-            let availableWidth = UIScreen.main.bounds.width - totalPadding - totalSpacing
+            let availableWidth = screenWidth - totalPadding - totalSpacing
             let itemWidth = availableWidth / numberOfItems
             
             HStack(spacing: itemSpacing) {
