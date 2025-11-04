@@ -101,64 +101,6 @@ struct CalendarView: View {
     }
 }
 
-// MARK: - Private Views
-
-private struct MonthHeaderView: View {
-    let month: MonthComponents
-    let totalDistance: Double
-    let isToday: Bool
-
-    var body: some View {
-        HStack(alignment: .bottom, spacing: 10) {
-            Text("\(month.year.toString)년 \(month.month.toString)월")
-                .font(.title2)
-                .bold()
-            if totalDistance > 0 {
-                Text("총 \(String(format: "%.1f", totalDistance))km")
-                    .bold()
-                    .foregroundStyle(.gray)
-            }
-            Spacer()
-        }
-        .opacity(isToday ? 1 : 0.7)
-        .padding([.horizontal, .bottom], 18)
-    }
-}
-
-private struct DayView: View {
-    let day: DayComponents
-    let isToday: Bool
-    let isSunday: Bool
-    let record: RunningRecord?
-
-    private var cellHeight: CGFloat {
-        screenWidth / 7
-    }
-
-    var body: some View {
-        ZStack {
-            if isToday {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.blue.opacity(0.2))
-            }
-
-            VStack {
-                Text(String(day.day))
-                    .foregroundStyle(isSunday ? .red : .black)
-                    .opacity(isToday ? 1 : 0.7)
-                    .bold()
-                Spacer()
-                Text(record.map { "\($0.distanceInKilometers.to1f)km" } ?? "-")
-                    .font(.caption)
-                    .foregroundStyle(isToday ? .black : .gray)
-                    .opacity(record != nil ? 1 : 0.2)
-            }
-            .padding(10)
-        }
-        .frame(minHeight: cellHeight)
-    }
-}
-
 #Preview(traits: .sampleData) {
     CalendarView(
         store: Store(initialState: CalendarFeature.State()) {

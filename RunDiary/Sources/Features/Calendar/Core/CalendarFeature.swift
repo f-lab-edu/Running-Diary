@@ -27,10 +27,7 @@ struct CalendarFeature {
             calendar.dateComponents([.year, .month], from: startDate)
         }
 
-        init(
-            startDate: Date? = nil,
-            endDate: Date? = nil
-        ) {
+        init(startDate: Date? = nil, endDate: Date? = nil) {
             let calendar = Calendar.current
             let today = Date()
             self.calendar = calendar
