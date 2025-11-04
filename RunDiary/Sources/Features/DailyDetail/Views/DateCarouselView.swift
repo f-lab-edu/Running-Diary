@@ -20,9 +20,7 @@ struct DateCarouselView: View {
     }
     
     var body: some View {
-        GeometryReader { geometry in
-            let screenWidth = geometry.size.width
-            
+        GeometryReader { _ in
             HStack(spacing: 0) {
                 // 이전 주
                 WeekView(
@@ -62,7 +60,7 @@ struct DateCarouselView: View {
             .gesture(
                 DragGesture()
                     .onChanged { handleDragChanged($0) }
-                    .onEnded { handleDragEnded($0, screenWidth: screenWidth) }
+                    .onEnded { handleDragEnded($0) }
             )
         }
         .frame(height: 80)
@@ -72,7 +70,7 @@ struct DateCarouselView: View {
         dragOffset = value.translation.width
     }
 
-    private func handleDragEnded(_ value: DragGesture.Value, screenWidth: CGFloat) {
+    private func handleDragEnded(_ value: DragGesture.Value) {
         let threshold = screenWidth * 0.3
         let swipeDistance = value.translation.width
 
@@ -114,7 +112,7 @@ private struct WeekView: View {
     private let numberOfItems: CGFloat = 7
     
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             let totalPadding = horizontalPadding * 2
             let totalSpacing = itemSpacing * (numberOfItems - 1)
             let availableWidth = screenWidth - totalPadding - totalSpacing
