@@ -31,6 +31,8 @@ public final class RunningRecordModel {
     public var difficultyLevelRaw: Int?
     public var routeData: Data?
     public var hasMap: Bool
+    public var startTime: Date?
+    public var endTime: Date?
 
     public init(
         id: UUID = UUID(),
@@ -52,7 +54,9 @@ public final class RunningRecordModel {
         windSpeed: Double? = nil,
         difficultyLevelRaw: Int? = nil,
         routeData: Data? = nil,
-        hasMap: Bool = false
+        hasMap: Bool = false,
+        startTime: Date? = nil,
+        endTime: Date? = nil
     ) {
         self.id = id
         self.date = date
@@ -73,6 +77,8 @@ public final class RunningRecordModel {
         self.difficultyLevelRaw = difficultyLevelRaw
         self.routeData = routeData
         self.hasMap = hasMap
+        self.startTime = startTime
+        self.endTime = endTime
 
         self.painAreasRawData = PainAreasMapper.encodeRaw(painAreasRaw)
     }
@@ -89,9 +95,9 @@ public extension RunningRecordModel {
             memo: memo
         )
 
-        let weather: Weather?
+        let weather: WeatherData?
         if let temp = temperature, let hum = humidity, let wind = windSpeed {
-            weather = Weather(
+            weather = WeatherData(
                 temperature: temp,
                 humidity: hum,
                 windSpeed: wind
@@ -120,7 +126,9 @@ public extension RunningRecordModel {
             weather: weather,
             difficultyLevel: difficultyLevel,
             routeData: routeData,
-            hasMap: hasMap
+            hasMap: hasMap,
+            startTime: startTime,
+            endTime: endTime
         )
     }
 
@@ -145,7 +153,9 @@ public extension RunningRecordModel {
             windSpeed: record.weather?.windSpeed,
             difficultyLevelRaw: record.difficultyLevel?.rawValue,
             routeData: record.routeData,
-            hasMap: record.hasMap
+            hasMap: record.hasMap,
+            startTime: record.startTime,
+            endTime: record.endTime
         )
     }
 }

@@ -15,6 +15,8 @@ public struct HealthKitDataModel: Equatable {
     public let averageHeartRate: Int             // bpm
     public let averageCadence: Int               // steps/min
     public let routeData: Data?
+    public let startDate: Date?
+    public let endDate: Date?
 
     public var formattedDistance: String {
         distance == 0 ? "" : distance.to2f
@@ -35,7 +37,9 @@ public struct HealthKitDataModel: Equatable {
         averagePace: String,
         averageHeartRate: Int,
         averageCadence: Int,
-        routeData: Data?
+        routeData: Data?,
+        startDate: Date?,
+        endDate: Date?
     ) {
         self.distance = distance
         self.durationInSeconds = durationInSeconds
@@ -43,5 +47,7 @@ public struct HealthKitDataModel: Equatable {
         self.averageHeartRate = averageHeartRate
         self.averageCadence = averageCadence
         self.routeData = routeData
+        self.startDate = startDate
+        self.endDate = endDate
     }
 }

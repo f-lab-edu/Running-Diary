@@ -12,39 +12,39 @@ import Models
 
 @DependencyClient
 struct WeatherClient {
-  var fetchWeather: @Sendable (Date, CLLocationCoordinate2D?) async throws -> Weather
+    var fetchWeather: @Sendable (Date, CLLocationCoordinate2D?) async throws -> WeatherData
 }
 
 extension WeatherClient: DependencyKey {
-  static let liveValue: WeatherClient = {
-    let manager = KMAWeatherManager()
+    static let liveValue: WeatherClient = {
+        let manager = WeatherKitManager()
 
-    return WeatherClient(
-      fetchWeather: { date, location in
-        try await manager.fetchWeather(for: date, location: location)
-      }
+        return WeatherClient(
+            fetchWeather: { date, location in
+                try await manager.fetchWeather(for: date, location: location)
+            }
+        )
+    }()
+
+    static let testValue = WeatherClient(
+        fetchWeather: unimplemented("\(Self.self).fetchWeather")
     )
-  }()
 
-  static let testValue = WeatherClient(
-    fetchWeather: unimplemented("\(Self.self).fetchWeather")
-  )
-
-  static let previewValue = WeatherClient(
-    fetchWeather: { _, _ in
-      // Mock 날씨 데이터 반환
-      Weather(
-        temperature: 18.5,
-        humidity: 60,
-        windSpeed: 2.3
-      )
-    }
-  )
+    static let previewValue = WeatherClient(
+        fetchWeather: { _, _ in
+            // Mock 날씨 데이터 반환
+            WeatherData(
+                temperature: 18.5,
+                humidity: 60,
+                windSpeed: 2.3
+            )
+        }
+    )
 }
 
 extension DependencyValues {
-  var weatherClient: WeatherClient {
-    get { self[WeatherClient.self] }
-    set { self[WeatherClient.self] = newValue }
-  }
+    var weatherClient: WeatherClient {
+        get { self[WeatherClient.self] }
+        set { self[WeatherClient.self] = newValue }
+    }
 }

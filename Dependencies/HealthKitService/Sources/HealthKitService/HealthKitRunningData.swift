@@ -14,6 +14,8 @@ public struct HealthKitRunningData: Sendable {
     public let averageHeartRate: Int?  // bpm
     public let averageCadence: Int?  // spm
     public let routeData: Data?
+    public let startDate: Date?
+    public let endDate: Date?
 
     public init(
         distance: Double?,
@@ -21,7 +23,9 @@ public struct HealthKitRunningData: Sendable {
         averagePace: String?,
         averageHeartRate: Int?,
         averageCadence: Int?,
-        routeData: Data?
+        routeData: Data?,
+        startDate: Date?,
+        endDate: Date?
     ) {
         self.distance = distance
         self.duration = duration
@@ -29,6 +33,8 @@ public struct HealthKitRunningData: Sendable {
         self.averageHeartRate = averageHeartRate
         self.averageCadence = averageCadence
         self.routeData = routeData
+        self.startDate = startDate
+        self.endDate = endDate
     }
 }
 

@@ -18,9 +18,7 @@ final class KMAWeatherManager: WeatherManagerProtocol {
     self.apiKey = apiKey
   }
 
-  func fetchWeather(for date: Date, location: CLLocationCoordinate2D?)
-    async throws -> Weather
-  {
+  func fetchWeather(for date: Date, location: CLLocationCoordinate2D?) async throws -> WeatherData {
     guard let apiKey = apiKey, !apiKey.isEmpty else {
       throw WeatherError.apiKeyMissing
     }
@@ -79,9 +77,9 @@ final class KMAWeatherManager: WeatherManagerProtocol {
     return parseWeatherData(from: apiResponse)
   }
 
-  private func parseWeatherData(from response: KMAWeatherResponse) -> Weather {
+  private func parseWeatherData(from response: KMAWeatherResponse) -> WeatherData {
     guard let items = response.response.body.items.item else {
-      return Weather(temperature: 20.0, humidity: 60, windSpeed: 2.0)
+      return WeatherData(temperature: 20.0, humidity: 60, windSpeed: 2.0)
     }
 
     var temperature: Double = 20.0
@@ -101,7 +99,7 @@ final class KMAWeatherManager: WeatherManagerProtocol {
       }
     }
 
-    return Weather(
+    return WeatherData(
       temperature: temperature,
       humidity: humidity,
       windSpeed: windSpeed

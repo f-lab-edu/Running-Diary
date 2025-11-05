@@ -132,6 +132,8 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
         existingModel.difficultyLevelRaw = record.difficultyLevel?.rawValue
         existingModel.routeData = record.routeData
         existingModel.hasMap = record.hasMap
+        existingModel.startTime = record.startTime
+        existingModel.endTime = record.endTime
 
         do {
             try modelContext.save()

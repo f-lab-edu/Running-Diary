@@ -59,7 +59,9 @@ struct HealthKitDataFeature {
                     averagePace: healthKitData.averagePace ?? "",
                     averageHeartRate: healthKitData.averageHeartRate ?? 0,
                     averageCadence: healthKitData.averageCadence ?? 0,
-                    routeData: healthKitData.routeData
+                    routeData: healthKitData.routeData,
+                    startDate: healthKitData.startDate,
+                    endDate: healthKitData.endDate
                 )
                 state.isDataLoaded = true
                 return .none
@@ -80,7 +82,9 @@ struct HealthKitDataFeature {
                     averagePace: record.averagePace,
                     averageHeartRate: record.averageHeartRate,
                     averageCadence: record.averageCadence,
-                    routeData: record.routeData
+                    routeData: record.routeData,
+                    startDate: record.startTime,
+                    endDate: record.endTime
                 )
                 state.isDataLoaded = true
                 return .none

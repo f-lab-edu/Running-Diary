@@ -29,7 +29,7 @@ struct AddRecordFeature {
         var condition: RunningConditionFeature.State
         var selectedDifficultyLevel: DifficultyLevel?
 
-        var weather: Weather?
+        var weather: WeatherData?
 
         var isLoading: Bool = false
         var errorMessage: String?
@@ -63,7 +63,7 @@ struct AddRecordFeature {
         case condition(RunningConditionFeature.Action)
         case updateSelectedDifficultyLevel(DifficultyLevel?)
         case saveRecord
-        case weatherFetched(Weather?)
+        case weatherFetched(WeatherData?)
         case recordSaved(RunningRecord)
         case recordSaveFailed(String)
         case authorizationAlert(PresentationAction<AlertAction>)
@@ -80,7 +80,7 @@ struct AddRecordFeature {
     }
 
     @Dependency(\.repositoryClient) var repositoryClient
-    //    @Dependency(\.weatherClient) var weatherClient
+    @Dependency(\.weatherClient) var weatherClient
     @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
@@ -102,7 +102,6 @@ struct AddRecordFeature {
                     return .merge(
                         .send(.healthKitData(.loadFromRecord(record))),
                         .send(.condition(.loadFromRecord(record))),
-
                     )
                 } else {
                     // add mode: HealthKit
@@ -158,11 +157,27 @@ struct AddRecordFeature {
                 let mode = state.mode
                 let difficultyLevel = state.selectedDifficultyLevel
 
+                // 중간 시간 계산
+                let middleTime: Date?
+                if let startDate = healthKitData.startDate, let endDate = healthKitData.endDate {
+                    let startInterval = startDate.timeIntervalSince1970
+                    let endInterval = endDate.timeIntervalSince1970
+                    let middleInterval = (startInterval + endInterval) / 2.0
+                    middleTime = Date(timeIntervalSince1970: middleInterval)
+                } else {
+                    middleTime = nil
+                }
+
                 return .run { send in
                     do {
-                        // Fetch weather
-                        //                        let weather = try? await weatherClient.fetchWeather(date, location)
-                        //                        await send(.weatherFetched(weather))
+                        // Fetch weather using middle time and middle location
+                        let weather: WeatherData?
+                        if let middleTime = middleTime, let location = location {
+                            weather = try? await weatherClient.fetchWeather(middleTime, location)
+                            await send(.weatherFetched(weather))
+                        } else {
+                            weather = nil
+                        }
 
                         // Create record
                         let record = await RunningRecord(
@@ -182,10 +197,12 @@ struct AddRecordFeature {
                                 memo: condition.memo.isEmpty ? nil : condition.memo
                             ),
                             shoes: condition.selectedShoe,
-                            weather: nil,
+                            weather: weather,
                             difficultyLevel: difficultyLevel,
                             routeData: healthKitData.routeData,
-                            hasMap: healthKitData.routeData != nil
+                            hasMap: healthKitData.routeData != nil,
+                            startTime: healthKitData.startDate,
+                            endTime: healthKitData.endDate
                         )
 
                         // Save or update
@@ -249,10 +266,17 @@ struct AddRecordFeature {
         do {
             let decoder = JSONDecoder()
             let coordinates = try decoder.decode([CoordinateData].self, from: routeData)
-            guard let first = coordinates.first else {
+            guard !coordinates.isEmpty else {
                 return nil
             }
-            return CLLocationCoordinate2D(latitude: first.latitude, longitude: first.longitude)
+
+            // 시작점과 끝점의 중간 지점 계산
+            let first = coordinates.first!
+            let last = coordinates.last!
+            let midLatitude = (first.latitude + last.latitude) / 2.0
+            let midLongitude = (first.longitude + last.longitude) / 2.0
+
+            return CLLocationCoordinate2D(latitude: midLatitude, longitude: midLongitude)
         } catch {
             return nil
         }

@@ -46,7 +46,9 @@ extension HealthKitClient: DependencyKey {
                 averagePace: "5'30\"",
                 averageHeartRate: 155,
                 averageCadence: 180,
-                routeData: nil
+                routeData: nil,
+                startDate: nil,
+                endDate: nil
             )
         }
     )
