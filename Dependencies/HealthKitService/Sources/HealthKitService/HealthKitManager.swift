@@ -8,6 +8,7 @@
 import CoreLocation
 import Foundation
 import HealthKit
+import Models
 
 public final class HealthKitManager: HealthKitManagerProtocol {
     private let healthStore = HKHealthStore()

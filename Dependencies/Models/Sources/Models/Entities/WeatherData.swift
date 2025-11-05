@@ -1,5 +1,5 @@
 //
-//  Weather.swift
+//  WeatherData.swift
 //  Models
 //
 //  Created by 김혜지 on 10/31/25.

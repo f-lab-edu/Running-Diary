@@ -8,6 +8,7 @@
 import ComposableArchitecture
 import Foundation
 import HealthKitService
+import Models
 
 @DependencyClient
 struct HealthKitClient {

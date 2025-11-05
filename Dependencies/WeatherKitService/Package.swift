@@ -4,12 +4,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "HealthKitService",
+    name: "WeatherKitService",
     platforms: [.iOS(.v18)],
     products: [
         .library(
-            name: "HealthKitService",
-            targets: ["HealthKitService"]
+            name: "WeatherKitService",
+            targets: ["WeatherKitService"]
         ),
     ],
     dependencies: [
@@ -17,12 +17,12 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "HealthKitService",
+            name: "WeatherKitService",
             dependencies: ["Models"]
         ),
         .testTarget(
-            name: "HealthKitServiceTests",
-            dependencies: ["HealthKitService"]
+            name: "WeatherKitServiceTests",
+            dependencies: ["WeatherKitService"]
         ),
     ]
 )

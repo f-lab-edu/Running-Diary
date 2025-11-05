@@ -37,8 +37,3 @@ public struct HealthKitRunningData: Sendable {
         self.endDate = endDate
     }
 }
-
-struct HealthKitCoordinateData: Codable {
-    let latitude: Double
-    let longitude: Double
-}
