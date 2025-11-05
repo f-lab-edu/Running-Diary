@@ -19,26 +19,25 @@ final class WeatherKitManager: WeatherManagerProtocol {
         }
         
         let clLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+        let queryStart = date.addingTimeInterval(-1800)
+        let queryEnd = date.addingTimeInterval(1800)
 
         // WeatherKit으로 특정 날짜/시간의 날씨 조회
-        // 과거 데이터는 historicalAvailability를 확인해야 하지만,
-        // 최근 데이터는 weather(for:including:) 사용
-        let weather = try await weatherService.weather(
+        let hourlyWeather = try await weatherService.weather(
             for: clLocation,
-            including: .current
+            including: .hourly(startDate: queryStart, endDate: queryEnd)
         )
 
-        let currentWeather = weather
+        guard let weather = hourlyWeather.min(by: {
+            abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
+        }) else {
+            throw WeatherKitError.dataUnavailable
+        }
 
         return WeatherData(
-            temperature: currentWeather.temperature.value,
-            humidity: Int(currentWeather.humidity * 100),
-            windSpeed: currentWeather.wind.speed.value
+            temperature: weather.temperature.value,
+            humidity: Int(weather.humidity * 100),
+            windSpeed: weather.wind.speed.value
         )
     }
-}
-
-enum WeatherKitError: Error {
-    case missingLocation
-    case dataUnavailable
 }

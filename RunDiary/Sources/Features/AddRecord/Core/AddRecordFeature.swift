@@ -10,7 +10,7 @@ import CoreLocation
 import Foundation
 import Models
 
-enum RecordMode {
+enum RecordMode: Equatable {
     case add
     case edit
 }
@@ -173,8 +173,18 @@ struct AddRecordFeature {
                         // Fetch weather using middle time and middle location
                         let weather: WeatherData?
                         if let middleTime = middleTime, let location = location {
-                            weather = try? await weatherClient.fetchWeather(middleTime, location)
-                            await send(.weatherFetched(weather))
+                            do {
+                                weather = try await weatherClient.fetchWeather(middleTime, location)
+                                await send(.weatherFetched(weather))
+                            } catch let error as WeatherKitError {
+                                AppLogger.addRecord.warning("날씨 조회 실패: \(error)")
+                                weather = nil
+                                await send(.weatherFetched(nil))
+                            } catch {
+                                AppLogger.addRecord.warning("날씨 조회 중 예상치 못한 에러: \(error)")
+                                weather = nil
+                                await send(.weatherFetched(nil))
+                            }
                         } else {
                             weather = nil
                         }

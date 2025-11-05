@@ -371,6 +371,7 @@ private struct ShoesSectionView: View {
                         .foregroundColor(.gray)
                 }
             }
+            .menuStyle(.button)
         }
     }
 }

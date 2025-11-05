@@ -12,7 +12,7 @@ import Models
 
 @DependencyClient
 struct WeatherClient {
-    var fetchWeather: @Sendable (Date, CLLocationCoordinate2D?) async throws -> WeatherData
+    var fetchWeather: @MainActor @Sendable (Date, CLLocationCoordinate2D?) async throws -> WeatherData
 }
 
 extension WeatherClient: DependencyKey {
@@ -32,7 +32,6 @@ extension WeatherClient: DependencyKey {
 
     static let previewValue = WeatherClient(
         fetchWeather: { _, _ in
-            // Mock 날씨 데이터 반환
             WeatherData(
                 temperature: 18.5,
                 humidity: 60,

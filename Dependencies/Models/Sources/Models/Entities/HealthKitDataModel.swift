@@ -8,7 +8,7 @@
 import CommonFoundation
 import Foundation
 
-public struct HealthKitDataModel: Equatable {
+public struct HealthKitDataModel: Equatable, Sendable {
     public let distance: Double                  // km
     public let durationInSeconds: TimeInterval   // seconds
     public let averagePace: String               // min/km
