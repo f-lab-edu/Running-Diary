@@ -11,6 +11,11 @@ import Models
 
 public final class MockWeatherManager: WeatherManagerProtocol {
     public func fetchWeather(for date: Date, location: CLLocationCoordinate2D?) async throws -> WeatherData {
+        // location이 없으면 에러 발생
+        guard location != nil else {
+            throw WeatherKitError.missingLocation
+        }
+
         // Mock 데이터 반환 (개발/테스트용)
         try await Task.sleep(nanoseconds: 500_000_000)  // 0.5초 지연
 
