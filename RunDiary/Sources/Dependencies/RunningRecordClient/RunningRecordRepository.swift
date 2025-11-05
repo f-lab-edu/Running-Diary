@@ -1,5 +1,5 @@
 //
-//  SwiftDataRunningRecordRepository.swift
+//  RunningRecordRepository.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -9,7 +9,7 @@ import Foundation
 import Models
 import SwiftData
 
-final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
+final class RunningRecordRepository: RunningRecordRepositoryProtocol {
     private let modelContext: ModelContext
 
     init(modelContext: ModelContext) {
@@ -90,7 +90,7 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
         } catch {
             let elapsed = Date().timeIntervalSince(startTime)
             AppLogger.database.error("save 실패 - recordId: \(record.id), error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
-            throw RepositoryError.saveFailed
+            throw RunningRecordError.saveFailed
         }
     }
 
@@ -107,7 +107,7 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
 
         guard let existingModel = try modelContext.fetch(descriptor).first else {
             AppLogger.database.error("update 실패 - recordId: \(recordId), 기존 레코드를 찾을 수 없음")
-            throw RepositoryError.notFound
+            throw RunningRecordError.notFound
         }
 
         // 업데이트
@@ -140,7 +140,7 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
         } catch {
             let elapsed = Date().timeIntervalSince(startTime)
             AppLogger.database.error("update 실패 - recordId: \(recordId), error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
-            throw RepositoryError.updateFailed
+            throw RunningRecordError.updateFailed
         }
     }
 
@@ -156,7 +156,7 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
 
         guard let model = try modelContext.fetch(descriptor).first else {
             AppLogger.database.error("delete 실패 - recordId: \(recordId), 기존 레코드를 찾을 수 없음")
-            throw RepositoryError.notFound
+            throw RunningRecordError.notFound
         }
 
         modelContext.delete(model)
@@ -168,7 +168,7 @@ final class SwiftDataRunningRecordRepository: RunningRecordRepositoryProtocol {
         } catch {
             let elapsed = Date().timeIntervalSince(startTime)
             AppLogger.database.error("delete 실패 - recordId: \(recordId), error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
-            throw RepositoryError.deleteFailed
+            throw RunningRecordError.deleteFailed
         }
     }
 }

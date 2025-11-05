@@ -5,7 +5,7 @@
 //  Created by 김혜지 on 10/31/25.
 //
 
-public enum DifficultyLevel: Int, CaseIterable {
+public enum DifficultyLevel: Int, CaseIterable, Sendable {
   case veryEasy = 1
   case easy
   case medium

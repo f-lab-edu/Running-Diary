@@ -5,11 +5,10 @@
 //  Created by 김혜지 on 10/23/25.
 //
 
-import Models
 import SwiftData
 
-actor DataModel {
-    static let shared = DataModel()
+public actor DataModel {
+    public static let shared = DataModel()
 
     private static let container: ModelContainer = {
         let modelContainer: ModelContainer
@@ -21,7 +20,7 @@ actor DataModel {
         return modelContainer
     }()
 
-    nonisolated var modelContainer: ModelContainer {
+    nonisolated public var modelContainer: ModelContainer {
         Self.container
     }
 }

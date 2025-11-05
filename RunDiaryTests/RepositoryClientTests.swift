@@ -29,7 +29,7 @@ struct RepositoryClientTests {
       condition: RunningCondition(meal: true, alcohol: false)
     )
 
-    let client = RepositoryClient(
+    let client = RunningRecordClient(
       fetch: { date in
         #expect(Calendar.current.isDate(date, inSameDayAs: testDate))
         return expectedRecord
@@ -51,7 +51,7 @@ struct RepositoryClientTests {
   func fetchReturnsNilWhenNoRecord() async throws {
     let testDate = Date()
 
-    let client = RepositoryClient(
+    let client = RunningRecordClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -92,7 +92,7 @@ struct RepositoryClientTests {
       ),
     ]
 
-    let client = RepositoryClient(
+    let client = RunningRecordClient(
       fetch: { _ in nil },
       fetchRecords: { start, end in
         #expect(Calendar.current.isDate(start, inSameDayAs: startDate))
@@ -116,7 +116,7 @@ struct RepositoryClientTests {
     let startDate = Date()
     let endDate = Calendar.current.date(byAdding: .day, value: 7, to: startDate)!
 
-    let client = RepositoryClient(
+    let client = RunningRecordClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -144,7 +144,7 @@ struct RepositoryClientTests {
 
     var savedRecord: RunningRecord?
 
-    let client = RepositoryClient(
+    let client = RunningRecordClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { record in
@@ -176,7 +176,7 @@ struct RepositoryClientTests {
 
     var updated: RunningRecord?
 
-    let client = RepositoryClient(
+    let client = RunningRecordClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -211,7 +211,7 @@ struct RepositoryClientTests {
 
     var deletedRecord: RunningRecord?
 
-    let client = RepositoryClient(
+    let client = RunningRecordClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },

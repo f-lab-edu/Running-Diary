@@ -80,7 +80,7 @@ struct AddRecordFeature {
     }
 
     @Dependency(\.repositoryClient) var repositoryClient
-//    @Dependency(\.weatherClient) var weatherClient
+    //    @Dependency(\.weatherClient) var weatherClient
     @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
@@ -102,14 +102,11 @@ struct AddRecordFeature {
                     return .merge(
                         .send(.healthKitData(.loadFromRecord(record))),
                         .send(.condition(.loadFromRecord(record))),
-                        .send(.condition(.loadShoes))
+
                     )
                 } else {
-                    // add mode: HealthKit + shoes 로드
-                    return .merge(
-                        .send(.healthKitData(.loadData(state.date))),
-                        .send(.condition(.loadShoes))
-                    )
+                    // add mode: HealthKit
+                    return .send(.healthKitData(.loadData(state.date)))
                 }
 
             case .healthKitData(let healthKitDataAction):
@@ -143,7 +140,6 @@ struct AddRecordFeature {
                 return .none
 
             case .condition:
-                // Handled by RunningConditionFeature
                 return .none
 
             case .updateSelectedDifficultyLevel(let level):
@@ -165,8 +161,8 @@ struct AddRecordFeature {
                 return .run { send in
                     do {
                         // Fetch weather
-//                        let weather = try? await weatherClient.fetchWeather(date, location)
-//                        await send(.weatherFetched(weather))
+                        //                        let weather = try? await weatherClient.fetchWeather(date, location)
+                        //                        await send(.weatherFetched(weather))
 
                         // Create record
                         let record = await RunningRecord(
