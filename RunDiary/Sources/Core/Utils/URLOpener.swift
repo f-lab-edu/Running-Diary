@@ -9,14 +9,12 @@ import UIKit
 
 @MainActor
 enum URLOpener {
-  static func open(url urlString: String) {
-    guard let url = URL(string: urlString),
-      UIApplication.shared.canOpenURL(url)
-    else { return }
-    UIApplication.shared.open(url)
-  }
+    static func open(url urlString: String) {
+        guard let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) else { return }
+        UIApplication.shared.open(url)
+    }
 
-  static func openSettings() {
-    open(url: UIApplication.openSettingsURLString)
-  }
+    static func openSettings() {
+        open(url: UIApplication.openSettingsURLString)
+    }
 }

@@ -8,6 +8,10 @@
 import Foundation
 
 extension Double {
+    public var to1f: String {
+        String(format: "%.1f", self)
+    }
+
     public var to2f: String {
         String(format: "%.2f", self)
     }

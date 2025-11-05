@@ -21,6 +21,7 @@ struct DailyDetailFeature {
         var isLoading: Bool = false
         var error: DailyDetailError?
         @Presents var addRecord: AddRecordFeature.State?
+        @Presents var calendar: CalendarFeature.State?
 
         /// 선택된 날짜의 기록을 캐시에서 조회
         var currentRecord: RunningRecord? {
@@ -44,6 +45,8 @@ struct DailyDetailFeature {
         case weekRecordsFetchedFailure(DailyDetailError)
         case showAddRecord
         case addRecord(PresentationAction<AddRecordFeature.Action>)
+        case calendarButtonTapped
+        case calendar(PresentationAction<CalendarFeature.Action>)
     }
 
     // MARK: - Dependency
@@ -192,10 +195,26 @@ struct DailyDetailFeature {
 
             case .addRecord:
                 return .none
+
+            case .calendarButtonTapped:
+                AppLogger.dailyDetail.debug("calendarButtonTapped - 캘린더 화면 표시")
+                state.calendar = CalendarFeature.State()
+                return .none
+
+            case .calendar(.dismiss):
+                AppLogger.dailyDetail.debug("calendar dismiss - 캘린더 화면 닫힘")
+                state.calendar = nil
+                return .none
+
+            case .calendar:
+                return .none
             }
         }
         .ifLet(\.$addRecord, action: \.addRecord) {
             AddRecordFeature()
+        }
+        .ifLet(\.$calendar, action: \.calendar) {
+            CalendarFeature()
         }
     }
 }
