@@ -80,7 +80,7 @@ struct AddRecordFeature {
     }
 
     @Dependency(\.repositoryClient) var repositoryClient
-    @Dependency(\.weatherClient) var weatherClient
+//    @Dependency(\.weatherClient) var weatherClient
     @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
@@ -165,8 +165,8 @@ struct AddRecordFeature {
                 return .run { send in
                     do {
                         // Fetch weather
-                        let weather = try? await weatherClient.fetchWeather(date, location)
-                        await send(.weatherFetched(weather))
+//                        let weather = try? await weatherClient.fetchWeather(date, location)
+//                        await send(.weatherFetched(weather))
 
                         // Create record
                         let record = await RunningRecord(
@@ -186,7 +186,7 @@ struct AddRecordFeature {
                                 memo: condition.memo.isEmpty ? nil : condition.memo
                             ),
                             shoes: condition.selectedShoe,
-                            weather: weather,
+                            weather: nil,
                             difficultyLevel: difficultyLevel,
                             routeData: healthKitData.routeData,
                             hasMap: healthKitData.routeData != nil
