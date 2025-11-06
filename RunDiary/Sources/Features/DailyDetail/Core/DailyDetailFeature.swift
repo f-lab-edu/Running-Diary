@@ -138,8 +138,9 @@ struct DailyDetailFeature {
                         await send(.weekRecordsFetchedSuccess(records))
                     } catch {
                         let elapsed = Date().timeIntervalSince(startTime)
-                        AppLogger.dailyDetail.error("fetchWeekRecords 실패 - error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
-                        await send(.weekRecordsFetchedFailure(.fetchFailed(underlyingError: error.localizedDescription)))
+                        let errorMessage = error.localizedDescription
+                        AppLogger.dailyDetail.error("fetchWeekRecords 실패 - error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
+                        await send(.weekRecordsFetchedFailure(.fetchFailed(underlyingError: errorMessage)))
                     }
                 }
 
@@ -168,7 +169,8 @@ struct DailyDetailFeature {
             case let .weekRecordsFetchedFailure(error):
                 state.isLoading = false
                 state.error = error
-                AppLogger.dailyDetail.error("weekRecordsFetchedFailure - error: \(error.localizedDescription)")
+                let errorMessage = error.localizedDescription
+                AppLogger.dailyDetail.error("weekRecordsFetchedFailure - error: \(errorMessage)")
                 return .none
 
             case .showAddRecord:

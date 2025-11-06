@@ -13,6 +13,8 @@ import WeatherKit
 public final class WeatherKitManager: WeatherManagerProtocol {
     private let weatherService = WeatherService.shared
 
+    public init() {}
+
     public func fetchWeather(for date: Date, location: CLLocationCoordinate2D?) async throws -> WeatherData {
         guard let location = location else {
             throw WeatherKitError.missingLocation

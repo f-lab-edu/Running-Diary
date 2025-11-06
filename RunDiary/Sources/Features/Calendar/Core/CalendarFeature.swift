@@ -96,8 +96,9 @@ struct CalendarFeature {
                         await send(.recordsFetchedSuccess(records))
                     } catch {
                         let elapsed = Date().timeIntervalSince(fetchStartTime)
-                        AppLogger.calendar.error("fetchRecords 실패 - error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
-                        await send(.recordsFetchedFailure(.fetchFailed(underlyingError: error.localizedDescription)))
+                        let errorMessage = error.localizedDescription
+                        AppLogger.calendar.error("fetchRecords 실패 - error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
+                        await send(.recordsFetchedFailure(.fetchFailed(underlyingError: errorMessage)))
                     }
                 }
 
@@ -146,7 +147,8 @@ struct CalendarFeature {
             case let .recordsFetchedFailure(error):
                 state.isLoading = false
                 state.error = error
-                AppLogger.calendar.error("recordsFetchedFailure - error: \(error.localizedDescription)")
+                let errorMessage = error.localizedDescription
+                AppLogger.calendar.error("recordsFetchedFailure - error: \(errorMessage)")
                 return .none
 
             case .oldestMonthBecameVisible:

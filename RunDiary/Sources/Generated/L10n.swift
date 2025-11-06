@@ -149,10 +149,12 @@ enum L10n {
     enum Weather {
         /// No weather data
         static let noData = String(localized: "weather.no_data")
-        
+
         enum Error {
             /// Weather API key is missing
             static let apiKeyMissing = String(localized: "weather.error.api_key_missing")
+            /// Weather data is unavailable
+            static let dataUnavailable = String(localized: "weather.error.data_unavailable")
             /// Invalid response from weather API
             static let invalidResponse = String(localized: "weather.error.invalid_response")
             /// Location is required to fetch weather data

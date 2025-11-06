@@ -1216,6 +1216,29 @@
         }
       }
     },
+    "weather.error.data_unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weather data is unavailable"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天気データを利用できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "날씨 데이터를 사용할 수 없습니다."
+          }
+        }
+      }
+    },
     "weather.no_data" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -176,12 +176,8 @@ struct AddRecordFeature {
                             do {
                                 weather = try await weatherClient.fetchWeather(middleTime, location)
                                 await send(.weatherFetched(weather))
-                            } catch let error as WeatherKitError {
-                                AppLogger.addRecord.warning("날씨 조회 실패: \(error)")
-                                weather = nil
-                                await send(.weatherFetched(nil))
                             } catch {
-                                AppLogger.addRecord.warning("날씨 조회 중 예상치 못한 에러: \(error)")
+                                AppLogger.addRecord.warning("날씨 조회 실패: \(error.localizedDescription)")
                                 weather = nil
                                 await send(.weatherFetched(nil))
                             }

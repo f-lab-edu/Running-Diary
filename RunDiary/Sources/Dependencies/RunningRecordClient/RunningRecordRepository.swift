@@ -89,7 +89,8 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
             AppLogger.database.info("save 성공 - recordId: \(record.id), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
             let elapsed = Date().timeIntervalSince(startTime)
-            AppLogger.database.error("save 실패 - recordId: \(record.id), error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
+            let errorMessage = error.localizedDescription
+            AppLogger.database.error("save 실패 - recordId: \(record.id), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
             throw RunningRecordError.saveFailed
         }
     }
@@ -141,7 +142,8 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
             AppLogger.database.info("update 성공 - recordId: \(recordId), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
             let elapsed = Date().timeIntervalSince(startTime)
-            AppLogger.database.error("update 실패 - recordId: \(recordId), error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
+            let errorMessage = error.localizedDescription
+            AppLogger.database.error("update 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
             throw RunningRecordError.updateFailed
         }
     }
@@ -169,7 +171,8 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
             AppLogger.database.info("delete 성공 - recordId: \(recordId), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
             let elapsed = Date().timeIntervalSince(startTime)
-            AppLogger.database.error("delete 실패 - recordId: \(recordId), error: \(error.localizedDescription), elapsed: \(String(format: "%.3f", elapsed))s")
+            let errorMessage = error.localizedDescription
+            AppLogger.database.error("delete 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
             throw RunningRecordError.deleteFailed
         }
     }
