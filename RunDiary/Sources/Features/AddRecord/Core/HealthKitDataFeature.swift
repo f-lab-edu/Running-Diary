@@ -76,13 +76,16 @@ struct HealthKitDataFeature {
                 return .none
                 
             case .loadFromRecord(let record):
+                // Decode routeData from Data to [HealthKitCoordinateData]
+                let decodedRouteData = decodeRouteData(record.routeData)
+
                 state.data = HealthKitDataModel(
                     distance: record.distanceInKilometers,
                     durationInSeconds: record.durationInSeconds,
                     averagePace: record.averagePace,
                     averageHeartRate: record.averageHeartRate,
                     averageCadence: record.averageCadence,
-                    routeData: record.routeData,
+                    routeData: decodedRouteData,
                     startDate: record.startTime,
                     endDate: record.endTime
                 )
@@ -94,9 +97,9 @@ struct HealthKitDataFeature {
     
     private func parseDuration(_ durationString: String) -> TimeInterval? {
         guard !durationString.isEmpty else { return nil }
-        
+
         let components = durationString.split(separator: ":").compactMap { Int($0) }
-        
+
         if components.count == 2 {
             // MM:SS format
             let minutes = components[0]
@@ -109,7 +112,20 @@ struct HealthKitDataFeature {
             let seconds = components[2]
             return TimeInterval(hours * 3600 + minutes * 60 + seconds)
         }
-        
+
         return nil
+    }
+
+    private func decodeRouteData(_ data: Data?) -> [HealthKitCoordinateData]? {
+        guard let data = data else {
+            return nil
+        }
+
+        do {
+            return try JSONDecoder().decode([HealthKitCoordinateData].self, from: data)
+        } catch {
+            AppLogger.addRecord.warning("Failed to decode route data: \(error)")
+            return nil
+        }
     }
 }

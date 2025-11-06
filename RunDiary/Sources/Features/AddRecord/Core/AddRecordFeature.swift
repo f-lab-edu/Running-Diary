@@ -189,6 +189,9 @@ struct AddRecordFeature {
                             weather = nil
                         }
 
+                        // Encode route data before saving
+                        let encodedRouteData = try? DataMapper.encode(from: healthKitData.routeData)
+
                         // Create record
                         let record = await RunningRecord(
                             id: existingRecordId ?? UUID(),
@@ -209,7 +212,7 @@ struct AddRecordFeature {
                             shoes: condition.selectedShoe,
                             weather: weather,
                             difficultyLevel: difficultyLevel,
-                            routeData: healthKitData.routeData,
+                            routeData: encodedRouteData,
                             hasMap: healthKitData.routeData != nil,
                             startTime: healthKitData.startDate,
                             endTime: healthKitData.endDate
@@ -268,32 +271,17 @@ struct AddRecordFeature {
         .ifLet(\.$emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert)
     }
 
-    private func extractLocationFromRoute(_ routeData: Data?) -> CLLocationCoordinate2D? {
-        guard let routeData = routeData else {
+    private func extractLocationFromRoute(_ coordinates: [HealthKitCoordinateData]?) -> CLLocationCoordinate2D? {
+        guard let coordinates = coordinates, !coordinates.isEmpty else {
             return nil
         }
 
-        do {
-            let decoder = JSONDecoder()
-            let coordinates = try decoder.decode([CoordinateData].self, from: routeData)
-            guard !coordinates.isEmpty else {
-                return nil
-            }
+        // 시작점과 끝점의 중간 지점 계산
+        let first = coordinates.first!
+        let last = coordinates.last!
+        let midLatitude = (first.latitude + last.latitude) / 2.0
+        let midLongitude = (first.longitude + last.longitude) / 2.0
 
-            // 시작점과 끝점의 중간 지점 계산
-            let first = coordinates.first!
-            let last = coordinates.last!
-            let midLatitude = (first.latitude + last.latitude) / 2.0
-            let midLongitude = (first.longitude + last.longitude) / 2.0
-
-            return CLLocationCoordinate2D(latitude: midLatitude, longitude: midLongitude)
-        } catch {
-            return nil
-        }
+        return CLLocationCoordinate2D(latitude: midLatitude, longitude: midLongitude)
     }
-}
-
-private struct CoordinateData: Codable {
-    let latitude: Double
-    let longitude: Double
 }

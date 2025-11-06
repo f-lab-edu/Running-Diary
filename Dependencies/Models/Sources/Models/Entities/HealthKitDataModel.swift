@@ -14,7 +14,7 @@ public struct HealthKitDataModel: Equatable, Sendable {
     public let averagePace: String               // min/km
     public let averageHeartRate: Int             // bpm
     public let averageCadence: Int               // steps/min
-    public let routeData: Data?
+    public let routeData: [HealthKitCoordinateData]?
     public let startDate: Date?
     public let endDate: Date?
 
@@ -37,7 +37,7 @@ public struct HealthKitDataModel: Equatable, Sendable {
         averagePace: String,
         averageHeartRate: Int,
         averageCadence: Int,
-        routeData: Data?,
+        routeData: [HealthKitCoordinateData]?,
         startDate: Date?,
         endDate: Date?
     ) {

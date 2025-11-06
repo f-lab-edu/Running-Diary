@@ -213,7 +213,7 @@ public final class HealthKitManager: HealthKitManagerProtocol {
         return Int(cadence)
     }
 
-    private func fetchRouteData(for workout: HKWorkout) async throws -> Data? {
+    private func fetchRouteData(for workout: HKWorkout) async throws -> [HealthKitCoordinateData]? {
         let routeType = HKSeriesType.workoutRoute()
 
         let predicate = HKQuery.predicateForObjects(from: workout)
@@ -262,16 +262,11 @@ public final class HealthKitManager: HealthKitManagerProtocol {
             healthStore.execute(query)
         }
 
-        return try encodeCoordinates(coordinates)
-    }
-
-    private func encodeCoordinates(_ coordinates: [CLLocationCoordinate2D]) throws -> Data {
-        let coordinateStructs = coordinates.map {
+        return coordinates.map {
             HealthKitCoordinateData(
                 latitude: $0.latitude,
                 longitude: $0.longitude
             )
         }
-        return try JSONEncoder().encode(coordinateStructs)
     }
 }
