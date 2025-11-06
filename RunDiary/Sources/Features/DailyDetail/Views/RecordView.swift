@@ -189,17 +189,20 @@ private struct RecordRowView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.gray500)
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.gray500)
 
-            Text(value)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .foregroundStyle(.blue700)
+                Text(value)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.blue700)
+            }
+            .padding(.leading, 4)
+            Spacer()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
