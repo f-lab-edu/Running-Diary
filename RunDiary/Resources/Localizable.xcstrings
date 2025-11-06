@@ -1147,6 +1147,29 @@
         }
       }
     },
+    "weather.error.data_unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weather data is unavailable"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天気データを利用できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "날씨 데이터를 사용할 수 없습니다."
+          }
+        }
+      }
+    },
     "weather.error.invalid_response" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1216,29 +1239,6 @@
         }
       }
     },
-    "weather.error.data_unavailable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Weather data is unavailable"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "天気データを利用できません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "날씨 데이터를 사용할 수 없습니다."
-          }
-        }
-      }
-    },
     "weather.no_data" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1265,10 +1265,7 @@
     "건강 데이터 접근 거부됨" : {
 
     },
-    "기록 추가하기" : {
-
-    },
-    "날씨 데이터 없음" : {
+    "기록을 추가해주세요!" : {
 
     },
     "닫기" : {
@@ -1286,16 +1283,7 @@
     "설정으로 이동" : {
 
     },
-    "수정" : {
-
-    },
-    "지도 영역" : {
-
-    },
     "총 %@km" : {
-
-    },
-    "캘린더 보기" : {
 
     },
     "통증 부위" : {
