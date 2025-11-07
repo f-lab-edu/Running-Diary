@@ -33,11 +33,12 @@ public final class HealthKitManager: HealthKitManagerProtocol {
         let statuses = currentAuthorizationStatuses()
         let notDetermined = statuses.filter { $0.value == .notDetermined }.map { $0.key }
 
-        if !notDetermined.isEmpty {
-            try await healthStore.requestAuthorization(
-                toShare: [],
-                read: typesToRead
-            )
+        guard !notDetermined.isEmpty else { return }
+
+        do {
+            try await healthStore.requestAuthorization(toShare: [], read: typesToRead)
+        } catch {
+            throw HealthKitError.authorizationFailed
         }
     }
 
