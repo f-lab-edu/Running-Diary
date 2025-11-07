@@ -53,7 +53,7 @@ public final class HealthKitManager: HealthKitManagerProtocol {
         // 날짜 범위 설정 (해당 날짜 하루)
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+        guard let endOfDay = calendar.endOfDay(for: date) else {
             return nil
         }
 
