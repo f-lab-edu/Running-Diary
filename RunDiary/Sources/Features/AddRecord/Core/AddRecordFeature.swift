@@ -10,7 +10,7 @@ import CoreLocation
 import Foundation
 import Models
 
-enum RecordMode {
+enum RecordMode: Equatable {
     case add
     case edit
 }
@@ -29,7 +29,7 @@ struct AddRecordFeature {
         var condition: RunningConditionFeature.State
         var selectedDifficultyLevel: DifficultyLevel?
 
-        var weather: Weather?
+        var weather: WeatherData?
 
         var isLoading: Bool = false
         var errorMessage: String?
@@ -63,7 +63,7 @@ struct AddRecordFeature {
         case condition(RunningConditionFeature.Action)
         case updateSelectedDifficultyLevel(DifficultyLevel?)
         case saveRecord
-        case weatherFetched(Weather?)
+        case weatherFetched(WeatherData?)
         case recordSaved(RunningRecord)
         case recordSaveFailed(String)
         case authorizationAlert(PresentationAction<AlertAction>)
@@ -102,14 +102,10 @@ struct AddRecordFeature {
                     return .merge(
                         .send(.healthKitData(.loadFromRecord(record))),
                         .send(.condition(.loadFromRecord(record))),
-                        .send(.condition(.loadShoes))
                     )
                 } else {
-                    // add mode: HealthKit + shoes 로드
-                    return .merge(
-                        .send(.healthKitData(.loadData(state.date))),
-                        .send(.condition(.loadShoes))
-                    )
+                    // add mode: HealthKit
+                    return .send(.healthKitData(.loadData(state.date)))
                 }
 
             case .healthKitData(let healthKitDataAction):
@@ -143,7 +139,6 @@ struct AddRecordFeature {
                 return .none
 
             case .condition:
-                // Handled by RunningConditionFeature
                 return .none
 
             case .updateSelectedDifficultyLevel(let level):
@@ -162,11 +157,36 @@ struct AddRecordFeature {
                 let mode = state.mode
                 let difficultyLevel = state.selectedDifficultyLevel
 
+                // 중간 시간 계산
+                let middleTime: Date?
+                if let startDate = healthKitData.startDate, let endDate = healthKitData.endDate {
+                    let startInterval = startDate.timeIntervalSince1970
+                    let endInterval = endDate.timeIntervalSince1970
+                    let middleInterval = (startInterval + endInterval) / 2.0
+                    middleTime = Date(timeIntervalSince1970: middleInterval)
+                } else {
+                    middleTime = nil
+                }
+
                 return .run { send in
                     do {
-                        // Fetch weather
-                        let weather = try? await weatherClient.fetchWeather(date, location)
-                        await send(.weatherFetched(weather))
+                        // Fetch weather using middle time and middle location
+                        let weather: WeatherData?
+                        if let middleTime = middleTime, let location = location {
+                            do {
+                                weather = try await weatherClient.fetchWeather(middleTime, location)
+                                await send(.weatherFetched(weather))
+                            } catch {
+                                AppLogger.addRecord.warning("날씨 조회 실패: \(error.localizedDescription)")
+                                weather = nil
+                                await send(.weatherFetched(nil))
+                            }
+                        } else {
+                            weather = nil
+                        }
+
+                        // Encode route data before saving
+                        let encodedRouteData = try? DataMapper.encode(from: healthKitData.routeData)
 
                         // Create record
                         let record = await RunningRecord(
@@ -188,8 +208,10 @@ struct AddRecordFeature {
                             shoes: condition.selectedShoe,
                             weather: weather,
                             difficultyLevel: difficultyLevel,
-                            routeData: healthKitData.routeData,
-                            hasMap: healthKitData.routeData != nil
+                            routeData: encodedRouteData,
+                            hasMap: healthKitData.routeData != nil,
+                            startTime: healthKitData.startDate,
+                            endTime: healthKitData.endDate
                         )
 
                         // Save or update
@@ -245,25 +267,17 @@ struct AddRecordFeature {
         .ifLet(\.$emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert)
     }
 
-    private func extractLocationFromRoute(_ routeData: Data?) -> CLLocationCoordinate2D? {
-        guard let routeData = routeData else {
+    private func extractLocationFromRoute(_ coordinates: [HealthKitCoordinateData]?) -> CLLocationCoordinate2D? {
+        guard let coordinates = coordinates, !coordinates.isEmpty else {
             return nil
         }
 
-        do {
-            let decoder = JSONDecoder()
-            let coordinates = try decoder.decode([CoordinateData].self, from: routeData)
-            guard let first = coordinates.first else {
-                return nil
-            }
-            return CLLocationCoordinate2D(latitude: first.latitude, longitude: first.longitude)
-        } catch {
-            return nil
-        }
+        // 시작점과 끝점의 중간 지점 계산
+        let first = coordinates.first!
+        let last = coordinates.last!
+        let midLatitude = (first.latitude + last.latitude) / 2.0
+        let midLongitude = (first.longitude + last.longitude) / 2.0
+
+        return CLLocationCoordinate2D(latitude: midLatitude, longitude: midLongitude)
     }
-}
-
-private struct CoordinateData: Codable {
-    let latitude: Double
-    let longitude: Double
 }

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Models
 
 public protocol HealthKitManagerProtocol {
     func ensureAuthorizationIfNeeded() async throws

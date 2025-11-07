@@ -5,9 +5,10 @@
 //  Created by 김혜지 on 11/4/25.
 //
 
+import Foundation
 import HealthKitService
 
-extension HealthKitError {
+extension HealthKitError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .notAvailable:

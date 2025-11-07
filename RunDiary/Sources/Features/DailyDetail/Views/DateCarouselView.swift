@@ -24,6 +24,7 @@ struct DateCarouselView: View {
             HStack(spacing: 0) {
                 // 이전 주
                 WeekView(
+                    store: store,
                     dates: DateHelper.getWeekDates(
                         for: DateHelper.addWeeks(-1, to: store.currentWeekDates.first ?? Date())
                     ),
@@ -36,6 +37,7 @@ struct DateCarouselView: View {
                 
                 // 현재 주
                 WeekView(
+                    store: store,
                     dates: store.currentWeekDates,
                     selectedDate: Binding(
                         get: { store.selectedDate },
@@ -46,6 +48,7 @@ struct DateCarouselView: View {
                 
                 // 다음 주
                 WeekView(
+                    store: store,
                     dates: DateHelper.getWeekDates(
                         for: DateHelper.addWeeks(1, to: store.currentWeekDates.first ?? Date())
                     ),
@@ -99,10 +102,16 @@ struct DateCarouselView: View {
 }
 
 private struct WeekView: View {
+    let store: StoreOf<DailyDetailFeature>
     let dates: [Date]
     @Binding var selectedDate: Date
-    
-    init(dates: [Date], selectedDate: Binding<Date>) {
+
+    init(
+        store: StoreOf<DailyDetailFeature>,
+        dates: [Date],
+        selectedDate: Binding<Date>,
+    ) {
+        self.store = store
         self.dates = dates
         self._selectedDate = selectedDate
     }
@@ -126,6 +135,7 @@ private struct WeekView: View {
                         DateItemView(
                             date: date,
                             isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                            hasRecord: hasRecord(on: date),
                             width: itemWidth
                         )
                     }
@@ -135,16 +145,28 @@ private struct WeekView: View {
             .padding(.horizontal, horizontalPadding)
         }
     }
+
+    private func hasRecord(on date: Date) -> Bool {
+        guard let value = store.cachedRecords[date] else { return false }
+        return value != nil
+    }
 }
 
 private struct DateItemView: View {
     let date: Date
     let isSelected: Bool
+    let hasRecord: Bool
     let width: CGFloat
     
-    init(date: Date, isSelected: Bool, width: CGFloat = 50) {
+    init(
+        date: Date,
+        isSelected: Bool,
+        hasRecord: Bool,
+        width: CGFloat = 50
+    ) {
         self.date = date
         self.isSelected = isSelected
+        self.hasRecord = hasRecord
         self.width = width
     }
     
@@ -162,22 +184,31 @@ private struct DateItemView: View {
     }
     
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 2) {
             Text(dayOfWeek)
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(isSelected ? .white : .gray)
+                .foregroundColor(isSelected ? .white : .gray700)
             
             Text(day)
                 .font(.headline)
-                .foregroundColor(isSelected ? .white : .black)
+                .foregroundColor(isSelected ? .white : .gray700)
+
+            // 후보 1
+            Circle()
+                .frame(width: 6, height: 6)
+                .foregroundStyle(hasRecord ? .yellow100 : .clear)
+                .padding(.top, 2)
         }
-        .frame(width: width, height: 60)
-        .background(isSelected ? Color.blue : Color.clear)
+        .frame(width: width)
+        .padding(.top, 12)
+        .padding(.bottom, 6)
+        .background(isSelected ? Color.blue700 : Color.white)
         .cornerRadius(10)
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(isSelected ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
+                .stroke(isSelected ? Color.clear : Color.gray100, lineWidth: 1)
         )
+        .fixedSize(horizontal: false, vertical: true)
     }
 }

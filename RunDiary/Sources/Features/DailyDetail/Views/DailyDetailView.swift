@@ -62,32 +62,22 @@ private struct YearAndMonthSection: View {
 
     var body: some View {
         HStack {
-            Text(yearAndMonth)
-                .font(.title2)
-                .fontWeight(.bold)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 14)
-
-            Spacer()
-
             Button {
                 onCalendarTap()
             } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "calendar")
-                        .font(.body)
-                    Text("캘린더 보기")
-                        .font(.footnote)
+                HStack(spacing: 2) {
+                    Text(yearAndMonth)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .padding(.leading, 14)
+
+                    Image(systemName: "chevron.right")
+                        .scaledToFit()
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(lineWidth: 1)
-                )
+                .foregroundStyle(.blue700)
             }
-            .foregroundStyle(.gray)
-            .padding(.trailing, 14)
+
+            Spacer()
         }
     }
 }
@@ -105,7 +95,7 @@ private struct RecordContentSection: View {
     let store: StoreOf<DailyDetailFeature>
 
     var body: some View {
-        ScrollView {
+        ScrollView(.vertical) {
             Group {
                 if let record = store.currentRecord {
                     RecordView(record: record, onEdit: { store.send(.showAddRecord) })
@@ -113,9 +103,8 @@ private struct RecordContentSection: View {
                     EmptyRecordView(onAddRecord: { store.send(.showAddRecord) })
                 }
             }
-            .padding()
         }
-        .background(Color(.systemGray6))
+        .background(Color.gray50)
     }
 }
 

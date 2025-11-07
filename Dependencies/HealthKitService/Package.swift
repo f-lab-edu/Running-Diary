@@ -7,17 +7,18 @@ let package = Package(
     name: "HealthKitService",
     platforms: [.iOS(.v18)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "HealthKitService",
             targets: ["HealthKitService"]
         ),
     ],
+    dependencies: [
+        .package(path: "../Models")
+    ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "HealthKitService"
+            name: "HealthKitService",
+            dependencies: ["Models"]
         ),
         .testTarget(
             name: "HealthKitServiceTests",

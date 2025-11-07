@@ -25,9 +25,6 @@ struct RunningConditionFeature {
 
     // Shoes
     var selectedShoe: String?
-    var shoes: [ShoeModel] = []
-    var isLoadingShoes: Bool = false
-    var errorMessage: String?
 
     // Static Options
     let painAreaOptions = PainArea.allCases
@@ -35,9 +32,6 @@ struct RunningConditionFeature {
   }
 
   enum Action {
-    case loadShoes
-    case shoesLoaded([ShoeModel])
-    case shoesLoadFailed(String)
     case updateSelectedPainAreas(Set<PainArea>)
     case updateSelectedRunningStyle(RunninStyle?)
     case updateSleepHours(String)
@@ -48,33 +42,9 @@ struct RunningConditionFeature {
     case loadFromRecord(RunningRecord)
   }
 
-  @Dependency(\.shoeClient) var shoeClient
-
   var body: some Reducer<State, Action> {
     Reduce { state, action in
       switch action {
-      case .loadShoes:
-        state.isLoadingShoes = true
-        return .run { send in
-          do {
-            let shoes = try await shoeClient.fetchShoes()
-            await send(.shoesLoaded(shoes))
-          } catch {
-            await send(.shoesLoadFailed(error.localizedDescription))
-          }
-        }
-
-      case .shoesLoaded(let shoes):
-        state.isLoadingShoes = false
-        state.shoes = shoes
-        state.errorMessage = nil
-        return .none
-
-      case .shoesLoadFailed(let error):
-        state.isLoadingShoes = false
-        state.errorMessage = "\(L10n.Shoe.Error.fetchContext): \(error)"
-        return .none
-
       case .updateSelectedPainAreas(let areas):
         state.selectedPainAreas = areas
         return .none

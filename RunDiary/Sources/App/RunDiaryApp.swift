@@ -6,6 +6,7 @@
 //
 
 import ComposableArchitecture
+import Models
 import SwiftData
 import SwiftUI
 

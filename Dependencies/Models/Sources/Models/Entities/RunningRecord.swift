@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct RunningRecord: Identifiable, Equatable {
+public struct RunningRecord: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let date: Date
     public let distanceInKilometers: Double
@@ -19,10 +19,12 @@ public struct RunningRecord: Identifiable, Equatable {
     public let runningStyle: RunninStyle?
     public let condition: RunningCondition
     public let shoes: String?
-    public let weather: Weather?
+    public let weather: WeatherData?
     public let difficultyLevel: DifficultyLevel?
     public let routeData: Data?  // HealthKit route data
     public let hasMap: Bool
+    public let startTime: Date?
+    public let endTime: Date?
 
     public var distanceInMiles: Double {
         durationInSeconds * 0.621371
@@ -52,10 +54,12 @@ public struct RunningRecord: Identifiable, Equatable {
         runningStyle: RunninStyle?,
         condition: RunningCondition = RunningCondition(),
         shoes: String? = nil,
-        weather: Weather? = nil,
+        weather: WeatherData? = nil,
         difficultyLevel: DifficultyLevel? = nil,
         routeData: Data? = nil,
-        hasMap: Bool = false
+        hasMap: Bool = false,
+        startTime: Date? = nil,
+        endTime: Date? = nil
     ) {
         self.id = id
         self.date = date
@@ -72,5 +76,7 @@ public struct RunningRecord: Identifiable, Equatable {
         self.difficultyLevel = difficultyLevel
         self.routeData = routeData
         self.hasMap = hasMap
+        self.startTime = startTime
+        self.endTime = endTime
     }
 }
