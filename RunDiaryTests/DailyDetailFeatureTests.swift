@@ -47,7 +47,7 @@ struct DailyDetailFeatureTests {
 
     @Test("앱 시작 시 날짜 배열 초기화 및 주 단위 기록 조회")
     func onAppearInitializesDatesAndFetchesWeekRecords() async {
-        let testDate = Date()
+        let testDate = Date.now
         let mockRecord = RunningRecord(
             date: testDate,
             distanceInKilometers: 5.0,
@@ -66,7 +66,7 @@ struct DailyDetailFeatureTests {
         }
         
         await store.send(.onAppear) {
-            $0.currentWeekDates = DateHelper.getWeekDates(for: Date())
+            $0.currentWeekDates = DateHelper.getWeekDates(for: .now)
         }
         
         await store.receive(\.fetchWeekRecords) {
@@ -90,7 +90,7 @@ struct DailyDetailFeatureTests {
     @Test("날짜 선택 시 캐시 미스면 주 단위 기록 조회")
     func dateSelectionWithCacheMissTriggersWeekFetch() async {
         let calendar = Calendar.current
-        let selectedDate = calendar.date(byAdding: .day, value: 1, to: Date())!
+        let selectedDate = calendar.date(byAdding: .day, value: 1, to: .now)!
         let mockRecord = RunningRecord(
             date: selectedDate,
             distanceInKilometers: 3.0,
@@ -135,7 +135,7 @@ struct DailyDetailFeatureTests {
     @Test("날짜 선택 시 캐시 히트면 fetch 생략")
     func dateSelectionWithCacheHitSkipsFetch() async {
         let calendar = Calendar.current
-        let selectedDate = Date()
+        let selectedDate = Date.now
         let normalizedDate = calendar.startOfDay(for: selectedDate)
         let mockRecord = RunningRecord(
             date: selectedDate,
@@ -164,7 +164,7 @@ struct DailyDetailFeatureTests {
     @Test("주 단위 기록 조회 성공 시 캐시 업데이트")
     func weekRecordsFetchSuccessUpdatesCache() async {
         let calendar = Calendar.current
-        let testDate = Date()
+        let testDate = Date.now
         let mockRecord = RunningRecord(
             date: testDate,
             distanceInKilometers: 10.0,
@@ -212,7 +212,7 @@ struct DailyDetailFeatureTests {
     
     @Test("기록 없을 때 추가 모드로 화면 표시")
     func showAddRecordWithNoExistingRecordUsesAddMode() async {
-        let testDate = Date()
+        let testDate = Date.now
         
         let store = TestStore(
             initialState: DailyDetailFeature.State(
@@ -232,7 +232,7 @@ struct DailyDetailFeatureTests {
     @Test("기록 있을 때 편집 모드로 화면 표시")
     func showAddRecordWithExistingRecordUsesEditMode() async {
         let calendar = Calendar.current
-        let testDate = Date()
+        let testDate = Date.now
         let normalizedDate = calendar.startOfDay(for: testDate)
         let mockRecord = RunningRecord(
             date: testDate,
@@ -265,7 +265,7 @@ struct DailyDetailFeatureTests {
     @Test("기록 저장 후 캐시 무효화 및 주 단위 새로고침")
     func addRecordSaveClearsCacheAndRefetchesWeek() async {
         let calendar = Calendar.current
-        let testDate = Date()
+        let testDate = Date.now
         let savedRecord = RunningRecord(
             date: testDate,
             distanceInKilometers: 8.0,
@@ -314,7 +314,7 @@ struct DailyDetailFeatureTests {
     @Test("nil 값이 캐시되어 있으면 fetch 생략")
     func dateSelectionWithNilCacheHitSkipsFetch() async {
         let calendar = Calendar.current
-        let selectedDate = Date()
+        let selectedDate = Date.now
         let normalizedDate = calendar.startOfDay(for: selectedDate)
 
         var initialState = DailyDetailFeature.State()
@@ -337,7 +337,7 @@ struct DailyDetailFeatureTests {
     @Test("주 단위 조회 시 일부 날짜만 기록 있을 때 전체 날짜 캐싱")
     func weekRecordsFetchWithPartialRecordsUpdatesAllDates() async {
         let calendar = Calendar.current
-        let today = Date()
+        let today = Date.now
 
         let currentWeekDates = DateHelper.getWeekDates(for: today)
 
@@ -392,7 +392,7 @@ struct DailyDetailFeatureTests {
     @Test("주 변경 시 캐시 미스로 fetch 발생")
     func weekChangedWithCacheMissTriggersWeekFetch() async {
         let calendar = Calendar.current
-        let testDate = Date()
+        let testDate = Date.now
 
         // 현재 주 데이터 미리 캐싱
         let currentWeekDates = DateHelper.getWeekDates(for: testDate)
@@ -451,7 +451,7 @@ struct DailyDetailFeatureTests {
     @Test("주 변경 시 캐시 히트로 fetch 생략")
     func weekChangedWithCacheHitSkipsFetch() async {
         let calendar = Calendar.current
-        let testDate = Date()
+        let testDate = Date.now
 
         // 현재 주와 다음 주 데이터를 모두 미리 캐싱
         let currentWeekDates = DateHelper.getWeekDates(for: testDate)
@@ -503,7 +503,7 @@ struct DailyDetailFeatureTests {
     @Test("여러 주를 이동하며 캐시가 누적됨")
     func multipleWeekNavigationAccumulatesCache() async {
         let calendar = Calendar.current
-        let testDate = Date()
+        let testDate = Date.now
 
         // 현재 주 데이터
         let currentWeekDates = DateHelper.getWeekDates(for: testDate)
@@ -602,7 +602,7 @@ struct DailyDetailFeatureTests {
     @Test("currentRecord가 nil 캐시를 올바르게 처리")
     func currentRecordReturnsNilForNilCache() async {
         let calendar = Calendar.current
-        let testDate = Date()
+        let testDate = Date.now
         let normalizedDate = calendar.startOfDay(for: testDate)
 
         var initialState = DailyDetailFeature.State(selectedDate: testDate)
@@ -652,7 +652,7 @@ struct DailyDetailFeatureTests {
     @Test("조회 실패 시 캐시가 손상되지 않음")
     func fetchFailureDoesNotCorruptCache() async {
         let calendar = Calendar.current
-        let testDate = Date()
+        let testDate = Date.now
 
         // 빈 캐시에서 시작
         var initialState = DailyDetailFeature.State(selectedDate: testDate)

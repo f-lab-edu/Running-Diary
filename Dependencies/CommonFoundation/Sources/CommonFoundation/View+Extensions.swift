@@ -15,6 +15,17 @@ extension View {
     public var screenWidth: CGFloat {
         UIScreen.current?.bounds.width ?? 0
     }
+
+    /**
+     뷰의 프레임을 정사각형으로 설정합니다.
+     
+     - Parameters:
+     - size: 정사각형의 한 변의 길이 (width와 height에 동일하게 적용됩니다.)
+     - alignment: 뷰가 프레임 내에서 정렬되는 방식 (기본값: .center)
+     */
+    public func square(_ size: CGFloat, alignment: Alignment = .center) -> some View {
+        self.frame(width: size, height: size, alignment: alignment)
+    }
 }
 
 private extension UIWindow {

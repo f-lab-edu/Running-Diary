@@ -15,7 +15,7 @@ struct DailyDetailFeature {
 
     @ObservableState
     struct State: Equatable {
-        var selectedDate: Date = Calendar.current.startOfDay(for: Date())
+        var selectedDate: Date = Calendar.current.startOfDay(for: .now)
         var currentWeekDates: [Date] = []
         var cachedRecords: [Date: RunningRecord?] = [:]
         var isLoading: Bool = false
@@ -62,7 +62,7 @@ struct DailyDetailFeature {
                 AppLogger.dailyDetail.debug("onAppear - 화면 표시됨")
                 // 현재 주의 날짜들로 초기화
                 if state.currentWeekDates.isEmpty {
-                    let today = Date()
+                    let today = Date.now
                     state.currentWeekDates = DateHelper.getWeekDates(for: today)
                     AppLogger.dailyDetail.info("주간 날짜 초기화 완료 - 시작일: \(state.currentWeekDates.first?.description ?? "nil")")
                 }
@@ -129,15 +129,15 @@ struct DailyDetailFeature {
                 AppLogger.dailyDetail.debug("fetchWeekRecords 시작 - weekStart: \(weekStart), weekEnd: \(weekEnd)")
 
                 return .run { send in
-                    let startTime = Date()
+                    let startTime = Date.now
                     do {
                         // 주 단위 범위 조회
                         let records = try await repositoryClient.fetchRecords(weekStart, weekEnd)
-                        let elapsed = Date().timeIntervalSince(startTime)
+                        let elapsed = Date.now.timeIntervalSince(startTime)
                         AppLogger.dailyDetail.info("fetchWeekRecords 성공 - count: \(records.count), elapsed: \(String(format: "%.3f", elapsed))s")
                         await send(.weekRecordsFetchedSuccess(records))
                     } catch {
-                        let elapsed = Date().timeIntervalSince(startTime)
+                        let elapsed = Date.now.timeIntervalSince(startTime)
                         let errorMessage = error.localizedDescription
                         AppLogger.dailyDetail.error("fetchWeekRecords 실패 - error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
                         await send(.weekRecordsFetchedFailure(.fetchFailed(underlyingError: errorMessage)))

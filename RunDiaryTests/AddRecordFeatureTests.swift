@@ -20,7 +20,7 @@ struct AddRecordFeatureTests {
 
   @Test("Add mode 초기화 시 신발 목록 로드")
   func onAppearInAddModeLoadsShoes() async {
-    let testDate = Date()
+    let testDate = Date.now
     let mockShoes = [
       ShoeModel(name: "Nike Pegasus 40", brand: "Nike"),
       ShoeModel(name: "Adidas Ultraboost", brand: "Adidas"),
@@ -71,7 +71,7 @@ struct AddRecordFeatureTests {
 
   @Test("Edit mode 초기화 시 기존 기록 로드 및 신발 목록 로드")
   func onAppearInEditModeLoadsExistingRecord() async {
-    let testDate = Date()
+    let testDate = Date.now
     let existingRecord = RunningRecord(
       date: testDate,
       distanceInKilometers: 5.2,
@@ -146,7 +146,7 @@ struct AddRecordFeatureTests {
 
   @Test("기록 저장 성공 시 날씨 조회")
   func saveRecordSuccessFetchesWeather() async {
-    let testDate = Date()
+    let testDate = Date.now
     let mockWeather = Weather(temperature: 20.0, humidity: 55, windSpeed: 2.5)
     var savedRecord: RunningRecord?
 
@@ -193,7 +193,7 @@ struct AddRecordFeatureTests {
 
   @Test("Edit mode에서 기록 업데이트")
   func saveRecordInEditModeUpdatesRecord() async {
-    let testDate = Date()
+    let testDate = Date.now
     let recordId = UUID()
     let existingRecord = RunningRecord(
       id: recordId,
@@ -256,7 +256,7 @@ struct AddRecordFeatureTests {
 
   @Test("기록 저장 실패 시 에러 메시지 표시")
   func saveRecordFailureShowsError() async {
-    var initialState = AddRecordFeature.State(date: Date())
+    var initialState = AddRecordFeature.State(date: .now)
     initialState.healthKitData.data = HealthKitDataModel(
       distance: 5.0,
       durationInSeconds: 1800,
@@ -299,7 +299,7 @@ struct AddRecordFeatureTests {
   @Test("HealthKit 권한 거부 시 alert 표시")
   func healthKitAuthorizationDeniedShowsAlert() async {
     let store = TestStore(
-      initialState: AddRecordFeature.State(date: Date())
+      initialState: AddRecordFeature.State(date: .now)
     ) {
       AddRecordFeature()
     }
@@ -323,7 +323,7 @@ struct AddRecordFeatureTests {
 
   @Test("권한 거부 alert 닫기")
   func dismissAuthorizationDeniedAlert() async {
-    var initialState = AddRecordFeature.State(date: Date())
+    var initialState = AddRecordFeature.State(date: .now)
     initialState.authorizationAlert = AlertState {
       TextState("건강 데이터 접근 거부됨")
     } actions: {
@@ -347,7 +347,7 @@ struct AddRecordFeatureTests {
   @Test("권한 거부 alert에서 뒤로 가기")
   func goBackFromAuthorizationDeniedAlert() async {
     let store = TestStore(
-      initialState: AddRecordFeature.State(date: Date())
+      initialState: AddRecordFeature.State(date: .now)
     ) {
       AddRecordFeature()
     }

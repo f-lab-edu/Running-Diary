@@ -192,6 +192,7 @@ struct AddRecordFeature {
                         let record = await RunningRecord(
                             id: existingRecordId ?? UUID(),
                             date: date,
+                            yearMonthDay: YearMonthDay(date: date),
                             distanceInKilometers: healthKitData.distance,
                             durationInSeconds: healthKitData.durationInSeconds,
                             averagePace: healthKitData.averagePace,

@@ -17,7 +17,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
     }
 
     func fetch(for date: Date) async throws -> RunningRecord? {
-        let startTime = Date()
+        let startTime = Date.now
         AppLogger.database.debug("fetch 시작 - date: \(date)")
 
         let calendar = Calendar.current
@@ -37,7 +37,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
 
         let models = try modelContext.fetch(descriptor)
 
-        let elapsed = Date().timeIntervalSince(startTime)
+        let elapsed = Date.now.timeIntervalSince(startTime)
         let result = models.first?.toDomain()
 
         if result != nil {
@@ -50,7 +50,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
     }
 
     func fetchRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord] {
-        let startTime = Date()
+        let startTime = Date.now
         AppLogger.database.debug("fetchRecords 시작 - startDate: \(startDate), endDate: \(endDate)")
 
         let calendar = Calendar.current
@@ -68,7 +68,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
 
         let models = try modelContext.fetch(descriptor)
 
-        let elapsed = Date().timeIntervalSince(startTime)
+        let elapsed = Date.now.timeIntervalSince(startTime)
         let records = models.map { $0.toDomain() }
 
         AppLogger.database.info("fetchRecords 성공 - count: \(records.count), elapsed: \(String(format: "%.3f", elapsed))s")
@@ -77,7 +77,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
     }
 
     func save(_ record: RunningRecord) async throws {
-        let startTime = Date()
+        let startTime = Date.now
         AppLogger.database.debug("save 시작 - recordId: \(record.id), date: \(record.date)")
 
         let model = RunningRecordModel.fromDomain(record)
@@ -85,10 +85,10 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
 
         do {
             try modelContext.save()
-            let elapsed = Date().timeIntervalSince(startTime)
+            let elapsed = Date.now.timeIntervalSince(startTime)
             AppLogger.database.info("save 성공 - recordId: \(record.id), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
-            let elapsed = Date().timeIntervalSince(startTime)
+            let elapsed = Date.now.timeIntervalSince(startTime)
             let errorMessage = error.localizedDescription
             AppLogger.database.error("save 실패 - recordId: \(record.id), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
             throw RunningRecordError.saveFailed
@@ -96,7 +96,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
     }
 
     func update(_ record: RunningRecord) async throws {
-        let startTime = Date()
+        let startTime = Date.now
         AppLogger.database.debug("update 시작 - recordId: \(record.id), date: \(record.date)")
 
         // 기존 레코드 찾기
@@ -138,10 +138,10 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
 
         do {
             try modelContext.save()
-            let elapsed = Date().timeIntervalSince(startTime)
+            let elapsed = Date.now.timeIntervalSince(startTime)
             AppLogger.database.info("update 성공 - recordId: \(recordId), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
-            let elapsed = Date().timeIntervalSince(startTime)
+            let elapsed = Date.now.timeIntervalSince(startTime)
             let errorMessage = error.localizedDescription
             AppLogger.database.error("update 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
             throw RunningRecordError.updateFailed
@@ -149,7 +149,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
     }
 
     func delete(_ record: RunningRecord) async throws {
-        let startTime = Date()
+        let startTime = Date.now
         AppLogger.database.debug("delete 시작 - recordId: \(record.id)")
 
         let recordId = record.id
@@ -167,10 +167,10 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
 
         do {
             try modelContext.save()
-            let elapsed = Date().timeIntervalSince(startTime)
+            let elapsed = Date.now.timeIntervalSince(startTime)
             AppLogger.database.info("delete 성공 - recordId: \(recordId), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
-            let elapsed = Date().timeIntervalSince(startTime)
+            let elapsed = Date.now.timeIntervalSince(startTime)
             let errorMessage = error.localizedDescription
             AppLogger.database.error("delete 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
             throw RunningRecordError.deleteFailed

@@ -511,7 +511,7 @@ private struct PainAreaButtonStyle: ButtonStyle {
     AddRecordView(
         store: Store(
             initialState: AddRecordFeature.State(
-                date: Date()
+                date: .now
             )
         ) {
             AddRecordFeature()
@@ -523,7 +523,7 @@ private struct PainAreaButtonStyle: ButtonStyle {
     AddRecordView(
         store: Store(
             initialState: AddRecordFeature.State(
-                date: Date(),
+                date: .now,
                 existingRecord: RunningRecordModel.preview.toDomain()
             )
         ) {

@@ -16,8 +16,8 @@ import Testing
 struct RepositoryClientTests {
 
   @Test("fetch: 특정 날짜의 기록 조회 성공")
-  func fetchReturnsRecordForDate() async throws {
-    let testDate = Date()
+  func fetchReturnsRecordForDate.now async throws {
+    let testDate = Date.now
     let expectedRecord = RunningRecord(
       date: testDate,
       distanceInKilometers: 5.2,
@@ -49,7 +49,7 @@ struct RepositoryClientTests {
 
   @Test("fetch: 기록이 없을 때 nil 반환")
   func fetchReturnsNilWhenNoRecord() async throws {
-    let testDate = Date()
+    let testDate = Date.now
 
     let client = RunningRecordClient(
       fetch: { _ in nil },
@@ -66,7 +66,7 @@ struct RepositoryClientTests {
 
   @Test("fetchRecords: 날짜 범위의 여러 기록 조회")
   func fetchRecordsReturnsMultipleRecords() async throws {
-    let startDate = Date()
+    let startDate = Date.now
     let endDate = Calendar.current.date(byAdding: .day, value: 7, to: startDate)!
 
     let expectedRecords = [
@@ -113,7 +113,7 @@ struct RepositoryClientTests {
 
   @Test("fetchRecords: 기록이 없을 때 빈 배열 반환")
   func fetchRecordsReturnsEmptyArray() async throws {
-    let startDate = Date()
+    let startDate = Date.now
     let endDate = Calendar.current.date(byAdding: .day, value: 7, to: startDate)!
 
     let client = RunningRecordClient(
@@ -132,7 +132,7 @@ struct RepositoryClientTests {
   @Test("save: 새 기록 저장")
   func saveStoresNewRecord() async throws {
     let newRecord = RunningRecord(
-      date: Date(),
+      date: Date.now,
       distanceInKilometers: 10.0,
       durationInSeconds: 3000,
       averagePace: "5'00\"",
@@ -164,7 +164,7 @@ struct RepositoryClientTests {
   func updateModifiesExistingRecord() async throws {
     let updatedRecord = RunningRecord(
       id: UUID(),
-      date: Date(),
+      date: Date.now,
       distanceInKilometers: 6.0,
       durationInSeconds: 1800,
       averagePace: "5'00\"",
@@ -199,7 +199,7 @@ struct RepositoryClientTests {
   func deleteRemovesRecord() async throws {
     let recordToDelete = RunningRecord(
       id: UUID(),
-      date: Date(),
+      date: Date.now,
       distanceInKilometers: 3.0,
       durationInSeconds: 1200,
       averagePace: "6'40\"",

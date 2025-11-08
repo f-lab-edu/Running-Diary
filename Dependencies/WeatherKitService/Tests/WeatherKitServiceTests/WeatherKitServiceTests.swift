@@ -7,7 +7,7 @@ import Testing
 @Test("MockWeatherManager: location이 nil일 때 에러 발생")
 func mockWeatherManagerThrowsErrorWhenLocationIsNil() async {
     let manager = MockWeatherManager()
-    let date = Date()
+    let date = Date.now
 
     await #expect(throws: WeatherKitError.missingLocation) {
         try await manager.fetchWeather(for: date, location: nil)
@@ -17,7 +17,7 @@ func mockWeatherManagerThrowsErrorWhenLocationIsNil() async {
 @Test("MockWeatherManager: location이 제공되면 데이터 반환")
 func mockWeatherManagerReturnsDataWithValidLocation() async throws {
     let manager = MockWeatherManager()
-    let date = Date()
+    let date = Date.now
     let location = CLLocationCoordinate2D(latitude: 37.5665, longitude: 126.9780)
 
     let weather = try await manager.fetchWeather(for: date, location: location)
@@ -31,7 +31,7 @@ func mockWeatherManagerReturnsDataWithValidLocation() async throws {
 @Test("MockWeatherManager: 비동기 함수 정상 실행")
 func mockWeatherManagerAsyncExecution() async throws {
     let manager = MockWeatherManager()
-    let date = Date()
+    let date = Date.now
     let location = CLLocationCoordinate2D(latitude: 37.5665, longitude: 126.9780)
 
     // 비동기 함수가 정상적으로 완료되는지 확인
@@ -45,7 +45,7 @@ func mockWeatherManagerAsyncExecution() async throws {
 @Test("WeatherKitManager: location이 nil일 때 에러 발생")
 func weatherKitManagerThrowsErrorWhenLocationIsNil() async {
     let manager = WeatherKitManager()
-    let date = Date()
+    let date = Date.now
 
     await #expect(throws: WeatherKitError.missingLocation) {
         try await manager.fetchWeather(for: date, location: nil)
@@ -55,7 +55,7 @@ func weatherKitManagerThrowsErrorWhenLocationIsNil() async {
 @Test("WeatherKitManager: location이 제공되면 정상 동작 시도")
 func weatherKitManagerWithValidLocation() async throws {
     let manager = WeatherKitManager()
-    let date = Date()
+    let date = Date.now
     let location = CLLocationCoordinate2D(latitude: 37.5665, longitude: 126.9780)
 
     // 실제 WeatherKit API는 권한 및 환경 설정이 필요하므로

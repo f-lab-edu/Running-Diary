@@ -26,7 +26,7 @@ struct DateCarouselView: View {
                 WeekView(
                     store: store,
                     dates: DateHelper.getWeekDates(
-                        for: DateHelper.addWeeks(-1, to: store.currentWeekDates.first ?? Date())
+                        for: DateHelper.addWeeks(-1, to: store.currentWeekDates.first ?? .now)
                     ),
                     selectedDate: Binding(
                         get: { store.selectedDate },
@@ -50,7 +50,7 @@ struct DateCarouselView: View {
                 WeekView(
                     store: store,
                     dates: DateHelper.getWeekDates(
-                        for: DateHelper.addWeeks(1, to: store.currentWeekDates.first ?? Date())
+                        for: DateHelper.addWeeks(1, to: store.currentWeekDates.first ?? .now)
                     ),
                     selectedDate: Binding(
                         get: { store.selectedDate },
