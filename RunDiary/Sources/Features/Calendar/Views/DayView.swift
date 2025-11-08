@@ -7,15 +7,14 @@
 
 import CommonFoundation
 import ComposableArchitecture
-import HorizonCalendar
 import Models
 import SwiftUI
 
 struct DayView: View {
-    let day: DayComponents
-    let isToday: Bool
+    let day: Int
     let isSunday: Bool
     let record: RunningRecord?
+    var isSelected: Bool
 
     private var cellHeight: CGFloat {
         screenWidth / 7
@@ -23,20 +22,20 @@ struct DayView: View {
 
     var body: some View {
         ZStack {
-            if isToday {
+            if isSelected {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(.blue.opacity(0.2))
             }
 
             VStack {
-                Text(String(day.day))
+                Text(String(day))
                     .foregroundStyle(isSunday ? .red : .black)
-                    .opacity(isToday ? 1 : 0.7)
+                    .opacity(isSelected ? 1 : 0.7)
                     .bold()
                 Spacer()
                 Text(record.map { "\($0.distanceInKilometers.to1f)km" } ?? "-")
                     .font(.caption)
-                    .foregroundStyle(isToday ? .black : .gray)
+                    .foregroundStyle(isSelected ? .black : .gray)
                     .opacity(record != nil ? 1 : 0.2)
             }
             .padding(10)

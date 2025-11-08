@@ -36,7 +36,7 @@ public final class RunningRecordModel {
 
     public init(
         id: UUID = UUID(),
-        date: Date = Date(),
+        date: Date = Date.now,
         distance: Double,
         duration: TimeInterval,
         averagePace: String,
@@ -114,6 +114,7 @@ public extension RunningRecordModel {
         return RunningRecord(
             id: id,
             date: date,
+            yearMonthDay: YearMonthDay(date: date),
             distanceInKilometers: distance,
             durationInSeconds: duration,
             averagePace: averagePace,

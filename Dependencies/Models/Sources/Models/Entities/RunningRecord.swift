@@ -10,6 +10,7 @@ import Foundation
 public struct RunningRecord: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let date: Date
+    public let yearMonthDay: YearMonthDay
     public let distanceInKilometers: Double
     public let durationInSeconds: TimeInterval  // seconds
     public let averagePace: String  // min/km
@@ -45,6 +46,7 @@ public struct RunningRecord: Identifiable, Equatable, Sendable {
     public init(
         id: UUID = UUID(),
         date: Date,
+        yearMonthDay: YearMonthDay,
         distanceInKilometers: Double,
         durationInSeconds: TimeInterval,
         averagePace: String,
@@ -63,6 +65,7 @@ public struct RunningRecord: Identifiable, Equatable, Sendable {
     ) {
         self.id = id
         self.date = date
+        self.yearMonthDay = YearMonthDay(date: date)
         self.distanceInKilometers = distanceInKilometers
         self.durationInSeconds = durationInSeconds
         self.averagePace = averagePace

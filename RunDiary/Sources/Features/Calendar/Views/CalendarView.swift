@@ -14,90 +14,94 @@ import SwiftUI
 struct CalendarView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var proxy = CalendarViewProxy()
-
     @Bindable var store: StoreOf<CalendarFeature>
-
-    let calendar: Calendar
-    let today: Date
-    let todayComponents: DateComponents
 
     init(store: StoreOf<CalendarFeature>) {
         self.store = store
-        self.calendar = Calendar.current
-        self.today = Date()
-        self.todayComponents = calendar.dateComponents([.year, .month, .day], from: today)
     }
 
     var body: some View {
-        CalendarViewRepresentable(
-            calendar: calendar,
-            visibleDateRange: store.startDate...store.endDate,
-            monthsLayout: .vertical(options: VerticalMonthsLayoutOptions(pinDaysOfWeekToTop: true)),
-            dataDependency: store.recordsByDate,
-            proxy: proxy
-        )
-        .daysOfTheWeekRowSeparator(options: .systemStyleSeparator)
-        .interMonthSpacing(40)
-        .monthHeaders { month in
-            let yearMonth = String(format: "%04d-%02d", month.year, month.month)
-            let totalDistance = store.monthlyTotals[yearMonth] ?? 0.0
-
-            MonthHeaderView(
-                month: month,
-                totalDistance: totalDistance,
-                isToday: isSameMonthToday(with: month)
+        ZStack(alignment: .bottomTrailing) {
+            CalendarViewRepresentable(
+                calendar: .current,
+                visibleDateRange: store.startDate.toDate()...store.endDate.toDate(),
+                monthsLayout: .vertical(options: VerticalMonthsLayoutOptions(pinDaysOfWeekToTop: true)),
+                dataDependency: (store.recordsByDate, store.selectedDate),
+                proxy: proxy
             )
-        }
-        .days { day in
-            let date = calendar.date(from: day.components)
-            let record = date.flatMap { date in
-                let normalizedDate = calendar.startOfDay(for: date)
-                return store.recordsByDate[normalizedDate] ?? nil
+            .interMonthSpacing(40)
+            .daysOfTheWeekRowSeparator(options: .systemStyleSeparator)
+            .monthHeaders {
+                MonthHeaderView(
+                    year: $0.year,
+                    month: $0.month,
+                    totalDistance: store.monthlyTotals[YearMonth(year: $0.year, month: $0.month), default: 0]
+                )
+            }
+            .days {
+                DayView(
+                    day: $0.day,
+                    isSunday: $0.isSunday,
+                    record: store.recordsByDate[$0.yearMonthDay, default: nil],
+                    isSelected: store.selectedDate == $0.yearMonthDay
+                )
+            }
+            .onDaySelection {
+                store.send(.selectDate($0.yearMonthDay))
+                scrollToDay(store.state.selectedDate.toDate(), animated: true)
+            }
+            .onScroll { _, _ in
+                checkIfNeedsToLoadOlderData()
+                checkIfNeedsToSaveLastDate()
             }
 
-            DayView(
-                day: day,
-                isToday: isSameDayToday(with: day),
-                isSunday: isSunday(currentDay: day),
-                record: record
-            )
-        }
-        .onScroll { _, isUserDragging in
-            // HorizonCalendar API를 사용하여 가장 오래된 달이 화면에 보이는 때를 감지합니다.
-            guard isUserDragging, let firstVisibleMonth = proxy.visibleMonthRange?.lowerBound else { return }
-            let oldestDateComponents = store.state.startDateComponents
-            guard oldestDateComponents.year == firstVisibleMonth.year, oldestDateComponents.month == firstVisibleMonth.month else { return }
-            store.send(.oldestMonthBecameVisible)
+            if store.state.canAutoScrollToToday {
+                Button {
+                    scrollToDay(.now, animated: true)
+                } label: {
+                    Image(systemName: "arrow.down.to.line")
+                        .resizable()
+                        .scaledToFit()
+                        .square(screenWidth * 0.06)
+                        .foregroundStyle(.blue700)
+                        .padding(12)
+                        .background(
+                            Circle()
+                                .foregroundStyle(.yellow100)
+                        )
+                }
+                .padding(24)
+                .transition(.opacity)
+            }
         }
         .onAppear {
             store.send(.onAppear)
-            proxy.scrollToDay(
-                containing: today,
-                scrollPosition: .lastFullyVisiblePosition(padding: screenHeight * 0.35),
-                animated: false
-            )
+            scrollToDay(.now)
         }
+        .animation(.linear, value: store.state.canAutoScrollToToday)
     }
 
-    private func isSameDayToday(with day: DayComponents) -> Bool {
-        guard let tYear = todayComponents.year, let tMonth = todayComponents.month, let tDay = todayComponents.day else { return false }
-        let isSameDay = day.day == tDay
-        let isSameMonth = day.month.month == tMonth
-        let isSameYear = day.month.year == tYear
-        return isSameYear && isSameMonth && isSameDay
+    private func scrollToDay(_ date: Date, animated: Bool = false) {
+        proxy.scrollToDay(
+            containing: date,
+            scrollPosition: .lastFullyVisiblePosition(padding: screenHeight * 0.35),
+            animated: animated
+        )
     }
 
-    private func isSameMonthToday(with month: MonthComponents) -> Bool {
-        guard let tYear = todayComponents.year, let tMonth = todayComponents.month else { return false }
-        let isSameMonth = month.month == tMonth
-        let isSameYear = month.year == tYear
-        return isSameYear && isSameMonth
+    // 가장 오래된 달이 화면에 보일 때 과거 기록을 더 조회합니다.
+    private func checkIfNeedsToLoadOlderData() {
+        guard let oldestMonth = proxy.visibleMonthRange?.lowerBound else { return }
+        let startDate = store.state.startDate
+        guard startDate.year == oldestMonth.year, startDate.month == oldestMonth.month else { return }
+        store.send(.oldestMonthBecameVisible)
     }
 
-    private func isSunday(currentDay: DayComponents) -> Bool {
-        guard let date = calendar.date(from: currentDay.components) else { return false }
-        let weekday = calendar.component(.weekday, from: date)
-        return weekday == 1
+    private func checkIfNeedsToSaveLastDate() {
+        guard let lastVisibleMonth = proxy.visibleMonthRange?.upperBound else { return }
+        let yearMonth = YearMonth(year: lastVisibleMonth.year, month: lastVisibleMonth.month)
+        store.send(.saveLastVisibleMonth(yearMonth))
+
     }
 }
 
