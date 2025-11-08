@@ -14,42 +14,41 @@ struct AddRecordView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if store.healthKitData.isLoading {
-                    ProgressView(L10n.Healthkit.Data.loading)
-                        .progressViewStyle(.circular)
-                } else {
-                    FormContentView(store: store)
-                }
+        Group {
+            if store.healthKitData.isLoading {
+                ProgressView(L10n.Healthkit.Data.loading)
+                    .progressViewStyle(.circular)
+            } else {
+                FormContentView(store: store)
             }
-            .navigationTitle(store.mode == .add ? L10n.Record.add : L10n.Record.edit)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(L10n.UI.cancel) {
-                        dismiss()
-                    }
-                    .foregroundStyle(.gray500)
+        }
+        .navigationTitle(store.mode == .add ? L10n.Record.add : L10n.Record.edit)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(L10n.UI.cancel) {
+                    dismiss()
                 }
+                .foregroundStyle(.gray500)
+            }
 
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(L10n.UI.save) {
-                        store.send(.saveRecord)
-                    }
-                    .foregroundStyle(store.isLoading || !store.isFormValid ? .blue300.opacity(0.3) : .blue300)
-                    .disabled(store.isLoading || !store.isFormValid)
+            ToolbarItem(placement: .confirmationAction) {
+                Button(L10n.UI.save) {
+                    store.send(.saveRecord)
                 }
+                .foregroundStyle(store.isLoading || !store.isFormValid ? .blue300.opacity(0.3) : .blue300)
+                .disabled(store.isLoading || !store.isFormValid)
             }
-            .task {
-                store.send(.onAppear)
-            }
-            .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
-            .alert($store.scope(state: \.emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert))
-            .overlay {
-                if store.isLoading {
-                    ProgressView()
-                }
+        }
+        .task {
+            store.send(.onAppear)
+        }
+        .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
+        .alert($store.scope(state: \.emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert))
+        .overlay {
+            if store.isLoading {
+                ProgressView()
             }
         }
     }
@@ -508,26 +507,30 @@ private struct PainAreaButtonStyle: ButtonStyle {
 // MARK: - Preview
 
 #Preview("Add Mode", traits: .sampleData) {
-    AddRecordView(
-        store: Store(
-            initialState: AddRecordFeature.State(
-                date: .now
-            )
-        ) {
-            AddRecordFeature()
-        }
-    )
+    NavigationStack {
+        AddRecordView(
+            store: Store(
+                initialState: AddRecordFeature.State(
+                    date: .now
+                )
+            ) {
+                AddRecordFeature()
+            }
+        )
+    }
 }
 
 #Preview("Edit Mode", traits: .sampleData) {
-    AddRecordView(
-        store: Store(
-            initialState: AddRecordFeature.State(
-                date: .now,
-                existingRecord: RunningRecordModel.preview.toDomain()
-            )
-        ) {
-            AddRecordFeature()
-        }
-    )
+    NavigationStack {
+        AddRecordView(
+            store: Store(
+                initialState: AddRecordFeature.State(
+                    date: .now,
+                    existingRecord: RunningRecordModel.preview.toDomain()
+                )
+            ) {
+                AddRecordFeature()
+            }
+        )
+    }
 }

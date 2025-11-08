@@ -25,20 +25,12 @@ struct DailyDetailView: View {
 
                 RecordContentSection(store: store)
             }
-            .sheet(store: store.scope(state: \.$addRecord, action: \.addRecord)) { addRecordStore in
+            .navigationDestination(store: store.scope(state: \.$addRecord, action: \.addRecord)) { addRecordStore in
                 AddRecordView(store: addRecordStore)
             }
             .sheet(store: store.scope(state: \.$calendar, action: \.calendar)) { calendarStore in
-                NavigationStack {
-                    CalendarView(store: calendarStore)
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                Button("닫기") {
-                                    store.send(.calendar(.dismiss))
-                                }
-                            }
-                        }
-                }
+                CalendarView(store: calendarStore)
+                    .presentationDetents([.medium])
             }
             .task {
                 store.send(.onAppear)

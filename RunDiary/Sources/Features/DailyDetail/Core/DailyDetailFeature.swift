@@ -200,7 +200,7 @@ struct DailyDetailFeature {
 
             case .calendarButtonTapped:
                 AppLogger.dailyDetail.debug("calendarButtonTapped - 캘린더 화면 표시")
-                state.calendar = CalendarFeature.State()
+                state.calendar = CalendarFeature.State(selectedDate: state.selectedDate)
                 return .none
 
             case .calendar(.dismiss):

@@ -48,7 +48,6 @@ struct CalendarView: View {
             }
             .onDaySelection {
                 store.send(.selectDate($0.yearMonthDay))
-                scrollToDay(store.state.selectedDate.toDate(), animated: true)
             }
             .onScroll { _, _ in
                 checkIfNeedsToLoadOlderData()
@@ -74,9 +73,10 @@ struct CalendarView: View {
                 .transition(.opacity)
             }
         }
+        .background(ignoresSafeAreaEdges: .all)
         .onAppear {
             store.send(.onAppear)
-            scrollToDay(.now)
+            scrollToDay(store.selectedDate.toDate())
         }
         .animation(.linear, value: store.state.canAutoScrollToToday)
     }
@@ -84,7 +84,7 @@ struct CalendarView: View {
     private func scrollToDay(_ date: Date, animated: Bool = false) {
         proxy.scrollToDay(
             containing: date,
-            scrollPosition: .lastFullyVisiblePosition(padding: screenHeight * 0.35),
+            scrollPosition: .firstFullyVisiblePosition,
             animated: animated
         )
     }
