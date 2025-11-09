@@ -5,6 +5,7 @@
 //  Created by 김혜지 on 9/23/25.
 //
 
+import CommonFoundation
 import ComposableArchitecture
 import Models
 import SwiftUI
@@ -28,13 +29,13 @@ struct DailyDetailView: View {
             .navigationDestination(store: store.scope(state: \.$addRecord, action: \.addRecord)) { addRecordStore in
                 AddRecordView(store: addRecordStore)
             }
-            .sheet(store: store.scope(state: \.$calendar, action: \.calendar)) { calendarStore in
-                CalendarView(store: calendarStore)
-                    .presentationDetents([.medium])
-            }
             .task {
                 store.send(.onAppear)
             }
+        }
+        .sheet(store: store.scope(state: \.$calendar, action: \.calendar)) { calendarStore in
+            CalendarView(store: calendarStore)
+                .presentationDragIndicator(.visible)
         }
     }
 }
