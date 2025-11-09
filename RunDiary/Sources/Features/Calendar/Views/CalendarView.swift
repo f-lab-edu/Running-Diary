@@ -21,59 +21,31 @@ struct CalendarView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            CalendarViewRepresentable(
-                calendar: .current,
-                visibleDateRange: store.startDate.toDate()...store.endDate.toDate(),
-                monthsLayout: .vertical(options: VerticalMonthsLayoutOptions(pinDaysOfWeekToTop: true)),
-                dataDependency: (store.recordsByDate, store.selectedDate),
-                proxy: proxy
-            )
-            .interMonthSpacing(40)
-            .daysOfTheWeekRowSeparator(options: .systemStyleSeparator)
-            .monthHeaders {
-                MonthHeaderView(
-                    year: $0.year,
-                    month: $0.month,
-                    totalDistance: store.monthlyTotals[YearMonth(year: $0.year, month: $0.month), default: 0]
-                )
-            }
-            .days {
-                DayView(
-                    day: $0.day,
-                    isSunday: $0.isSunday,
-                    record: store.recordsByDate[$0.yearMonthDay, default: nil],
-                    isSelected: store.selectedDate == $0.yearMonthDay
-                )
-            }
-            .onDaySelection {
-                store.send(.selectDate($0.yearMonthDay))
-            }
-            .onScroll { _, _ in
-                checkIfNeedsToLoadOlderData()
-                checkIfNeedsToSaveLastDate()
-            }
-
-            if store.state.canAutoScrollToToday {
-                Button {
+        VStack(spacing: 0) {
+            ScrollToTodayButton(
+                canAutoScrollToToday: store.state.canAutoScrollToToday,
+                onTap: {
                     scrollToDay(.now, animated: true)
-                } label: {
-                    Image(systemName: "arrow.down.to.line")
-                        .resizable()
-                        .scaledToFit()
-                        .square(screenWidth * 0.06)
-                        .foregroundStyle(.blue700)
-                        .padding(12)
-                        .background(
-                            Circle()
-                                .foregroundStyle(.yellow100)
-                        )
                 }
-                .padding(24)
-                .transition(.opacity)
-            }
+            )
+
+            CalendarContentView(
+                store: store,
+                proxy: proxy,
+                onScroll: {
+                    checkIfNeedsToLoadOlderData()
+                    checkIfNeedsToSaveLastMonth()
+                }
+            )
+
+            DiaryNavigationButton(
+                selectedDate: store.selectedDate,
+                onTap: {
+                    dismiss()
+                }
+            )
         }
-        .background(ignoresSafeAreaEdges: .all)
+        .background(ignoresSafeAreaEdges: [.bottom])
         .onAppear {
             store.send(.onAppear)
             scrollToDay(store.selectedDate.toDate())
@@ -97,7 +69,8 @@ struct CalendarView: View {
         store.send(.oldestMonthBecameVisible)
     }
 
-    private func checkIfNeedsToSaveLastDate() {
+    // 오늘 날짜가 보이지 않을 때 자동 스크롤 버튼을 활성화시킬 수 있도록 보이는 달 중 최하단 달을 저장합니다.
+    private func checkIfNeedsToSaveLastMonth() {
         guard let lastVisibleMonth = proxy.visibleMonthRange?.upperBound else { return }
         let yearMonth = YearMonth(year: lastVisibleMonth.year, month: lastVisibleMonth.month)
         store.send(.saveLastVisibleMonth(yearMonth))

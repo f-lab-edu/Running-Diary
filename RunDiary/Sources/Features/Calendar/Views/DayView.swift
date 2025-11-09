@@ -24,18 +24,19 @@ struct DayView: View {
         ZStack {
             if isSelected {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(.blue.opacity(0.2))
+                    .fill(.blue300)
+                    .padding(2)
             }
 
             VStack {
                 Text(String(day))
-                    .foregroundStyle(isSunday ? .red : .black)
+                    .foregroundStyle(isSelected ? .white : (isSunday ? .red : .black))
                     .opacity(isSelected ? 1 : 0.7)
-                    .bold()
+                    .bold(isSelected)
                 Spacer()
                 Text(record.map { "\($0.distanceInKilometers.to1f)km" } ?? "-")
                     .font(.caption)
-                    .foregroundStyle(isSelected ? .black : .gray)
+                    .foregroundStyle(isSelected ? .white : .gray)
                     .opacity(record != nil ? 1 : 0.2)
             }
             .padding(10)
