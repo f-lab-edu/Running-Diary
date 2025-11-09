@@ -22,7 +22,7 @@ struct CalendarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollToTodayButton(
+            TodayButton(
                 canAutoScrollToToday: store.state.canAutoScrollToToday,
                 onTap: {
                     scrollToDay(.now, animated: true)
@@ -38,10 +38,10 @@ struct CalendarView: View {
                 }
             )
 
-            DiaryNavigationButton(
+            DiarySwitchButton(
                 selectedDate: store.selectedDate,
                 onTap: {
-                    dismiss()
+                    store.send(.navigateToDiary)
                 }
             )
         }

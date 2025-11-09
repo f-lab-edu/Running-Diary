@@ -1,5 +1,5 @@
 //
-//  ScrollToTodayButton.swift
+//  TodayButton.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 11/9/25.
@@ -8,7 +8,7 @@
 import CommonFoundation
 import SwiftUI
 
-struct ScrollToTodayButton: View {
+struct TodayButton: View {
     let canAutoScrollToToday: Bool
     let onTap: () -> Void
 
@@ -43,7 +43,7 @@ struct ScrollToTodayButton: View {
 
 #Preview {
     VStack {
-        ScrollToTodayButton(canAutoScrollToToday: true, onTap: {})
-        ScrollToTodayButton(canAutoScrollToToday: false, onTap: {})
+        TodayButton(canAutoScrollToToday: true, onTap: {})
+        TodayButton(canAutoScrollToToday: false, onTap: {})
     }
 }

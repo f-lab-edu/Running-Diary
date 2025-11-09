@@ -1,5 +1,5 @@
 //
-//  DiaryNavigationButton.swift
+//  DiarySwitchButton.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 11/9/25.
@@ -8,7 +8,7 @@
 import Models
 import SwiftUI
 
-struct DiaryNavigationButton: View {
+struct DiarySwitchButton: View {
     let selectedDate: YearMonthDay
     let onTap: () -> Void
 
@@ -30,7 +30,7 @@ struct DiaryNavigationButton: View {
 }
 
 #Preview {
-    DiaryNavigationButton(
+    DiarySwitchButton(
         selectedDate: YearMonthDay(year: 2025, month: 11, day: 9),
         onTap: {}
     )
