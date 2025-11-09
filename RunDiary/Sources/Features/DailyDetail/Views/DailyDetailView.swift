@@ -36,6 +36,8 @@ struct DailyDetailView: View {
         .sheet(store: store.scope(state: \.$calendar, action: \.calendar)) { calendarStore in
             CalendarView(store: calendarStore)
                 .presentationDragIndicator(.visible)
+            // TODO: sheet height를 지정해주면 content 전체가 같이 축소되는 버그 발생
+//                .presentationDetents([.height(screenHeight * 0.8)])
         }
     }
 }
@@ -93,7 +95,10 @@ private struct RecordContentSection: View {
                 if let record = store.currentRecord {
                     RecordView(record: record, onEdit: { store.send(.showAddRecord) })
                 } else {
-                    EmptyRecordView(onAddRecord: { store.send(.showAddRecord) })
+                    EmptyRecordView(
+                        error: store.error,
+                        onAddRecord: { store.send(.showAddRecord) }
+                    )
                 }
             }
         }

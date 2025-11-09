@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct HealthKitRunningData: Sendable {
+public struct HealthKitRunningData: Equatable, Sendable {
     public let distance: Double?  // km
     public let duration: TimeInterval?  // seconds
     public let averagePace: String?  // min/km

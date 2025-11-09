@@ -8,7 +8,6 @@
 import CommonFoundation
 import ComposableArchitecture
 import Foundation
-import HealthKitService
 import Models
 
 @Reducer
@@ -17,64 +16,36 @@ struct HealthKitDataFeature {
     struct State: Equatable {
         var data: HealthKitDataModel?
         var isDataLoaded: Bool = false
-        var isLoading: Bool = false
-        var errorMessage: String?
+
+        /// HealthKitRunningData로부터 State를 초기화
+        init(healthKitData: HealthKitRunningData) {
+            self.data = HealthKitDataModel(
+                distance: healthKitData.distance ?? 0,
+                durationInSeconds: healthKitData.duration ?? 0,
+                averagePace: healthKitData.averagePace ?? "",
+                averageHeartRate: healthKitData.averageHeartRate ?? 0,
+                averageCadence: healthKitData.averageCadence ?? 0,
+                routeData: healthKitData.routeData,
+                startDate: healthKitData.startDate,
+                endDate: healthKitData.endDate
+            )
+            self.isDataLoaded = true
+        }
+
+        /// 빈 State를 생성하는 기본 초기화
+        init() {
+            self.data = nil
+            self.isDataLoaded = false
+        }
     }
-    
+
     enum Action {
-        case loadData(Date)
-        case dataLoaded(HealthKitRunningData)
-        case dataLoadFailed(String)
-        case healthStoreAuthorizationDenied
         case loadFromRecord(RunningRecord)
     }
-    
-    @Dependency(\.healthKitClient) var healthKitClient
     
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
-            case .loadData(let date):
-                state.isLoading = true
-                state.errorMessage = nil
-                
-                return .run { send in
-                    do {
-                        try await healthKitClient.ensureAuthorizationIfNeeded()
-                        if let data = try await healthKitClient.fetchRunningData(date) {
-                            await send(.dataLoaded(data))
-                        } else {
-                            throw HealthKitError.dataNotFound
-                        }
-                    } catch {
-                        await send(.dataLoadFailed(error.localizedDescription))
-                    }
-                }
-                
-            case .dataLoaded(let healthKitData):
-                state.isLoading = false
-                state.data = HealthKitDataModel(
-                    distance: healthKitData.distance ?? 0,
-                    durationInSeconds: healthKitData.duration ?? 0,
-                    averagePace: healthKitData.averagePace ?? "",
-                    averageHeartRate: healthKitData.averageHeartRate ?? 0,
-                    averageCadence: healthKitData.averageCadence ?? 0,
-                    routeData: healthKitData.routeData,
-                    startDate: healthKitData.startDate,
-                    endDate: healthKitData.endDate
-                )
-                state.isDataLoaded = true
-                return .none
-                
-            case .dataLoadFailed(let error):
-                state.isLoading = false
-                state.errorMessage = "\(L10n.Healthkit.Error.fetchContext): \(error)"
-                state.isDataLoaded = false
-                return .none
-                
-            case .healthStoreAuthorizationDenied:
-                return .none
-                
             case .loadFromRecord(let record):
                 // Decode routeData from Data to [HealthKitCoordinateData]
                 let decodedRouteData = decodeRouteData(record.routeData)
@@ -93,27 +64,6 @@ struct HealthKitDataFeature {
                 return .none
             }
         }
-    }
-    
-    private func parseDuration(_ durationString: String) -> TimeInterval? {
-        guard !durationString.isEmpty else { return nil }
-
-        let components = durationString.split(separator: ":").compactMap { Int($0) }
-
-        if components.count == 2 {
-            // MM:SS format
-            let minutes = components[0]
-            let seconds = components[1]
-            return TimeInterval(minutes * 60 + seconds)
-        } else if components.count == 3 {
-            // HH:MM:SS format
-            let hours = components[0]
-            let minutes = components[1]
-            let seconds = components[2]
-            return TimeInterval(hours * 3600 + minutes * 60 + seconds)
-        }
-
-        return nil
     }
 
     private func decodeRouteData(_ data: Data?) -> [HealthKitCoordinateData]? {

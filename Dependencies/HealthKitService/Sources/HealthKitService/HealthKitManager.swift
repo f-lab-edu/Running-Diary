@@ -10,7 +10,7 @@ import Foundation
 import HealthKit
 import Models
 
-public final class HealthKitManager: HealthKitManagerProtocol {
+public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendable {
     private let healthStore = HKHealthStore()
 
     private let typesToRead: Set<HKObjectType> = [
@@ -50,8 +50,8 @@ public final class HealthKitManager: HealthKitManagerProtocol {
         return result
     }
 
+    // 단일 Date에 대한 피트니스 기록을 가져옵니다.
     public func fetchRunningData(for date: Date) async throws -> HealthKitRunningData? {
-        // 날짜 범위 설정 (해당 날짜 하루)
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.endOfDay(for: date) else {
@@ -219,8 +219,7 @@ public final class HealthKitManager: HealthKitManagerProtocol {
 
         let predicate = HKQuery.predicateForObjects(from: workout)
 
-        let routes = try await withCheckedThrowingContinuation {
-            (continuation: CheckedContinuation<[HKWorkoutRoute], Error>) in
+        let routes = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKWorkoutRoute], Error>) in
             let query = HKSampleQuery(
                 sampleType: routeType,
                 predicate: predicate,
@@ -244,8 +243,7 @@ public final class HealthKitManager: HealthKitManagerProtocol {
 
         var coordinates: [CLLocationCoordinate2D] = []
 
-        try await withCheckedThrowingContinuation {
-            (continuation: CheckedContinuation<Void, Error>) in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let query = HKWorkoutRouteQuery(route: route) { _, locations, done, error in
                 if let error = error {
                     continuation.resume(throwing: error)
@@ -268,6 +266,42 @@ public final class HealthKitManager: HealthKitManagerProtocol {
                 latitude: $0.latitude,
                 longitude: $0.longitude
             )
+        }
+    }
+
+    // startDate ~ endDate 기간에 대한 피트니스 기록을 가져옵니다.
+    public func fetchWeeklyRunningData(from startDate: Date, to endDate: Date) async throws -> [HealthKitRunningData?] {
+        let calendar = Calendar.current
+
+        // 시작일부터 종료일까지의 날짜 배열 생성
+        var dates: [Date] = []
+        var currentDate = calendar.startOfDay(for: startDate)
+        let normalizedEndDate = calendar.startOfDay(for: endDate)
+
+        while currentDate <= normalizedEndDate {
+            dates.append(currentDate)
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+                break
+            }
+            currentDate = nextDate
+        }
+
+        // 각 날짜에 대해 병렬로 데이터 조회
+        return await withTaskGroup(of: (Int, HealthKitRunningData?).self) { group in
+            for (index, date) in dates.enumerated() {
+                group.addTask { [self] in
+                    let data = try? await self.fetchRunningData(for: date)
+                    return (index, data)
+                }
+            }
+
+            // 결과를 인덱스 순서대로 정렬하여 배열 생성
+            var results: [(Int, HealthKitRunningData?)] = []
+            for await result in group {
+                results.append(result)
+            }
+
+            return results.sorted { $0.0 < $1.0 }.map { $0.1 }
         }
     }
 }

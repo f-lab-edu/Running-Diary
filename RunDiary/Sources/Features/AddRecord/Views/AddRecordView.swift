@@ -14,14 +14,7 @@ struct AddRecordView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        Group {
-            if store.healthKitData.isLoading {
-                ProgressView(L10n.Healthkit.Data.loading)
-                    .progressViewStyle(.circular)
-            } else {
-                FormContentView(store: store)
-            }
-        }
+        FormContentView(store: store)
         .navigationTitle(store.mode == .add ? L10n.Record.add : L10n.Record.edit)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
@@ -44,11 +37,10 @@ struct AddRecordView: View {
         .task {
             store.send(.onAppear)
         }
-        .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
-        .alert($store.scope(state: \.emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert))
         .overlay {
             if store.isLoading {
                 ProgressView()
+                    .contentShape(Rectangle())
             }
         }
     }
@@ -511,7 +503,17 @@ private struct PainAreaButtonStyle: ButtonStyle {
         AddRecordView(
             store: Store(
                 initialState: AddRecordFeature.State(
-                    date: .now
+                    date: .now,
+                    healthKitData: HealthKitRunningData(
+                        distance: 5.2,
+                        duration: 3665,  // 1시간 1분 5초
+                        averagePace: "5'30\"",
+                        averageHeartRate: 155,
+                        averageCadence: 180,
+                        routeData: nil,
+                        startDate: .now,
+                        endDate: .now
+                    )
                 )
             ) {
                 AddRecordFeature()

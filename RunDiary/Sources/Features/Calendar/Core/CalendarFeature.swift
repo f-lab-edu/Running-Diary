@@ -48,6 +48,7 @@ struct CalendarFeature {
         case fetchOlderRecords
         case saveLastVisibleMonth(YearMonth)
         case selectDate(YearMonthDay)
+        case navigateToDiary
     }
 
     // MARK: - Dependency
@@ -151,13 +152,17 @@ struct CalendarFeature {
                 return .send(.fetchRecords(startDate: newStartDate, endDate: fetchEndDate))
 
             case let .saveLastVisibleMonth(lastVisibleMonth):
-            
+    
                 state.lastVisibleMonth = lastVisibleMonth
                 return .none
 
             case let .selectDate(selectedDate):
                 state.selectedDate = selectedDate
                 AppLogger.calendar.info("selectDay - \(state.selectedDate) 선택")
+                return .none
+
+            case .navigateToDiary:
+                AppLogger.calendar.info("navigateToDiary - \(state.selectedDate) 날짜로 다이어리 이동")
                 return .none
             }
         }

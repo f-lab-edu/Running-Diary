@@ -33,8 +33,6 @@ struct AddRecordFeature {
 
         var isLoading: Bool = false
         var errorMessage: String?
-        @Presents var authorizationAlert: AlertState<AlertAction>?
-        @Presents var emptyHealthKitDataAlert: AlertState<EmptyHealthKitDataAlertAction>?
 
         /// 메모를 제외한 모든 필수 데이터가 입력되었는지 확인
         var isFormValid: Bool {
@@ -49,10 +47,17 @@ struct AddRecordFeature {
             return true
         }
 
-        init(date: Date, existingRecord: RunningRecord? = nil) {
+        init(date: Date, existingRecord: RunningRecord? = nil, healthKitData: HealthKitRunningData? = nil) {
             self.date = date
             self.existingRecord = existingRecord
-            self.healthKitData = HealthKitDataFeature.State()
+
+            // HealthKit 데이터가 전달되면 초기화 시점에 설정
+            if let healthKitData = healthKitData {
+                self.healthKitData = HealthKitDataFeature.State(healthKitData: healthKitData)
+            } else {
+                self.healthKitData = HealthKitDataFeature.State()
+            }
+
             self.condition = RunningConditionFeature.State()
         }
     }
@@ -66,17 +71,6 @@ struct AddRecordFeature {
         case weatherFetched(WeatherData?)
         case recordSaved(RunningRecord)
         case recordSaveFailed(String)
-        case authorizationAlert(PresentationAction<AlertAction>)
-        case emptyHealthKitDataAlert(PresentationAction<EmptyHealthKitDataAlertAction>)
-    }
-
-    enum AlertAction: Equatable {
-        case openSettings
-        case goBack
-    }
-
-    enum EmptyHealthKitDataAlertAction: Equatable {
-        case goBack
     }
 
     @Dependency(\.repositoryClient) var repositoryClient
@@ -104,38 +98,11 @@ struct AddRecordFeature {
                         .send(.condition(.loadFromRecord(record))),
                     )
                 } else {
-                    // add mode: HealthKit
-                    return .send(.healthKitData(.loadData(state.date)))
+                    // add mode: HealthKit 데이터는 이미 초기화 시 전달됨
+                    return .none
                 }
 
-            case .healthKitData(let healthKitDataAction):
-                switch healthKitDataAction {
-                case .healthStoreAuthorizationDenied:
-                    state.authorizationAlert = AlertState {
-                        TextState("건강 데이터 접근 거부됨")
-                    } actions: {
-                        ButtonState(action: .openSettings) {
-                            TextState("설정으로 이동")
-                        }
-                        ButtonState(action: .goBack) {
-                            TextState("뒤로 가기")
-                        }
-                    } message: {
-                        TextState("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
-                    }
-                case .dataLoadFailed(let message):
-                    state.emptyHealthKitDataAlert = AlertState {
-                        TextState("피트니스 데이터 가져오기 실패")
-                    } actions: {
-                        ButtonState(action: .goBack) {
-                            TextState("뒤로 가기")
-                        }
-                    } message: {
-                        TextState(message)
-                    }
-                default:
-                    break
-                }
+            case .healthKitData:
                 return .none
 
             case .condition:
@@ -242,30 +209,8 @@ struct AddRecordFeature {
                 state.isLoading = false
                 state.errorMessage = "\(L10n.Record.Error.saveContext): \(error)"
                 return .none
-
-            case .authorizationAlert(.presented(.openSettings)):
-                URLOpener.openSettings()
-                return .none
-
-            case .authorizationAlert(.presented(.goBack)):
-                return .run { _ in
-                    await dismiss()
-                }
-
-            case .authorizationAlert:
-                return .none
-
-            case .emptyHealthKitDataAlert(.presented(.goBack)):
-                return .run { _ in
-                    await dismiss()
-                }
-
-            case .emptyHealthKitDataAlert:
-                return .none
             }
         }
-        .ifLet(\.$authorizationAlert, action: \.authorizationAlert)
-        .ifLet(\.$emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert)
     }
 
     private func extractLocationFromRoute(_ coordinates: [HealthKitCoordinateData]?) -> CLLocationCoordinate2D? {

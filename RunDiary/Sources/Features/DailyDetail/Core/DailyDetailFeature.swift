@@ -18,6 +18,7 @@ struct DailyDetailFeature {
         var selectedDate: Date = Calendar.current.startOfDay(for: .now)
         var currentWeekDates: [Date] = []
         var cachedRecords: [Date: RunningRecord?] = [:]
+        var weeklyRecords: [DailyRecord] = []
         var isLoading: Bool = false
         var error: DailyDetailError?
         @Presents var addRecord: AddRecordFeature.State?
@@ -32,6 +33,12 @@ struct DailyDetailFeature {
             }
             return nil
         }
+
+        /// 선택된 날짜의 DailyRecord 조회
+        var currentDailyRecord: DailyRecord? {
+            let normalizedDate = Calendar.current.startOfDay(for: selectedDate)
+            return weeklyRecords.first { Calendar.current.isDate($0.date, inSameDayAs: normalizedDate) }
+        }
     }
 
     // MARK: - Action
@@ -41,7 +48,7 @@ struct DailyDetailFeature {
         case dateSelected(Date)
         case weekChanged(offset: Int)
         case fetchWeekRecords
-        case weekRecordsFetchedSuccess([RunningRecord])
+        case weekRecordsFetchedSuccess([RunningRecord], healthKitData: [HealthKitRunningData?])
         case weekRecordsFetchedFailure(DailyDetailError)
         case showAddRecord
         case addRecord(PresentationAction<AddRecordFeature.Action>)
@@ -52,6 +59,7 @@ struct DailyDetailFeature {
     // MARK: - Dependency
 
     @Dependency(\.repositoryClient) var repositoryClient
+    @Dependency(\.healthKitClient) var healthKitClient
 
     // MARK: - Reducer
 
@@ -130,12 +138,20 @@ struct DailyDetailFeature {
 
                 return .run { send in
                     let startTime = Date.now
+
                     do {
-                        // 주 단위 범위 조회
-                        let records = try await repositoryClient.fetchRecords(weekStart, weekEnd)
+                        // HealthKit과 Repository를 병렬로 조회
+                        try await healthKitClient.ensureAuthorizationIfNeeded()
+                        async let healthKitDataTask = try healthKitClient.fetchWeeklyRunningData(weekStart, weekEnd)
+                        async let repositoryDataTask = try repositoryClient.fetchRecords(weekStart, weekEnd)
+
+                        let healthKitData = try await healthKitDataTask
+                        let repositoryData = try await repositoryDataTask
+
                         let elapsed = Date.now.timeIntervalSince(startTime)
-                        AppLogger.dailyDetail.info("fetchWeekRecords 성공 - count: \(records.count), elapsed: \(String(format: "%.3f", elapsed))s")
-                        await send(.weekRecordsFetchedSuccess(records))
+                        AppLogger.dailyDetail.info("fetchWeekRecords 성공 - HealthKit: \(healthKitData.count), Repository: \(repositoryData.count), elapsed: \(String(format: "%.3f", elapsed))s")
+
+                        await send(.weekRecordsFetchedSuccess(repositoryData, healthKitData: healthKitData))
                     } catch {
                         let elapsed = Date.now.timeIntervalSince(startTime)
                         let errorMessage = error.localizedDescription
@@ -144,7 +160,7 @@ struct DailyDetailFeature {
                     }
                 }
 
-            case let .weekRecordsFetchedSuccess(records):
+            case let .weekRecordsFetchedSuccess(records, healthKitData):
                 state.isLoading = false
                 state.error = nil
 
@@ -162,7 +178,20 @@ struct DailyDetailFeature {
                     state.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
                 }
 
-                AppLogger.dailyDetail.info("weekRecordsFetchedSuccess - \(records.count)개 레코드 캐시에 저장 완료, 총 캐시 크기: \(state.cachedRecords.count)")
+                // DailyRecord 생성: HealthKit 데이터와 Repository 데이터 병합
+                state.weeklyRecords = state.currentWeekDates.enumerated().map { index, date in
+                    let normalizedDate = calendar.startOfDay(for: date)
+                    let healthKit = index < healthKitData.count ? healthKitData[index] : nil
+                    let savedRecord = recordsByDate[normalizedDate]
+
+                    return DailyRecord(
+                        date: normalizedDate,
+                        healthKitData: healthKit,
+                        savedRecord: savedRecord
+                    )
+                }
+
+                AppLogger.dailyDetail.info("weekRecordsFetchedSuccess - Repository: \(records.count)개, DailyRecords: \(state.weeklyRecords.count)개 생성 완료, 총 캐시 크기: \(state.cachedRecords.count)")
 
                 return .none
 
@@ -175,10 +204,21 @@ struct DailyDetailFeature {
 
             case .showAddRecord:
                 let mode = state.currentRecord != nil ? "편집" : "추가"
-                AppLogger.dailyDetail.debug("showAddRecord - mode: \(mode), date: \(state.selectedDate)")
+                let healthKitData = state.currentDailyRecord?.healthKitData
+
+                // Add 모드에서는 HealthKit 데이터가 필수
+                if mode == "추가" && healthKitData == nil {
+                    AppLogger.dailyDetail.warning("showAddRecord 실패 - HealthKit 데이터 없음, 날짜: \(state.selectedDate)")
+                    state.error = .noHealthKitData
+                    return .none
+                }
+
+                AppLogger.dailyDetail.debug("showAddRecord - mode: \(mode), date: \(state.selectedDate), hasHealthKitData: \(healthKitData != nil)")
+
                 state.addRecord = AddRecordFeature.State(
                     date: state.selectedDate,
-                    existingRecord: state.currentRecord
+                    existingRecord: state.currentRecord,
+                    healthKitData: healthKitData
                 )
                 return .none
 
@@ -207,6 +247,34 @@ struct DailyDetailFeature {
                 AppLogger.dailyDetail.debug("calendar dismiss - 캘린더 화면 닫힘")
                 state.calendar = nil
                 return .none
+
+            case .calendar(.presented(.navigateToDiary)):
+                guard let selectedYearMonthDay = state.calendar?.selectedDate else {
+                    AppLogger.dailyDetail.error("navigateToDiary - selectedDate가 없음")
+                    state.calendar = nil
+                    return .none
+                }
+
+                let selectedDate = selectedYearMonthDay.toDate()
+                AppLogger.dailyDetail.info("navigateToDiary - \(selectedYearMonthDay) 날짜로 이동")
+
+                // 선택된 날짜가 속한 주로 즉시 전환
+                let newWeekDates = DateHelper.getWeekDates(for: selectedDate)
+                state.currentWeekDates = newWeekDates
+                state.selectedDate = selectedDate
+
+                // 캘린더 시트 닫기
+                state.calendar = nil
+
+                // 캐시 확인 후 필요시 fetch
+                let normalizedDate = Calendar.current.startOfDay(for: selectedDate)
+                if state.cachedRecords.keys.contains(normalizedDate) {
+                    AppLogger.dailyDetail.debug("navigateToDiary - 캐시 히트, fetch 생략")
+                    return .none
+                } else {
+                    AppLogger.dailyDetail.debug("navigateToDiary - 캐시 미스, 주 단위 fetch 시작")
+                    return .send(.fetchWeekRecords)
+                }
 
             case .calendar:
                 return .none
