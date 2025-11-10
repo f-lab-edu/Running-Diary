@@ -5,6 +5,7 @@
 //  Created by 김혜지 on 9/23/25.
 //
 
+import CommonFoundation
 import Foundation
 
 public struct HealthKitRecord: Equatable, Identifiable, Sendable {
@@ -15,7 +16,7 @@ public struct HealthKitRecord: Equatable, Identifiable, Sendable {
     public let averagePace: String  // min/km
     public let averageHeartRate: Int  // bpm
     public let averageCadence: Int  // spm
-    public let routeData: [HealthKitCoordinateData]
+    public let routeData: Data?
     public let startDate: Date
     public let endDate: Date
 
@@ -49,7 +50,7 @@ public struct HealthKitRecord: Equatable, Identifiable, Sendable {
         averagePace: String,
         averageHeartRate: Int,
         averageCadence: Int,
-        routeData: [HealthKitCoordinateData],
+        routeData: Data?,
         startDate: Date,
         endDate: Date
     ) {
@@ -62,5 +63,11 @@ public struct HealthKitRecord: Equatable, Identifiable, Sendable {
         self.routeData = routeData
         self.startDate = startDate
         self.endDate = endDate
+    }
+
+    /// routeData를 [Location] 배열로 디코딩합니다.
+    public func decodeRouteData() -> [Location]? {
+        guard let routeData = routeData else { return nil }
+        return try? JSONDecoder().decode([Location].self, from: routeData)
     }
 }

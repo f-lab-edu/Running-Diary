@@ -13,8 +13,8 @@ import Models
 @DependencyClient
 struct HealthKitClient {
     var ensureAuthorizationIfNeeded: @MainActor @Sendable () async throws -> Void
-    var fetchRunningData: @MainActor @Sendable (Date) async throws -> HealthKitRunningData?
-    var fetchWeeklyRunningData: @MainActor @Sendable (Date, Date) async throws -> [HealthKitRunningData?]
+    var fetchRunningData: @MainActor @Sendable (Date) async throws -> [HealthKitRecord]
+    var fetchWeeklyRunningData: @MainActor @Sendable (Date, Date) async throws -> [HealthKitRecord]
 }
 
 extension HealthKitClient: DependencyKey {
@@ -46,32 +46,35 @@ extension HealthKitClient: DependencyKey {
         },
         fetchRunningData: { _ in
             // Mock 데이터 반환
-            HealthKitRunningData(
-                distance: 5.2,
-                duration: 3665,  // 1시간 1분 5초
-                averagePace: "5'30\"",
-                averageHeartRate: 155,
-                averageCadence: 180,
-                routeData: nil,
-                startDate: nil,
-                endDate: nil
-            )
+            [
+                HealthKitRecord(
+                    distance: 5.2,
+                    duration: 3665,  // 1시간 1분 5초
+                    averagePace: "5'30\"",
+                    averageHeartRate: 155,
+                    averageCadence: 180,
+                    routeData: nil,
+                    startDate: Calendar.current.date(byAdding: .second, value: -3665, to: .now)!,
+                    endDate: .now
+                )
+            ]
         },
         fetchWeeklyRunningData: { _, _ in
             // Mock 주간 데이터 반환 (7일)
             (0..<7).map { index in
                 // 일부 날짜는 데이터가 없도록 nil 반환
-                index % 3 == 0 ? nil : HealthKitRunningData(
+                let duration = Double.random(in: 1800...5400)
+                return index % 3 == 0 ? nil : HealthKitRecord(
                     distance: Double.random(in: 3.0...10.0),
-                    duration: Double.random(in: 1800...5400),
+                    duration: duration,
                     averagePace: "5'30\"",
                     averageHeartRate: Int.random(in: 140...170),
                     averageCadence: Int.random(in: 170...185),
                     routeData: nil,
-                    startDate: nil,
-                    endDate: nil
+                    startDate: Calendar.current.date(byAdding: .second, value: Int(-duration), to: .now)!,
+                    endDate: .now
                 )
-            }
+            }.compactMap { $0 }
         }
     )
 }

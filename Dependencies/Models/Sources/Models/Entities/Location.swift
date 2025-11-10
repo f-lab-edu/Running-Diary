@@ -1,5 +1,5 @@
 //
-//  HealthKitCoordinateData.swift
+//  Location.swift
 //  Models
 //
 //  Created by 김혜지 on 11/6/25.
