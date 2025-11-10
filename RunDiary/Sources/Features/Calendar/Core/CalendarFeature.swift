@@ -28,12 +28,12 @@ struct CalendarFeature {
             return lastVisibleMonth < YearMonth(date: .now)
         }
 
-        init(startDate: Date? = nil, endDate: Date? = nil, selectedDate: Date? = nil) {
+        init(selectedDate: YearMonthDay) {
             let today = Date.now
             let calendar = Calendar.current
-            self.startDate = YearMonthDay(date: startDate ?? calendar.date(byAdding: .month, value: -6, to: today)!)
+            self.startDate = selectedDate.add(month: -6) ?? YearMonthDay(date: calendar.date(byAdding: .month, value: -6, to: today)!)
             self.endDate = YearMonthDay(date: today)
-            self.selectedDate = YearMonthDay(date: selectedDate ?? today)
+            self.selectedDate = selectedDate
         }
     }
 

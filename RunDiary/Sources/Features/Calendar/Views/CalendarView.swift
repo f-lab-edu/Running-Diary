@@ -80,7 +80,7 @@ struct CalendarView: View {
 
 #Preview(traits: .sampleData) {
     CalendarView(
-        store: Store(initialState: CalendarFeature.State()) {
+        store: Store(initialState: CalendarFeature.State(selectedDate: YearMonthDay(date: .now))) {
             CalendarFeature()
         } withDependencies: {
             $0.repositoryClient = .previewValue
