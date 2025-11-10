@@ -9,11 +9,9 @@ import SwiftUI
 
 struct EmptyRecordView: View {
     let error: DailyDetailError?
-    let onAddRecord: () -> Void
 
-    init(error: DailyDetailError? = nil, onAddRecord: @escaping () -> Void) {
+    init(error: DailyDetailError? = nil) {
         self.error = error
-        self.onAddRecord = onAddRecord
     }
 
     var body: some View {
@@ -33,20 +31,6 @@ struct EmptyRecordView: View {
                         .foregroundColor(.gray500)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
-                } else {
-                    Button(action: onAddRecord) {
-                        ZStack {
-                            Capsule()
-                                .foregroundStyle(.yellow100)
-
-                            Text("기록을 추가해주세요!")
-                                .fontWeight(.semibold)
-                                .foregroundColor(.blue700)
-                                .padding()
-                        }
-                        .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.horizontal, 40)
                 }
             }
             .frame(width: geometry.size.width, height: geometry.size.height)

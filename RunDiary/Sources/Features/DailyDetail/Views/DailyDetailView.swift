@@ -16,7 +16,7 @@ struct DailyDetailView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                YearAndMonthSection(date: store.selectedDate) {
+                YearAndMonthSection(yearMonthDay: store.selectedDate) {
                     store.send(.calendarButtonTapped)
                 }
 
@@ -45,13 +45,11 @@ struct DailyDetailView: View {
 // MARK: - Subviews
 
 private struct YearAndMonthSection: View {
-    let yearAndMonth: String
+    let title: String
     let onCalendarTap: () -> Void
 
-    init(date: Date, onCalendarTap: @escaping () -> Void) {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "YYYY년 M월"
-        self.yearAndMonth = formatter.string(from: date)
+    init(yearMonthDay: YearMonthDay, onCalendarTap: @escaping () -> Void) {
+        self.title = "\(yearMonthDay.year)년 \(yearMonthDay.month)월"
         self.onCalendarTap = onCalendarTap
     }
 
@@ -61,7 +59,7 @@ private struct YearAndMonthSection: View {
                 onCalendarTap()
             } label: {
                 HStack(spacing: 2) {
-                    Text(yearAndMonth)
+                    Text(title)
                         .font(.title2)
                         .fontWeight(.bold)
                         .padding(.leading, 14)
@@ -91,15 +89,10 @@ private struct RecordContentSection: View {
 
     var body: some View {
         ScrollView(.vertical) {
-            Group {
-                if let record = store.currentRecord {
-                    RecordView(record: record, onEdit: { store.send(.showAddRecord) })
-                } else {
-                    EmptyRecordView(
-                        error: store.error,
-                        onAddRecord: { store.send(.showAddRecord) }
-                    )
-                }
+            if let currentDailyRecord = store.state.currentDailyRecord {
+                RecordListView(store: store, dailyRecord: currentDailyRecord)
+            } else {
+                EmptyRecordView(error: store.error)
             }
         }
         .background(Color.gray50)
@@ -119,14 +112,21 @@ private struct RecordContentSection: View {
 }
 
 #Preview("With Record", traits: .sampleData) {
-    let previewRecord = RunningRecordModel.preview.toDomain()
-    let previewDate = Calendar.current.startOfDay(for: previewRecord.date)
+    let previewRecord = RunningRecordSwiftData.preview.toDomain()
+    let previewDate = Calendar.current.startOfDay(for: previewRecord.startTime)
+    let previewKey = YearMonthDay(date: previewDate)
 
-    return DailyDetailView(
+    DailyDetailView(
         store: Store(
             initialState: DailyDetailFeature.State(
-                selectedDate: previewDate,
-                cachedRecords: [previewDate: .some(previewRecord)]
+                selectedDate: previewRecord.yearMonthDay,
+                cachedRecords: [
+                    previewKey: DailyRecord(
+                        yearMonthDay: previewRecord.yearMonthDay,
+                        healthKitRecords: [],
+                        savedRecords: [previewRecord]
+                    )
+                ]
             )
         ) {
             DailyDetailFeature()

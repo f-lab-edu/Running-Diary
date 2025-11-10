@@ -6,14 +6,94 @@
 //
 
 import CommonFoundation
+import ComposableArchitecture
 import Models
 import SwiftUI
+
+struct RecordListView: View {
+    let store: StoreOf<DailyDetailFeature>
+    let dailyRecord: DailyRecord
+
+    var body: some View {
+        if dailyRecord.hasAnyData {
+            LazyVStack(spacing: 20) {
+                ForEach(dailyRecord.savedRecords) { record in
+                    RecordView(record: record, onEdit: { store.send(.editRecord(record)) })
+                }
+
+                if !dailyRecord.savedRecords.isEmpty {
+                    Divider()
+                        .padding(.horizontal, 20)
+                }
+
+                ForEach(dailyRecord.healthKitRecords) { record in
+                    HealthKitRecordView(record: record, onCreate: { store.send(.createRecord(record)) })
+                }
+            }
+            .padding(.vertical, 20)
+        } else {
+            EmptyRecordView()
+        }
+    }
+}
+
+struct HealthKitRecordView: View {
+    let record: HealthKitRecord
+    let onCreate: () -> Void
+
+    var body: some View {
+        ZStack {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Spacer()
+                    Text(record.startDate.formmatedTime)
+                        .font(.caption)
+                }
+
+                HStack(spacing: 20) {
+                    RecordRowView(title: "거리", value: record.distance.to2f)
+                    RecordRowView(title: "소요시간", value: record.formattedDuration)
+                }
+
+                HStack(spacing: 20) {
+                    RecordRowView(title: "평균 페이스", value: record.averagePace)
+                    RecordRowView(title: "평균 심박수", value: "\(record.averageHeartRate) bpm")
+                }
+
+                HStack(spacing: 20) {
+                    RecordRowView(title: "평균 케이던스", value: "\(record.averageCadence) spm")
+                }
+            }
+            .padding(20)
+            .background(Color.white)
+
+            Color.gray500.opacity(0.5)
+
+            Button(action: onCreate) {
+                ZStack {
+                    Capsule()
+                        .foregroundStyle(.yellow100)
+
+                    Text("일기 쓰기")
+                        .fontWeight(.semibold)
+                        .foregroundColor(.blue700)
+                        .padding()
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 20)
+        }
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+        .padding(.horizontal, 20)
+    }
+}
 
 struct RecordView: View {
     let record: RunningRecord
     let onEdit: () -> Void
 
-    init(record: RunningRecord, onEdit: @escaping () -> Void = {}) {
+    init(record: RunningRecord, onEdit: @escaping () -> Void) {
         self.record = record
         self.onEdit = onEdit
     }
@@ -370,6 +450,6 @@ private struct WeatherItemView: View {
 
 #Preview(traits: .sampleData) {
     ScrollView(.vertical) {
-        RecordView(record: RunningRecordModel.preview.toDomain())
+        RecordView(record: RunningRecordSwiftData.preview.toDomain(), onEdit: {})
     }
 }

@@ -7,6 +7,7 @@
 
 import CommonFoundation
 import ComposableArchitecture
+import Models
 import SwiftUI
 
 struct DateCarouselView: View {
@@ -26,8 +27,8 @@ struct DateCarouselView: View {
                 WeekView(
                     store: store,
                     dates: DateHelper.getWeekDates(
-                        for: DateHelper.addWeeks(-1, to: store.currentWeekDates.first ?? .now)
-                    ),
+                        for: DateHelper.addWeeks(-1, to: store.currentWeekDates.first?.toDate() ?? .now)
+                    ).map { YearMonthDay(date: $0) },
                     selectedDate: Binding(
                         get: { store.selectedDate },
                         set: { store.send(.dateSelected($0)) }
@@ -50,8 +51,8 @@ struct DateCarouselView: View {
                 WeekView(
                     store: store,
                     dates: DateHelper.getWeekDates(
-                        for: DateHelper.addWeeks(1, to: store.currentWeekDates.first ?? .now)
-                    ),
+                        for: DateHelper.addWeeks(1, to: store.currentWeekDates.first?.toDate() ?? .now)
+                    ).map { YearMonthDay(date: $0) },
                     selectedDate: Binding(
                         get: { store.selectedDate },
                         set: { store.send(.dateSelected($0)) }
@@ -103,13 +104,13 @@ struct DateCarouselView: View {
 
 private struct WeekView: View {
     let store: StoreOf<DailyDetailFeature>
-    let dates: [Date]
-    @Binding var selectedDate: Date
+    let dates: [YearMonthDay]
+    @Binding var selectedDate: YearMonthDay
 
     init(
         store: StoreOf<DailyDetailFeature>,
-        dates: [Date],
-        selectedDate: Binding<Date>,
+        dates: [YearMonthDay],
+        selectedDate: Binding<YearMonthDay>,
     ) {
         self.store = store
         self.dates = dates
@@ -134,7 +135,7 @@ private struct WeekView: View {
                     } label: {
                         DateItemView(
                             date: date,
-                            isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
+                            isSelected: date == selectedDate,
                             hasRecord: hasRecord(on: date),
                             width: itemWidth
                         )
@@ -146,20 +147,20 @@ private struct WeekView: View {
         }
     }
 
-    private func hasRecord(on date: Date) -> Bool {
+    private func hasRecord(on date: YearMonthDay) -> Bool {
         guard let value = store.cachedRecords[date] else { return false }
-        return value != nil
+        return value.hasAnyData
     }
 }
 
 private struct DateItemView: View {
-    let date: Date
+    let date: YearMonthDay
     let isSelected: Bool
     let hasRecord: Bool
     let width: CGFloat
     
     init(
-        date: Date,
+        date: YearMonthDay,
         isSelected: Bool,
         hasRecord: Bool,
         width: CGFloat = 50
@@ -170,27 +171,21 @@ private struct DateItemView: View {
         self.width = width
     }
     
-    private var dayOfWeek: String {
+    private var weekday: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "E"
         formatter.locale = Locale(identifier: "ko_KR")
-        return formatter.string(from: date)
-    }
-    
-    private var day: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter.string(from: date)
+        return formatter.string(from: date.toDate())
     }
     
     var body: some View {
         VStack(spacing: 2) {
-            Text(dayOfWeek)
+            Text(weekday)
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(isSelected ? .white : .gray700)
             
-            Text(day)
+            Text(date.day.toString)
                 .font(.headline)
                 .foregroundColor(isSelected ? .white : .gray700)
 
