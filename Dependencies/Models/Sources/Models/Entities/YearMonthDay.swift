@@ -12,6 +12,14 @@ public struct YearMonthDay: Comparable, Equatable, Hashable, Sendable {
     public let month: Int
     public let day: Int
 
+    public var full: String {
+        "\(year)년 \(month)월 \(day)일"
+    }
+
+    public var compact: String {
+        "\(month)월 \(day)일"
+    }
+
     public init(year: Int, month: Int, day: Int) {
         self.year = year
         self.month = month
@@ -36,6 +44,11 @@ public struct YearMonthDay: Comparable, Equatable, Hashable, Sendable {
 
     public func add(day: Int) -> YearMonthDay? {
         guard let date = Calendar.current.date(byAdding: .day, value: day, to: toDate()) else { return nil }
+        return YearMonthDay(date: date)
+    }
+
+    public func add(week: Int) -> YearMonthDay? {
+        guard let date = Calendar.current.date(byAdding: .weekOfYear, value: week, to: toDate()) else { return nil }
         return YearMonthDay(date: date)
     }
 
@@ -69,5 +82,15 @@ public struct YearMonth: Comparable, Equatable, Hashable {
     public static func < (lhs: YearMonth, rhs: YearMonth) -> Bool {
         guard lhs.year == rhs.year else { return lhs.year < rhs.year }
         return lhs.month < rhs.month
+    }
+}
+
+extension Date {
+    public var toYearMonthDay: YearMonthDay {
+        YearMonthDay(date: self)
+    }
+
+    public var toYearMonth: YearMonth {
+        YearMonth(date: self)
     }
 }
