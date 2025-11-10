@@ -13,7 +13,7 @@ public actor DataModel {
     private static let container: ModelContainer = {
         let modelContainer: ModelContainer
         do {
-            modelContainer = try ModelContainer(for: RunningRecordModel.self)
+            modelContainer = try ModelContainer(for: RunningRecordSwiftData.self)
         } catch {
             fatalError("Failed to initialize ModelContainer: \(error)")
         }

@@ -27,11 +27,11 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
             return nil
         }
 
-        let predicate = #Predicate<RunningRecordModel> { record in
+        let predicate = #Predicate<RunningRecordSwiftData> { record in
             record.date >= startOfDay && record.date < endOfDay
         }
 
-        let descriptor = FetchDescriptor<RunningRecordModel>(
+        let descriptor = FetchDescriptor<RunningRecordSwiftData>(
             predicate: predicate
         )
 
@@ -57,11 +57,11 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
         let start = calendar.startOfDay(for: startDate)
         let end = calendar.startOfDay(for: endDate)
 
-        let predicate = #Predicate<RunningRecordModel> { record in
+        let predicate = #Predicate<RunningRecordSwiftData> { record in
             record.date >= start && record.date <= end
         }
 
-        let descriptor = FetchDescriptor<RunningRecordModel>(
+        let descriptor = FetchDescriptor<RunningRecordSwiftData>(
             predicate: predicate,
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
@@ -78,9 +78,9 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
 
     func save(_ record: RunningRecord) async throws {
         let startTime = Date.now
-        AppLogger.database.debug("save 시작 - recordId: \(record.id), date: \(record.date)")
+        AppLogger.database.debug("save 시작 - recordId: \(record.id), date: \(record.yearMonthDay)")
 
-        let model = RunningRecordModel.fromDomain(record)
+        let model = RunningRecordSwiftData.fromDomain(record)
         modelContext.insert(model)
 
         do {
@@ -97,12 +97,12 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
 
     func update(_ record: RunningRecord) async throws {
         let startTime = Date.now
-        AppLogger.database.debug("update 시작 - recordId: \(record.id), date: \(record.date)")
+        AppLogger.database.debug("update 시작 - recordId: \(record.id), date: \(record.yearMonthDay)")
 
         // 기존 레코드 찾기
         let recordId = record.id
-        let predicate = #Predicate<RunningRecordModel> { $0.id == recordId }
-        let descriptor = FetchDescriptor<RunningRecordModel>(
+        let predicate = #Predicate<RunningRecordSwiftData> { $0.id == recordId }
+        let descriptor = FetchDescriptor<RunningRecordSwiftData>(
             predicate: predicate
         )
 
@@ -112,7 +112,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
         }
 
         // 업데이트
-        existingModel.date = record.date
+        existingModel.date = record.yearMonthDay.toDate()
         existingModel.distance = record.distanceInKilometers
         existingModel.duration = record.durationInSeconds
         existingModel.averagePace = record.averagePace
@@ -153,8 +153,8 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
         AppLogger.database.debug("delete 시작 - recordId: \(record.id)")
 
         let recordId = record.id
-        let predicate = #Predicate<RunningRecordModel> { $0.id == recordId }
-        let descriptor = FetchDescriptor<RunningRecordModel>(
+        let predicate = #Predicate<RunningRecordSwiftData> { $0.id == recordId }
+        let descriptor = FetchDescriptor<RunningRecordSwiftData>(
             predicate: predicate
         )
 

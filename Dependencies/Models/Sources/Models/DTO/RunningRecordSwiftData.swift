@@ -1,5 +1,5 @@
 //
-//  RunningRecordDTO.swift
+//  RunningRecordSwiftData.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -135,7 +135,7 @@ public extension RunningRecordSwiftData {
     static func fromDomain(_ record: RunningRecord) -> RunningRecordSwiftData {
         RunningRecordSwiftData(
             id: record.id,
-            date: record.date,
+            date: record.yearMonthDay.toDate(),
             distance: record.distanceInKilometers,
             duration: record.durationInSeconds,
             averagePace: record.averagePace,
@@ -194,7 +194,9 @@ public extension RunningRecordSwiftData {
             windSpeed: 3.2,
             difficultyLevelRaw: 4,
             routeData: nil,
-            hasMap: true
+            hasMap: true,
+            startTime: .now,
+            endTime: Calendar.current.date(byAdding: .second, value: 1800, to: .now)!
         )
     }
 
@@ -220,7 +222,9 @@ public extension RunningRecordSwiftData {
                 windSpeed: 2.1,
                 difficultyLevelRaw: 4,
                 routeData: nil,
-                hasMap: true
+                hasMap: true,
+                startTime: date(year: 2025, month: 10, day: 15),
+                endTime: Calendar.current.date(byAdding: .second, value: 1780, to: date(year: 2025, month: 10, day: 15))!
             ),
             RunningRecordSwiftData(
                 id: UUID(),
@@ -242,7 +246,9 @@ public extension RunningRecordSwiftData {
                 windSpeed: 3.4,
                 difficultyLevelRaw: 5,
                 routeData: nil,
-                hasMap: true
+                hasMap: true,
+                startTime: date(year: 2025, month: 10, day: 18),
+                endTime: Calendar.current.date(byAdding: .second, value: 2600, to: date(year: 2025, month: 10, day: 18))!
             ),
             RunningRecordSwiftData(
                 id: UUID(),
@@ -263,7 +269,9 @@ public extension RunningRecordSwiftData {
                 windSpeed: 2.8,
                 difficultyLevelRaw: 2,
                 routeData: nil,
-                hasMap: false
+                hasMap: false,
+                startTime: .now,
+                endTime: Calendar.current.date(byAdding: .second, value: 1200, to: .now)!
             ),
             RunningRecordSwiftData.preview,
         ]
