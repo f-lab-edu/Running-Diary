@@ -1,5 +1,5 @@
 //
-//  RunningRecordModel.swift
+//  RunningRecordDTO.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-public final class RunningRecordModel {
+public final class RunningRecordSwiftData {
     @Attribute(.unique)
     public var id: UUID
     public var date: Date
@@ -31,8 +31,8 @@ public final class RunningRecordModel {
     public var difficultyLevelRaw: Int?
     public var routeData: Data?
     public var hasMap: Bool
-    public var startTime: Date?
-    public var endTime: Date?
+    public var startTime: Date
+    public var endTime: Date
 
     public init(
         id: UUID = UUID(),
@@ -55,8 +55,8 @@ public final class RunningRecordModel {
         difficultyLevelRaw: Int? = nil,
         routeData: Data? = nil,
         hasMap: Bool = false,
-        startTime: Date? = nil,
-        endTime: Date? = nil
+        startTime: Date,
+        endTime: Date
     ) {
         self.id = id
         self.date = date
@@ -86,7 +86,7 @@ public final class RunningRecordModel {
 
 // MARK: - Conversion Methods
 
-public extension RunningRecordModel {
+public extension RunningRecordSwiftData {
     func toDomain() -> RunningRecord {
         let condition = RunningCondition(
             sleep: sleepHours,
@@ -113,7 +113,6 @@ public extension RunningRecordModel {
 
         return RunningRecord(
             id: id,
-            date: date,
             yearMonthDay: YearMonthDay(date: date),
             distanceInKilometers: distance,
             durationInSeconds: duration,
@@ -133,8 +132,8 @@ public extension RunningRecordModel {
         )
     }
 
-    static func fromDomain(_ record: RunningRecord) -> RunningRecordModel {
-        RunningRecordModel(
+    static func fromDomain(_ record: RunningRecord) -> RunningRecordSwiftData {
+        RunningRecordSwiftData(
             id: record.id,
             date: record.date,
             distance: record.distanceInKilometers,
@@ -163,7 +162,7 @@ public extension RunningRecordModel {
 
 // MARK: - Preview
 
-public extension RunningRecordModel {
+public extension RunningRecordSwiftData {
     private static func date(
         calendar: Calendar = Calendar.current,
         timeZone: TimeZone = TimeZone(identifier: "Asia/Seoul")!,
@@ -175,8 +174,8 @@ public extension RunningRecordModel {
         return date ?? Date.now
     }
 
-    static var preview: RunningRecordModel {
-        RunningRecordModel(
+    static var preview: RunningRecordSwiftData {
+        RunningRecordSwiftData(
             id: UUID(),
             distance: 5.32,
             duration: 1800,
@@ -199,9 +198,9 @@ public extension RunningRecordModel {
         )
     }
 
-    static var previewRecords: [RunningRecordModel] {
+    static var previewRecords: [RunningRecordSwiftData] {
         [
-            RunningRecordModel(
+            RunningRecordSwiftData(
                 id: UUID(),
                 date: date(year: 2025, month: 10, day: 15),
                 distance: 5.0,
@@ -223,7 +222,7 @@ public extension RunningRecordModel {
                 routeData: nil,
                 hasMap: true
             ),
-            RunningRecordModel(
+            RunningRecordSwiftData(
                 id: UUID(),
                 date: date(year: 2025, month: 10, day: 18),
                 distance: 7.8,
@@ -245,7 +244,7 @@ public extension RunningRecordModel {
                 routeData: nil,
                 hasMap: true
             ),
-            RunningRecordModel(
+            RunningRecordSwiftData(
                 id: UUID(),
                 distance: 3.5,
                 duration: 1200,
@@ -266,7 +265,7 @@ public extension RunningRecordModel {
                 routeData: nil,
                 hasMap: false
             ),
-            RunningRecordModel.preview,
+            RunningRecordSwiftData.preview,
         ]
     }
 }
