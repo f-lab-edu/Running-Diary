@@ -398,7 +398,7 @@ private struct ConditionSectionView: View {
 private struct ShoesSectionView: View {
     @State private var isMenuOpen = false
 
-    @Binding var selectedShoe: String?
+    @Binding var selectedShoe: ShoeModel?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -407,14 +407,14 @@ private struct ShoesSectionView: View {
                 .padding(.bottom, 4)
 
             Menu {
-                ForEach(ShoeStorage.shared.shoes, id: \.id) { shoe in
+                ForEach(ShoeStorage.shoes) { shoe in
                     Button(shoe.name) {
-                        selectedShoe = shoe.name
+                        selectedShoe = shoe
                     }
                 }
             } label: {
                 HStack {
-                    Text(selectedShoe ?? "어떤 신발을 착용하셨나요?")
+                    Text(selectedShoe?.name ?? "어떤 신발을 착용하셨나요?")
                         .foregroundColor(selectedShoe == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -503,8 +503,7 @@ private struct PainAreaButtonStyle: ButtonStyle {
         AddRecordView(
             store: Store(
                 initialState: AddRecordFeature.State(
-                    date: .now,
-                    healthKitData: HealthKitRunningData(
+                    healthKitData: HealthKitRecord(
                         distance: 5.2,
                         duration: 3665,  // 1시간 1분 5초
                         averagePace: "5'30\"",
@@ -527,8 +526,7 @@ private struct PainAreaButtonStyle: ButtonStyle {
         AddRecordView(
             store: Store(
                 initialState: AddRecordFeature.State(
-                    date: .now,
-                    existingRecord: RunningRecordModel.preview.toDomain()
+                    existingRecord: RunningRecordSwiftData.preview.toDomain()
                 )
             ) {
                 AddRecordFeature()
