@@ -1,5 +1,5 @@
 //
-//  RecordView.swift
+//  RecordListView.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -18,7 +18,7 @@ struct RecordListView: View {
         if dailyRecord.hasAnyData {
             LazyVStack(spacing: 20) {
                 ForEach(dailyRecord.savedRecords) { record in
-                    RecordView(record: record, onEdit: { store.send(.editRecord(record)) })
+                    RunningRecordCard(record: record, onEdit: { store.send(.editRecord(record)) })
                 }
 
                 if !dailyRecord.savedRecords.isEmpty {
@@ -26,8 +26,8 @@ struct RecordListView: View {
                         .padding(.horizontal, 20)
                 }
 
-                ForEach(dailyRecord.healthKitRecords) { record in
-                    HealthKitRecordView(record: record, onCreate: { store.send(.createRecord(record)) })
+                ForEach(dailyRecord.healthKitDatas) { record in
+                    HealthKitDataCard(record: record, onCreate: { store.send(.createRecord(record)) })
                 }
             }
             .padding(.vertical, 20)
@@ -37,8 +37,8 @@ struct RecordListView: View {
     }
 }
 
-struct HealthKitRecordView: View {
-    let record: HealthKitRecord
+struct HealthKitDataCard: View {
+    let record: HealthKitData
     let onCreate: () -> Void
 
     var body: some View {
@@ -51,17 +51,17 @@ struct HealthKitRecordView: View {
                 }
 
                 HStack(spacing: 20) {
-                    RecordRowView(title: "거리", value: record.distance.to2f)
-                    RecordRowView(title: "소요시간", value: record.formattedDuration)
+                    RecordRowView(title: L10n.Record.Field.distance, value: record.distance.to2f)
+                    RecordRowView(title: L10n.Record.Field.duration, value: record.formattedDuration)
                 }
 
                 HStack(spacing: 20) {
-                    RecordRowView(title: "평균 페이스", value: record.averagePace)
-                    RecordRowView(title: "평균 심박수", value: "\(record.averageHeartRate) bpm")
+                    RecordRowView(title: L10n.Record.Field.pace, value: record.averagePace)
+                    RecordRowView(title: L10n.Record.Field.heartRate, value: "\(record.averageHeartRate) bpm")
                 }
 
                 HStack(spacing: 20) {
-                    RecordRowView(title: "평균 케이던스", value: "\(record.averageCadence) spm")
+                    RecordRowView(title: L10n.Record.Field.cadence, value: "\(record.averageCadence) spm")
                 }
             }
             .padding(20)
@@ -74,7 +74,7 @@ struct HealthKitRecordView: View {
                     Capsule()
                         .foregroundStyle(.yellow100)
 
-                    Text("일기 쓰기")
+                    Text(L10n.Record.writeDiaryButton)
                         .fontWeight(.semibold)
                         .foregroundColor(.blue700)
                         .padding()
@@ -89,7 +89,7 @@ struct HealthKitRecordView: View {
     }
 }
 
-struct RecordView: View {
+struct RunningRecordCard: View {
     let record: RunningRecord
     let onEdit: () -> Void
 
@@ -104,17 +104,17 @@ struct RecordView: View {
                 // HealthKit 데이터
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 20) {
-                        RecordRowView(title: "거리", value: record.distanceInKilometers.to2f)
-                        RecordRowView(title: "소요시간", value: record.formattedDuration)
+                        RecordRowView(title: L10n.Record.Field.distance, value: record.distanceInKilometers.to2f)
+                        RecordRowView(title: L10n.Record.Field.duration, value: record.formattedDuration)
                     }
 
                     HStack(spacing: 20) {
-                        RecordRowView(title: "평균 페이스", value: record.averagePace)
-                        RecordRowView(title: "평균 심박수", value: "\(record.averageHeartRate) bpm")
+                        RecordRowView(title: L10n.Record.Field.pace, value: record.averagePace)
+                        RecordRowView(title: L10n.Record.Field.heartRate, value: "\(record.averageHeartRate) bpm")
                     }
 
                     HStack(spacing: 20) {
-                        RecordRowView(title: "평균 케이던스", value: "\(record.averageCadence) spm")
+                        RecordRowView(title: L10n.Record.Field.cadence, value: "\(record.averageCadence) spm")
                     }
                 }
 
@@ -129,17 +129,17 @@ struct RecordView: View {
 
                 // 주법
                 if let style = record.runningStyle {
-                    DetailRowView(title: "주법", value: style.rawValue)
+                    DetailRowView(title: L10n.Record.Field.runningStyleLabel, value: style.localizedName)
                 }
 
                 // 통증 부위
                 if !record.painAreas.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("통증 부위")
+                        Text(L10n.Record.Field.painAreas)
                             .foregroundColor(.gray)
 
                         DynamicGridLayout(items: record.painAreas) { item in
-                            Text(item.rawValue)
+                            Text(item.localizedName)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
                                 .background(Color.blue700.opacity(0.1))
@@ -151,7 +151,7 @@ struct RecordView: View {
 
                 // 신발
                 if let shoes = record.shoes {
-                    DetailRowView(title: "착용 신발", value: shoes)
+                    DetailRowView(title: L10n.Record.Field.shoesLabel, value: shoes)
                 }
 
                 Divider()
@@ -159,11 +159,11 @@ struct RecordView: View {
                 // 수면시간, 식사여부, 음주여부
                 VStack(alignment: .leading, spacing: 14) {
                     if let sleep = record.condition.sleep {
-                        DetailRowView(title: "수면", value: "\(sleep)시간")
+                        DetailRowView(title: L10n.Record.Field.sleepLabel, value: "\(sleep)시간")
                     }
 
-                    DetailIconRowView(title: "식사", isChecked: record.condition.meal)
-                    DetailIconRowView(title: "음주", isChecked: record.condition.alcohol)
+                    DetailIconRowView(title: L10n.Record.Field.mealLabel, isChecked: record.condition.meal)
+                    DetailIconRowView(title: L10n.Record.Field.alcoholLabel, isChecked: record.condition.alcohol)
                 }
 
 //                Divider()
@@ -379,7 +379,7 @@ private struct WeatherSectionView: View {
         HStack(spacing: 0) {
             WeatherItemView(
                 icon: "thermometer",
-                title: "기온",
+                title: L10n.Weather.Field.temperature,
                 value: String(format: "%.1f°C", weather.temperature)
             )
 
@@ -391,7 +391,7 @@ private struct WeatherSectionView: View {
 
             WeatherItemView(
                 icon: "humidity.fill",
-                title: "습도",
+                title: L10n.Weather.Field.humidity,
                 value: "\(weather.humidity)%"
             )
 
@@ -403,7 +403,7 @@ private struct WeatherSectionView: View {
 
             WeatherItemView(
                 icon: "wind",
-                title: "풍속",
+                title: L10n.Weather.Field.windSpeed,
                 value: String(format: "%.1fm/s", weather.windSpeed)
             )
         }
@@ -450,6 +450,6 @@ private struct WeatherItemView: View {
 
 #Preview(traits: .sampleData) {
     ScrollView(.vertical) {
-        RecordView(record: RunningRecordSwiftData.preview.toDomain(), onEdit: {})
+        RunningRecordCard(record: RunningRecordSwiftData.preview.toDomain(), onEdit: {})
     }
 }

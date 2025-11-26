@@ -14,11 +14,11 @@ import Models
 struct HealthKitDataFeature {
     @ObservableState
     struct State: Equatable {
-        let data: HealthKitRecord?
+        let data: HealthKitData?
 
-        init(data: HealthKitRecord?) {
+        init(data: HealthKitData?) {
             if let data {
-                self.data = HealthKitRecord(
+                self.data = HealthKitData(
                     distance: data.distance,
                     duration: data.duration,
                     averagePace: data.averagePace,

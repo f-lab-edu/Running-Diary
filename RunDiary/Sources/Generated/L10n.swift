@@ -47,6 +47,8 @@ enum L10n {
         static let empty = String(localized: "record.empty")
         /// Fitness Data
         static let fitnessData = String(localized: "record.fitness_data")
+        /// Write Diary
+        static let writeDiaryButton = String(localized: "record.write_diary_button")
         
         enum Error {
             /// Failed to load record
@@ -56,6 +58,8 @@ enum L10n {
         }
         
         enum Field {
+            /// Alcohol
+            static let alcoholLabel = String(localized: "record.field.alcohol_label")
             /// Average Cadence
             static let cadence = String(localized: "record.field.cadence")
             /// Condition
@@ -70,8 +74,12 @@ enum L10n {
             static let heartRate = String(localized: "record.field.heart_rate")
             /// Exercise Intensity
             static let intensity = String(localized: "record.field.intensity")
+            /// Please select exercise intensity!
+            static let intensityPlaceholder = String(localized: "record.field.intensity_placeholder")
             /// Map Area
             static let map = String(localized: "record.field.map")
+            /// Meal
+            static let mealLabel = String(localized: "record.field.meal_label")
             /// Other Notes
             static let memo = String(localized: "record.field.memo")
             /// Leave a note!\nEx) It was hard to run because of the wind😭
@@ -82,10 +90,20 @@ enum L10n {
             static let painAreas = String(localized: "record.field.pain_areas")
             /// Running Style
             static let runningStyle = String(localized: "record.field.running_style")
+            /// Running Style
+            static let runningStyleLabel = String(localized: "record.field.running_style_label")
+            /// What running style did you use?
+            static let runningStylePlaceholder = String(localized: "record.field.running_style_placeholder")
             /// Worn Shoes
             static let shoes = String(localized: "record.field.shoes")
+            /// Worn Shoes
+            static let shoesLabel = String(localized: "record.field.shoes_label")
+            /// Which shoes did you wear?
+            static let shoesPlaceholder = String(localized: "record.field.shoes_placeholder")
             /// Sleep Duration
             static let sleepDuration = String(localized: "record.field.sleep_duration")
+            /// Sleep
+            static let sleepLabel = String(localized: "record.field.sleep_label")
             /// Time
             static let time = String(localized: "record.field.time")
             /// Had Alcohol
@@ -131,6 +149,8 @@ enum L10n {
         static let goToSettings = String(localized: "ui.go_to_settings")
         /// Save
         static let save = String(localized: "ui.save")
+        /// Today
+        static let today = String(localized: "ui.today")
     }
     
     // MARK: - Unit
@@ -162,5 +182,20 @@ enum L10n {
             /// Network error occurred
             static let networkError = String(localized: "weather.error.network_error")
         }
+
+        enum Field {
+            /// Temperature
+            static let temperature = String(localized: "weather.field.temperature")
+            /// Humidity
+            static let humidity = String(localized: "weather.field.humidity")
+            /// Wind Speed
+            static let windSpeed = String(localized: "weather.field.wind_speed")
+        }
+    }
+
+    // MARK: - Error
+    enum Error {
+        /// An error occurred
+        static let generic = String(localized: "error.generic")
     }
 }

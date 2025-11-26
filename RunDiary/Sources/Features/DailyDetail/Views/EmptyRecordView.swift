@@ -54,8 +54,8 @@ struct EmptyRecordView: View {
 
     private var messageText: String {
         if let error = error {
-            return error.errorDescription ?? "오류가 발생했습니다"
+            return error.errorDescription ?? L10n.Error.generic
         }
-        return "러닝 기록이 없습니다"
+        return L10n.Record.empty
     }
 }

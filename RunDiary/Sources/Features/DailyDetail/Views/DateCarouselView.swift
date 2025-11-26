@@ -174,7 +174,7 @@ private struct DateItemView: View {
     private var weekday: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "E"
-        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.locale = Locale.current
         return formatter.string(from: date.toDate())
     }
     

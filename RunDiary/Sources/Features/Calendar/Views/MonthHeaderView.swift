@@ -16,11 +16,18 @@ struct MonthHeaderView: View {
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 10) {
-            Text("\(year.toString)년 \(month.toString)월")
+            Text(String.localizedStringWithFormat(
+                String(localized: "%@년 %@월"),
+                year.toString,
+                month.toString
+            ))
                 .font(.title2)
                 .bold()
             if totalDistance > 0 {
-                Text("총 \(totalDistance.to1f)km")
+                Text(String.localizedStringWithFormat(
+                    String(localized: "총 %@km"),
+                    totalDistance.to1f
+                ))
                     .bold()
                     .foregroundStyle(.gray)
             }

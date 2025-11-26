@@ -36,9 +36,9 @@ struct DailyDetailFeature {
         case dateSelected(YearMonthDay)
         case weekChanged(offset: Int)
         case fetchWeekRecords
-        case weekRecordsFetchedSuccess([RunningRecord], healthKitData: [HealthKitRecord])
+        case weekRecordsFetchedSuccess([RunningRecord], healthKitData: [HealthKitData])
         case weekRecordsFetchedFailure(DailyDetailError)
-        case createRecord(HealthKitRecord)
+        case createRecord(HealthKitData)
         case editRecord(RunningRecord)
         case addRecord(PresentationAction<AddRecordFeature.Action>)
         case calendarButtonTapped
@@ -146,18 +146,23 @@ struct DailyDetailFeature {
                     }
                 }
 
-            case let .weekRecordsFetchedSuccess(records, healthKitData):
+            case let .weekRecordsFetchedSuccess(records, healthKitRecords):
                 state.isLoading = false
                 state.error = nil
 
                 // currentWeekDates의 모든 날짜에 대해 DailyRecord 생성 후 캐시에 저장
                 for (index, yearMonthDay) in state.currentWeekDates.enumerated() {
-                    let healthKitRecords = healthKitData.filter { $0.startDate.toYearMonthDay == yearMonthDay }.compactMap { $0 }.sorted { $0.startDate < $1.startDate }
                     let savedRecords = records.filter { $0.yearMonthDay == yearMonthDay }
+                    let filteredHealthKitRecords = healthKitRecords.filter { record in
+                        let isTodayRecord = record.startDate.toYearMonthDay == yearMonthDay
+                        let didWriteDiary = savedRecords.contains(where: { $0.startTime == record.startDate })
+                        return isTodayRecord && !didWriteDiary
+                    }
+                    let sortedHealthKitRecords = filteredHealthKitRecords.compactMap { $0 }.sorted { $0.startDate < $1.startDate }
 
                     let dailyRecord = DailyRecord(
                         yearMonthDay: yearMonthDay,
-                        healthKitRecords: healthKitRecords,
+                        healthKitDatas: sortedHealthKitRecords,
                         savedRecords: savedRecords
                     )
 

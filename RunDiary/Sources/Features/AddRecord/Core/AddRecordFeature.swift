@@ -10,7 +10,7 @@ import CoreLocation
 import Foundation
 import Models
 
-enum RecordMode: Equatable {
+nonisolated enum RecordMode: Equatable {
     case add
     case edit
 }
@@ -34,7 +34,6 @@ struct AddRecordFeature {
         var isLoading: Bool = false
         var errorMessage: String?
 
-        /// 메모를 제외한 모든 필수 데이터가 입력되었는지 확인
         var isFormValid: Bool {
             guard healthKitData.data != nil else { return false }
             guard condition.selectedShoe != nil else { return false }
@@ -47,7 +46,7 @@ struct AddRecordFeature {
             return true
         }
 
-        init(existingRecord: RunningRecord? = nil, healthKitData: HealthKitRecord? = nil) {
+        init(existingRecord: RunningRecord? = nil, healthKitData: HealthKitData? = nil) {
             self.existingRecord = existingRecord
             self.healthKitData = HealthKitDataFeature.State(data: healthKitData)
             self.condition = RunningConditionFeature.State(existingRecord: existingRecord)
@@ -109,7 +108,6 @@ struct AddRecordFeature {
                 let mode = state.mode
                 let difficultyLevel = state.selectedDifficultyLevel
 
-                // 중간 시간 계산
                 let startInterval = healthKitData.startDate.timeIntervalSince1970
                 let endInterval = healthKitData.endDate.timeIntervalSince1970
                 let middleInterval = (startInterval + endInterval) / 2.0
@@ -117,7 +115,6 @@ struct AddRecordFeature {
 
                 return .run { send in
                     do {
-                        // Fetch weather using middle time and middle location
                         let weather: WeatherData?
                         if let location = location {
                             do {
@@ -132,7 +129,6 @@ struct AddRecordFeature {
                             weather = nil
                         }
 
-                        // Create record
                         let record = await RunningRecord(
                             id: existingRecordId ?? UUID(),
                             yearMonthDay: yearMonthDay,
@@ -158,7 +154,6 @@ struct AddRecordFeature {
                             endTime: healthKitData.endDate
                         )
 
-                        // Save or update
                         if mode == .add {
                             try await repositoryClient.save(record)
                         } else {
@@ -196,7 +191,6 @@ struct AddRecordFeature {
             return nil
         }
 
-        // 시작점과 끝점의 중간 지점 계산
         let first = coordinates.first!
         let last = coordinates.last!
         let midLatitude = (first.latitude + last.latitude) / 2.0

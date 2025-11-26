@@ -8,14 +8,14 @@
 import CommonFoundation
 import Foundation
 
-public struct HealthKitRecord: Equatable, Identifiable, Sendable {
+public struct HealthKitData: Equatable, Identifiable, Sendable {
     public let id = UUID()
     public let yearMonthDay: YearMonthDay
-    public let distance: Double  // km
-    public let duration: TimeInterval  // seconds
-    public let averagePace: String  // min/km
-    public let averageHeartRate: Int  // bpm
-    public let averageCadence: Int  // spm
+    public let distance: Double         // km
+    public let duration: TimeInterval   // seconds
+    public let averagePace: String      // min/km
+    public let averageHeartRate: Int    // bpm
+    public let averageCadence: Int      // spm
     public let routeData: Data?
     public let startDate: Date
     public let endDate: Date

@@ -22,7 +22,7 @@ struct TodayButton: View {
                         .scaledToFit()
                         .square(screenWidth * 0.03)
 
-                    Text("오늘")
+                    Text(L10n.UI.today)
                         .font(.footnote)
                         .bold()
                 }

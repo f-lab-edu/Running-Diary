@@ -49,7 +49,8 @@ private struct YearAndMonthSection: View {
     let onCalendarTap: () -> Void
 
     init(yearMonthDay: YearMonthDay, onCalendarTap: @escaping () -> Void) {
-        self.title = "\(yearMonthDay.year)년 \(yearMonthDay.month)월"
+        let format = String(localized: "%@년 %@월")
+        self.title = String.localizedStringWithFormat(format, "\(yearMonthDay.year)", "\(yearMonthDay.month)")
         self.onCalendarTap = onCalendarTap
     }
 
@@ -123,7 +124,7 @@ private struct RecordContentSection: View {
                 cachedRecords: [
                     previewKey: DailyRecord(
                         yearMonthDay: previewRecord.yearMonthDay,
-                        healthKitRecords: [],
+                        healthKitDatas: [],
                         savedRecords: [previewRecord]
                     )
                 ]

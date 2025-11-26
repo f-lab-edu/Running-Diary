@@ -240,7 +240,7 @@ private struct PainAreasSectionView: View {
                         }
                     }
                 } label: {
-                    Text(area.rawValue)
+                    Text(area.localizedName)
                         .font(.subheadline)
                         .bold(selectedPainAreas.contains(area))
                         .padding(.horizontal, 12)
@@ -267,13 +267,13 @@ private struct RunningStyleSectionView: View {
 
             Menu {
                 ForEach(styleOptions, id: \.self) { style in
-                    Button(style.rawValue) {
+                    Button(style.localizedName) {
                         selectedStyle = style
                     }
                 }
             } label: {
                 HStack {
-                    Text(selectedStyle?.rawValue ?? "어떤 주법으로 달렸나요?")
+                    Text(selectedStyle?.localizedName ?? L10n.Record.Field.runningStylePlaceholder)
                         .foregroundColor(selectedStyle == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -305,7 +305,7 @@ private struct DifficultyLevelSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedLevel?.displayName ?? "운동 강도를 선택해주세요!")
+                    Text(selectedLevel?.displayName ?? L10n.Record.Field.intensityPlaceholder)
                         .foregroundColor(selectedLevel == nil ? .gray : .primary)
                     Spacer()
                     if let level = selectedLevel {
@@ -414,7 +414,7 @@ private struct ShoesSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedShoe?.name ?? "어떤 신발을 착용하셨나요?")
+                    Text(selectedShoe?.name ?? L10n.Record.Field.shoesPlaceholder)
                         .foregroundColor(selectedShoe == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -503,7 +503,7 @@ private struct PainAreaButtonStyle: ButtonStyle {
         AddRecordView(
             store: Store(
                 initialState: AddRecordFeature.State(
-                    healthKitData: HealthKitRecord(
+                    healthKitData: HealthKitData(
                         distance: 5.2,
                         duration: 3665,  // 1시간 1분 5초
                         averagePace: "5'30\"",
