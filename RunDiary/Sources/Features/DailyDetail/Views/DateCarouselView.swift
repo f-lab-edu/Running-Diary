@@ -61,7 +61,7 @@ struct DateCarouselView: View {
                 .frame(width: screenWidth)
             }
             .offset(x: -screenWidth + dragOffset + currentOffset)
-            .gesture(
+            .highPriorityGesture(
                 DragGesture()
                     .onChanged { handleDragChanged($0) }
                     .onEnded { handleDragEnded($0) }
