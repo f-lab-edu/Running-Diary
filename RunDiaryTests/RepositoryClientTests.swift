@@ -16,7 +16,7 @@ import Testing
 struct RepositoryClientTests {
 
   @Test("fetch: 특정 날짜의 기록 조회 성공")
-  func fetchReturnsRecordForDate.now async throws {
+  func fetchReturnsRecordForDate() async throws {
     let testDate = Date.now
     let expectedRecord = RunningRecord(
       date: testDate,
