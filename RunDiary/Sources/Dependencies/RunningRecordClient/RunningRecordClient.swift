@@ -68,7 +68,7 @@ extension RunningRecordClient: DependencyKey {
 }
 
 extension DependencyValues {
-    var repositoryClient: RunningRecordClient {
+    var runningRecordClient: RunningRecordClient {
         get { self[RunningRecordClient.self] }
         set { self[RunningRecordClient.self] = newValue }
     }

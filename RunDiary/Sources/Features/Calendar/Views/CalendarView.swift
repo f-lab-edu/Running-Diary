@@ -26,6 +26,7 @@ struct CalendarView: View {
                 canAutoScrollToToday: store.state.canAutoScrollToToday,
                 onTap: {
                     scrollToDay(.now, animated: true)
+                    store.send(.selectDate(.today))
                 }
             )
 
@@ -83,7 +84,7 @@ struct CalendarView: View {
         store: Store(initialState: CalendarFeature.State(selectedDate: YearMonthDay(date: .now))) {
             CalendarFeature()
         } withDependencies: {
-            $0.repositoryClient = .previewValue
+            $0.runningRecordClient = .previewValue
         }
     )
 }

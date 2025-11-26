@@ -36,7 +36,8 @@ struct CalendarContentView: View {
             DayView(
                 day: $0.day,
                 isSunday: $0.isSunday,
-                record: store.recordsByDate[$0.yearMonthDay, default: nil],
+                isToday: $0.yearMonthDay == YearMonthDay.today,
+                records: store.recordsByDate[$0.yearMonthDay, default: []],
                 isSelected: store.selectedDate == $0.yearMonthDay
             )
         }

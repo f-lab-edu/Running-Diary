@@ -47,7 +47,7 @@ struct DailyDetailFeature {
 
     // MARK: - Dependency
 
-    @Dependency(\.repositoryClient) var repositoryClient
+    @Dependency(\.runningRecordClient) var runnintRecordClient
     @Dependency(\.healthKitClient) var healthKitClient
 
     // MARK: - Reducer
@@ -126,10 +126,9 @@ struct DailyDetailFeature {
                     let startTime = Date.now
 
                     do {
-                        // HealthKit과 Repository를 병렬로 조회
                         try await healthKitClient.ensureAuthorizationIfNeeded()
-                        async let healthKitDataTask = try healthKitClient.fetchWeeklyRunningData(weekStart.toDate(), weekEnd.toDate())
-                        async let repositoryDataTask = try repositoryClient.fetchRecords(weekStart.toDate(), weekEnd.toDate())
+                        async let healthKitDataTask = try healthKitClient.fetchRunningDataBetweenDates(weekStart.toDate(), weekEnd.toDate())
+                        async let repositoryDataTask = try runnintRecordClient.fetchRecords(weekStart.toDate(), weekEnd.toDate())
 
                         let healthKitData = try await healthKitDataTask
                         let repositoryData = try await repositoryDataTask
@@ -151,7 +150,7 @@ struct DailyDetailFeature {
                 state.error = nil
 
                 // currentWeekDates의 모든 날짜에 대해 DailyRecord 생성 후 캐시에 저장
-                for (index, yearMonthDay) in state.currentWeekDates.enumerated() {
+                for yearMonthDay in state.currentWeekDates {
                     let savedRecords = records.filter { $0.yearMonthDay == yearMonthDay }
                     let filteredHealthKitRecords = healthKitRecords.filter { record in
                         let isTodayRecord = record.startDate.toYearMonthDay == yearMonthDay

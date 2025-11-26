@@ -8,6 +8,8 @@
 import Foundation
 
 public struct YearMonthDay: Comparable, Equatable, Hashable, Sendable {
+    public static let today = YearMonthDay(date: .now)
+
     public let year: Int
     public let month: Int
     public let day: Int

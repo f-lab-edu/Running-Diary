@@ -17,7 +17,7 @@ struct CalendarFeature {
     struct State: Equatable {
         fileprivate(set) var startDate: YearMonthDay
         fileprivate(set) var endDate: YearMonthDay
-        fileprivate(set) var recordsByDate: [YearMonthDay: RunningRecord?] = [:]
+        fileprivate(set) var recordsByDate: [YearMonthDay: [RunningRecord]] = [:]
         fileprivate(set) var monthlyTotals: [YearMonth: Double] = [:]
         fileprivate(set) var selectedDate: YearMonthDay
         fileprivate(set) var isLoading: Bool = false
@@ -53,7 +53,7 @@ struct CalendarFeature {
 
     // MARK: - Dependency
 
-    @Dependency(\.repositoryClient) var repositoryClient
+    @Dependency(\.runningRecordClient) var runningRecordClient
 
     // MARK: - Reducer
 
@@ -78,7 +78,7 @@ struct CalendarFeature {
                     let fetchStartTime = Date.now
                     do {
                         // 날짜 범위로 기록 조회
-                        let records = try await repositoryClient.fetchRecords(startDate.toDate(), endDate.toDate())
+                        let records = try await runningRecordClient.fetchRecords(startDate.toDate(), endDate.toDate())
                         let elapsed = Date.now.timeIntervalSince(fetchStartTime)
                         AppLogger.calendar.info("fetchRecords 성공 - count: \(records.count), elapsed: \(String(format: "%.3f", elapsed))s")
                         await send(.recordsFetchedSuccess(records))
@@ -94,9 +94,15 @@ struct CalendarFeature {
                 state.isLoading = false
 
                 // 1. records를 날짜별로 매핑 (정규화된 날짜를 키로 사용)
-                let recordsByDate = Dictionary(uniqueKeysWithValues: records.map { record in
-                    (record.yearMonthDay, record)
-                })
+                var recordsDictionary: [YearMonthDay: [RunningRecord]] = [:]
+                
+                for record in records {
+                    if let existingRecords = recordsDictionary[record.yearMonthDay] {
+                        recordsDictionary[record.yearMonthDay] = existingRecords + [record]
+                    } else {
+                        recordsDictionary[record.yearMonthDay] = [record]
+                    }
+                }
 
                 // 2. startDate부터 endDate까지 모든 날짜를 순회하며 딕셔너리에 저장
                 var currentDate = state.startDate
@@ -104,7 +110,7 @@ struct CalendarFeature {
                 while currentDate <= state.endDate {
                     // 해당 날짜의 기록이 있으면 저장, 없으면 nil 저장
                     if state.recordsByDate[currentDate] == nil {
-                        state.recordsByDate[currentDate] = recordsByDate[currentDate]
+                        state.recordsByDate[currentDate] = recordsDictionary[currentDate]
                     }
 
                     guard let nextDate = currentDate.add(day: 1) else {

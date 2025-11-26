@@ -13,8 +13,8 @@ import Models
 @DependencyClient
 struct HealthKitClient {
     var ensureAuthorizationIfNeeded: @MainActor @Sendable () async throws -> Void
-    var fetchRunningData: @MainActor @Sendable (Date) async throws -> [HealthKitData]
-    var fetchWeeklyRunningData: @MainActor @Sendable (Date, Date) async throws -> [HealthKitData]
+    var fetchRunningDataOnDate: @MainActor @Sendable (Date) async throws -> [HealthKitData]
+    var fetchRunningDataBetweenDates: @MainActor @Sendable (Date, Date) async throws -> [HealthKitData]
 }
 
 extension HealthKitClient: DependencyKey {
@@ -25,10 +25,10 @@ extension HealthKitClient: DependencyKey {
             ensureAuthorizationIfNeeded: {
                 try await manager.ensureAuthorizationIfNeeded()
             },
-            fetchRunningData: { date in
+            fetchRunningDataOnDate: { date in
                 try await manager.fetchRunningData(for: date)
             },
-            fetchWeeklyRunningData: { startDate, endDate in
+            fetchRunningDataBetweenDates: { startDate, endDate in
                 try await manager.fetchWeeklyRunningData(from: startDate, to: endDate)
             }
         )
@@ -36,15 +36,15 @@ extension HealthKitClient: DependencyKey {
 
     static let testValue = HealthKitClient(
         ensureAuthorizationIfNeeded: unimplemented("\(Self.self).requestAuthorization"),
-        fetchRunningData: unimplemented("\(Self.self).fetchRunningData"),
-        fetchWeeklyRunningData: unimplemented("\(Self.self).fetchWeeklyRunningData")
+        fetchRunningDataOnDate: unimplemented("\(Self.self).fetchRunningData"),
+        fetchRunningDataBetweenDates: unimplemented("\(Self.self).fetchWeeklyRunningData")
     )
 
     static let previewValue = HealthKitClient(
         ensureAuthorizationIfNeeded: {
             // Preview에서는 즉시 성공
         },
-        fetchRunningData: { _ in
+        fetchRunningDataOnDate: { _ in
             // Mock 데이터 반환
             [
                 HealthKitData(
@@ -59,7 +59,7 @@ extension HealthKitClient: DependencyKey {
                 )
             ]
         },
-        fetchWeeklyRunningData: { _, _ in
+        fetchRunningDataBetweenDates: { _, _ in
             // Mock 주간 데이터 반환 (7일)
             (0..<7).map { index in
                 // 일부 날짜는 데이터가 없도록 nil 반환

@@ -1,5 +1,5 @@
 //
-//  HealthKitErrorDescription.swift
+//  HealthKitError+Localization.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 11/4/25.
@@ -8,7 +8,7 @@
 import Foundation
 import HealthKitService
 
-extension HealthKitError: LocalizedError {
+extension HealthKitError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .notAvailable:

@@ -21,7 +21,7 @@ struct RunDiaryApp: App {
             DailyDetailView(store: Store(initialState: DailyDetailFeature.State()) {
                 DailyDetailFeature()
             } withDependencies: {
-                $0.repositoryClient = .live(modelContext: modelContainer.mainContext)
+                $0.runningRecordClient = .live(modelContext: modelContainer.mainContext)
             })
             .modelContainer(modelContainer)
         }
