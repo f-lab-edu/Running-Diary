@@ -46,7 +46,10 @@ struct AddRecordFeature {
             return true
         }
 
-        init(existingRecord: RunningRecord? = nil, healthKitData: HealthKitData? = nil) {
+        init(
+            existingRecord: RunningRecord? = nil,
+            healthKitData: HealthKitData? = nil
+        ) {
             self.existingRecord = existingRecord
             self.healthKitData = HealthKitDataFeature.State(data: healthKitData)
             self.condition = RunningConditionFeature.State(existingRecord: existingRecord)
@@ -60,7 +63,7 @@ struct AddRecordFeature {
         case updateSelectedDifficultyLevel(DifficultyLevel?)
         case saveRecord
         case weatherFetched(WeatherData?)
-        case recordSaved(RunningRecord)
+        case recordSaved
         case recordSaveFailed(String)
     }
 
@@ -160,7 +163,7 @@ struct AddRecordFeature {
                             try await runningRecordClient.update(record)
                         }
 
-                        await send(.recordSaved(record))
+                        await send(.recordSaved)
                     } catch {
                         await send(.recordSaveFailed(error.localizedDescription))
                     }

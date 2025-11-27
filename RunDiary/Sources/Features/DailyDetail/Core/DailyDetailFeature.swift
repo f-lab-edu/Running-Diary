@@ -15,13 +15,13 @@ struct DailyDetailFeature {
 
     @ObservableState
     struct State: Equatable {
-        fileprivate(set) var selectedDate: YearMonthDay
-        fileprivate(set) var currentWeekDates: [YearMonthDay]
-        fileprivate(set) var dailyRecords: [YearMonthDay: DailyRecord]
-        fileprivate(set) var healthKitDatas: [YearMonthDay: [HealthKitData]]
-        fileprivate(set) var runningRecords: [YearMonthDay: [RunningRecord]]
-        fileprivate(set) var isLoading: Bool = false
-        fileprivate(set) var error: DailyDetailError? = nil
+        var selectedDate: YearMonthDay
+        var currentWeekDates: [YearMonthDay]
+        var dailyRecords: [YearMonthDay: DailyRecord]
+        var healthKitDatas: [YearMonthDay: [HealthKitData]]
+        var runningRecords: [YearMonthDay: [RunningRecord]]
+        var isLoading: Bool = false
+        var error: DailyDetailError? = nil
         @Presents var addRecord: AddRecordFeature.State?
         @Presents var calendar: CalendarFeature.State?
 
@@ -35,6 +35,7 @@ struct DailyDetailFeature {
             cachedRecords: [YearMonthDay: DailyRecord] = [:],
             healthKitDatas: [YearMonthDay: [HealthKitData]] = [:],
             runningRecords: [YearMonthDay: [RunningRecord]] = [:],
+            isLoading: Bool = false,
             addRecord: AddRecordFeature.State? = nil,
             calendar: CalendarFeature.State? = nil
         ) {
@@ -43,6 +44,7 @@ struct DailyDetailFeature {
             self.dailyRecords = cachedRecords
             self.healthKitDatas = healthKitDatas
             self.runningRecords = runningRecords
+            self.isLoading = isLoading
             self.addRecord = addRecord
             self.calendar = calendar
         }
