@@ -32,7 +32,19 @@ struct CalendarFeature {
             let today = Date.now
             let calendar = Calendar.current
             self.startDate = selectedDate.add(month: -6) ?? YearMonthDay(date: calendar.date(byAdding: .month, value: -6, to: today)!)
-            self.endDate = YearMonthDay(date: today)
+
+            // endDate: selectedDate + 6개월 (단, today까지의 차이가 6개월 미만이면 today)
+            let tentativeEndDate = selectedDate.add(month: 6) ?? YearMonthDay(date: calendar.date(byAdding: .month, value: 6, to: selectedDate.toDate())!)
+
+            // selectedDate month와 today month 간의 개월 수 차이 계산
+            let todayYearMonthDay = YearMonthDay(date: today)
+            let selectedMonth = selectedDate.year * 12 + selectedDate.month
+            let todayMonth = todayYearMonthDay.year * 12 + todayYearMonthDay.month
+            let monthDiff = todayMonth - selectedMonth
+
+            // 차이가 6개월 미만이면 endDate = today, 아니면 tentativeEndDate
+            self.endDate = monthDiff < 6 ? todayYearMonthDay : tentativeEndDate
+
             self.selectedDate = selectedDate
         }
     }
@@ -158,7 +170,6 @@ struct CalendarFeature {
                 return .send(.fetchRecords(startDate: newStartDate, endDate: fetchEndDate))
 
             case let .saveLastVisibleMonth(lastVisibleMonth):
-    
                 state.lastVisibleMonth = lastVisibleMonth
                 return .none
 
