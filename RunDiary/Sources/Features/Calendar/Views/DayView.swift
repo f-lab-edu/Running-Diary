@@ -63,13 +63,32 @@ struct DayView: View {
                     .foregroundStyle(isSelected ? .white : .gray)
                     .opacity(records.isEmpty ? 0.2 : 1)
                     .bold(!totalDistance.isNil && isToday)
-
-                Circle()
-                    .fill(hasUnsavedWorkout ? .coral : .clear)
-                    .frame(width: 4, height: 4)
             }
             .padding(10)
+
+            UnsavedWorkoutDot(isPresented: hasUnsavedWorkout)
         }
         .frame(minHeight: cellHeight)
+    }
+}
+
+private struct UnsavedWorkoutDot: View {
+    private let isPresented: Bool
+
+    init(isPresented: Bool) {
+        self.isPresented = isPresented
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                Spacer()
+                Circle()
+                    .fill(isPresented ? .coral : .clear)
+                    .frame(width: 6, height: 6)
+                    .padding(6)
+            }
+            Spacer()
+        }
     }
 }

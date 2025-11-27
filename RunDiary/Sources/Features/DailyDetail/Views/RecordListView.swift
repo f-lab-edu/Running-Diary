@@ -21,7 +21,7 @@ struct RecordListView: View {
                     RunningRecordCard(record: record, onEdit: { store.send(.editRecord(record)) })
                 }
 
-                if !dailyRecord.savedRecords.isEmpty {
+                if !dailyRecord.savedRecords.isEmpty || !dailyRecord.healthKitDatas.isEmpty {
                     Divider()
                         .padding(.horizontal, 20)
                 }
@@ -214,8 +214,8 @@ struct RunningRecordCard: View {
             .padding(.horizontal, 14)
 
             // 수정 버튼
-            EditButton(onEdit: onEdit)
-                .padding(.trailing, 4)
+//            EditButton(onEdit: onEdit)
+//                .padding(.trailing, 4)
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 2)
