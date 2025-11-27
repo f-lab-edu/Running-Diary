@@ -148,7 +148,7 @@ private struct WeekView: View {
     }
 
     private func hasRecord(on date: YearMonthDay) -> Bool {
-        guard let value = store.cachedRecords[date] else { return false }
+        guard let value = store.dailyRecords[date] else { return false }
         return value.hasAnyData
     }
 }

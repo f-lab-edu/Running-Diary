@@ -11,6 +11,7 @@ import Models
 import SwiftUI
 
 struct DailyDetailView: View {
+    @Environment(\.scenePhase) var scenePhase
     let store: StoreOf<DailyDetailFeature>
 
     var body: some View {
@@ -31,6 +32,11 @@ struct DailyDetailView: View {
             }
             .task {
                 store.send(.onAppear)
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    store.send(.refreshHealthKitForCachedDates)
+                }
             }
         }
         .sheet(store: store.scope(state: \.$calendar, action: \.calendar)) { calendarStore in

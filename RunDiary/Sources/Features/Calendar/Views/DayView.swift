@@ -16,6 +16,7 @@ struct DayView: View {
     let isToday: Bool
     let records: [RunningRecord]
     let isSelected: Bool
+    let hasUnsavedWorkout: Bool
 
     private var cellHeight: CGFloat {
         screenWidth / 7
@@ -30,13 +31,15 @@ struct DayView: View {
         isSunday: Bool,
         isToday: Bool,
         records: [RunningRecord],
-        isSelected: Bool
+        isSelected: Bool,
+        hasUnsavedWorkout: Bool
     ) {
         self.day = day
         self.isSunday = isSunday
         self.isToday = isToday
         self.records = records
         self.isSelected = isSelected
+        self.hasUnsavedWorkout = hasUnsavedWorkout
     }
 
     var body: some View {
@@ -47,17 +50,23 @@ struct DayView: View {
                     .padding(2)
             }
 
-            VStack {
+            VStack(spacing: 2) {
                 Text(String(day))
                     .foregroundStyle(isSelected ? .white : (isSunday ? .red : isToday ? .blue300 : .black))
                     .opacity(isSelected || isToday ? 1 : 0.7)
                     .bold(isSelected || isToday)
+
                 Spacer()
+
                 Text(totalDistance.map { "\($0.to1f)km" } ?? "-")
                     .font(.caption)
                     .foregroundStyle(isSelected ? .white : .gray)
                     .opacity(records.isEmpty ? 0.2 : 1)
                     .bold(!totalDistance.isNil && isToday)
+
+                Circle()
+                    .fill(hasUnsavedWorkout ? .coral : .clear)
+                    .frame(width: 4, height: 4)
             }
             .padding(10)
         }
