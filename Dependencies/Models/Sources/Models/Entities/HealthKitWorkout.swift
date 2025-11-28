@@ -1,5 +1,5 @@
 //
-//  HealthKitRecord.swift
+//  HealthKitWorkout.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -8,7 +8,7 @@
 import CommonFoundation
 import Foundation
 
-public struct HealthKitData: Equatable, Identifiable, Sendable {
+public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
     public let id = UUID()
     public let yearMonthDay: YearMonthDay
     public let distance: Double         // km

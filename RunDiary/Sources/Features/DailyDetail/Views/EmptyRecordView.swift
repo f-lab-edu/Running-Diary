@@ -25,7 +25,7 @@ struct EmptyRecordView: View {
                     .font(.headline)
                     .foregroundColor(.gray500)
 
-                if let error = error, case .noHealthKitData = error {
+                if let error = error, case .noHealthKitWorkout = error {
                     Text(error.recoverySuggestion ?? "")
                         .font(.caption)
                         .foregroundColor(.gray500)
@@ -39,14 +39,14 @@ struct EmptyRecordView: View {
     }
 
     private var iconName: String {
-        if let error = error, case .noHealthKitData = error {
+        if let error = error, case .noHealthKitWorkout = error {
             return "exclamationmark.triangle"
         }
         return "figure.run"
     }
 
     private var iconColor: Color {
-        if let error = error, case .noHealthKitData = error {
+        if let error = error, case .noHealthKitWorkout = error {
             return .orange
         }
         return .gray300

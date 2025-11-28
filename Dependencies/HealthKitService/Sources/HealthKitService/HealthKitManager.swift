@@ -51,7 +51,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     }
 
     // 단일 Date에 대한 피트니스 기록을 가져옵니다.
-    public func fetchRunningData(for date: Date) async throws -> [HealthKitData] {
+    public func fetchRunningData(for date: Date) async throws -> [HealthKitWorkout] {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.endOfDay(for: date) else {
@@ -87,7 +87,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             healthStore.execute(query)
         }
 
-        var records: [HealthKitData] = []
+        var results: [HealthKitWorkout] = []
         for workout in workouts {
             guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
                   let averagePace = calculateAveragePace(from: workout),
@@ -96,7 +96,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             else { continue }
             let routeData = try? await fetchRouteData(for: workout)
 
-            let record = HealthKitData(
+            let healthKitWorkout = HealthKitWorkout(
                 distance: distance,
                 duration: workout.duration,
                 averagePace: averagePace,
@@ -106,9 +106,9 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
                 startDate: workout.startDate,
                 endDate: workout.endDate
             )
-            records.append(record)
+            results.append(healthKitWorkout)
         }
-        return records
+        return results
     }
 
     private func calculateAveragePace(from workout: HKWorkout) -> String? {
@@ -277,7 +277,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     }
 
     // startDate ~ endDate 기간에 대한 피트니스 기록을 가져옵니다.
-    public func fetchWeeklyRunningData(from startDate: Date, to endDate: Date) async throws -> [HealthKitData] {
+    public func fetchWeeklyRunningData(from startDate: Date, to endDate: Date) async throws -> [HealthKitWorkout] {
         let calendar = Calendar.current
 
         // 시작일부터 종료일까지의 날짜 배열 생성
@@ -294,7 +294,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         }
 
         // 각 날짜에 대해 병렬로 데이터 조회
-        return await withTaskGroup(of: [HealthKitData].self) { group in
+        return await withTaskGroup(of: [HealthKitWorkout].self) { group in
             for date in dates {
                 group.addTask { [self] in
                     return (try? await self.fetchRunningData(for: date)) ?? []
@@ -302,7 +302,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             }
 
             // 결과를 하나의 배열로 합침
-            var results: [HealthKitData] = []
+            var results: [HealthKitWorkout] = []
             for await result in group {
                 results.append(contentsOf: result)
             }

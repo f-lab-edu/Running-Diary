@@ -18,7 +18,7 @@ struct DailyDetailFeature {
         var selectedDate: YearMonthDay
         var currentWeekDates: [YearMonthDay]
         var dailyRecords: [YearMonthDay: DailyRecord]
-        var healthKitDatas: [YearMonthDay: [HealthKitData]]
+        var healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]]
         var runningRecords: [YearMonthDay: [RunningRecord]]
         var isLoading: Bool = false
         var error: DailyDetailError? = nil
@@ -33,7 +33,7 @@ struct DailyDetailFeature {
             selectedDate: YearMonthDay = .today,
             currentWeekDates: [YearMonthDay] = [],
             cachedRecords: [YearMonthDay: DailyRecord] = [:],
-            healthKitDatas: [YearMonthDay: [HealthKitData]] = [:],
+            healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]] = [:],
             runningRecords: [YearMonthDay: [RunningRecord]] = [:],
             isLoading: Bool = false,
             addRecord: AddRecordFeature.State? = nil,
@@ -42,7 +42,7 @@ struct DailyDetailFeature {
             self.selectedDate = selectedDate
             self.currentWeekDates = currentWeekDates
             self.dailyRecords = cachedRecords
-            self.healthKitDatas = healthKitDatas
+            self.healthKitWorkouts = healthKitWorkouts
             self.runningRecords = runningRecords
             self.isLoading = isLoading
             self.addRecord = addRecord
@@ -57,14 +57,14 @@ struct DailyDetailFeature {
         case dateSelected(YearMonthDay)
         case weekChanged(offset: Int)
         case fetchWeekRecords
-        case healthKitDatasFetched([YearMonthDay: [HealthKitData]])
+        case healthKitWorkoutsFetched([YearMonthDay: [HealthKitWorkout]])
         case runningRecordsFetched([YearMonthDay: [RunningRecord]])
-        case mergeDailyRecords(healthKitDatas: [YearMonthDay: [HealthKitData]], runningRecords: [YearMonthDay: [RunningRecord]])
+        case mergeDailyRecords(healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]], runningRecords: [YearMonthDay: [RunningRecord]])
         case weekRecordsFetchFailed(DailyDetailError)
         case mergeCachedRecordsForRefresh([YearMonthDay])
         case refreshHealthKitForCachedDates
-        case healthKitDataRefreshFailed(DailyDetailError)
-        case createRecord(HealthKitData)
+        case healthKitWorkoutRefreshFailed(DailyDetailError)
+        case createRecord(HealthKitWorkout)
         case editRecord(RunningRecord)
         case addRecord(PresentationAction<AddRecordFeature.Action>)
         case calendarButtonTapped
@@ -152,45 +152,45 @@ struct DailyDetailFeature {
                         let startDate = weekStart.toDate()
                         let endDate = weekEnd.toDate()
                         try await healthKitClient.ensureAuthorizationIfNeeded()
-                        async let healthKitDatas = try await healthKitClient.fetchRunningDataBetweenDates(startDate, endDate)
+                        async let healthKitWorkouts = try await healthKitClient.fetchRunningDataBetweenDates(startDate, endDate)
                         async let runningRecords = try await runningRecordClient.fetchRecords(startDate, endDate)
-                        let groupedHealthKitDatas = try await Dictionary(grouping: healthKitDatas, by: { $0.yearMonthDay })
+                        let groupedHealthKitWorkouts = try await Dictionary(grouping: healthKitWorkouts, by: { $0.yearMonthDay })
                         let groupedRunningRecords = try await Dictionary(grouping: runningRecords, by: { $0.yearMonthDay })
 
-                        await send(.healthKitDatasFetched(groupedHealthKitDatas))
+                        await send(.healthKitWorkoutsFetched(groupedHealthKitWorkouts))
                         await send(.runningRecordsFetched(groupedRunningRecords))
-                        await send(.mergeDailyRecords(healthKitDatas: groupedHealthKitDatas, runningRecords: groupedRunningRecords))
+                        await send(.mergeDailyRecords(healthKitWorkouts: groupedHealthKitWorkouts, runningRecords: groupedRunningRecords))
                     } catch {
                         let errorMessage = error.localizedDescription
                         await send(.weekRecordsFetchFailed(.fetchFailed(underlyingError: errorMessage)))
                     }
                 }
 
-            case let .healthKitDatasFetched(healthKitDatas):
-                state.healthKitDatas.merge(healthKitDatas) { _, new in new }
+            case let .healthKitWorkoutsFetched(healthKitWorkouts):
+                state.healthKitWorkouts.merge(healthKitWorkouts) { _, new in new }
                 return .none
 
             case let .runningRecordsFetched(runningRecords):
                 state.runningRecords.merge(runningRecords) { _, new in new }
                 return .none
 
-            case let .mergeDailyRecords(healthKitDatas, runningRecords):
+            case let .mergeDailyRecords(healthKitWorkouts, runningRecords):
                 AppLogger.dailyDetail.debug("mergeCachedRecords 시작")
 
                 // currentWeekDates의 모든 날짜에 대해 DailyRecord 생성
                 for yearMonthDay in state.currentWeekDates {
                     let savedRecords = runningRecords[yearMonthDay] ?? []
-                    let healthKitRecords = healthKitDatas[yearMonthDay] ?? []
+                    let healthKitRecords = healthKitWorkouts[yearMonthDay] ?? []
 
                     // HealthKit 데이터 중 저장된 기록과 중복되지 않는 것만 필터링
-                    let filteredHealthKitRecords = healthKitRecords.filter { healthKitData in
-                        !savedRecords.contains(where: { $0.startTime == healthKitData.startDate })
+                    let filteredHealthKitRecords = healthKitRecords.filter { healthKitWorkout in
+                        !savedRecords.contains(where: { $0.startTime == healthKitWorkout.startDate })
                     }
                     let sortedHealthKitRecords = filteredHealthKitRecords.sorted { $0.startDate < $1.startDate }
 
                     let dailyRecord = DailyRecord(
                         yearMonthDay: yearMonthDay,
-                        healthKitDatas: sortedHealthKitRecords,
+                        healthKitWorkouts: sortedHealthKitRecords,
                         savedRecords: savedRecords
                     )
 
@@ -215,17 +215,17 @@ struct DailyDetailFeature {
                 // refresh 대상 날짜들에 대해서만 DailyRecord 재생성
                 for yearMonthDay in datesToRefresh {
                     let savedRecords = state.runningRecords[yearMonthDay] ?? []
-                    let healthKitRecords = state.healthKitDatas[yearMonthDay] ?? []
+                    let healthKitRecords = state.healthKitWorkouts[yearMonthDay] ?? []
 
                     // HealthKit 데이터 중 저장된 기록과 중복되지 않는 것만 필터링
-                    let filteredHealthKitRecords = healthKitRecords.filter { healthKitData in
-                        !savedRecords.contains(where: { $0.startTime == healthKitData.startDate })
+                    let filteredHealthKitRecords = healthKitRecords.filter { healthKitWorkout in
+                        !savedRecords.contains(where: { $0.startTime == healthKitWorkout.startDate })
                     }
                     let sortedHealthKitRecords = filteredHealthKitRecords.sorted { $0.startDate < $1.startDate }
 
                     let dailyRecord = DailyRecord(
                         yearMonthDay: yearMonthDay,
-                        healthKitDatas: sortedHealthKitRecords,
+                        healthKitWorkouts: sortedHealthKitRecords,
                         savedRecords: savedRecords
                     )
 
@@ -254,10 +254,10 @@ struct DailyDetailFeature {
                     let startTime = Date.now
                     do {
                         try await healthKitClient.ensureAuthorizationIfNeeded()
-                        let healthKitDatas = try await healthKitClient.fetchRunningDataBetweenDates(minDate.toDate(), maxDate.toDate())
-                        let groupedHealthKitDatas = Dictionary(grouping: healthKitDatas, by: { $0.yearMonthDay })
+                        let healthKitWorkouts = try await healthKitClient.fetchRunningDataBetweenDates(minDate.toDate(), maxDate.toDate())
+                        let groupedHealthKitWorkouts = Dictionary(grouping: healthKitWorkouts, by: { $0.yearMonthDay })
 
-                        await send(.healthKitDatasFetched(groupedHealthKitDatas))
+                        await send(.healthKitWorkoutsFetched(groupedHealthKitWorkouts))
 
                         // HealthKit 데이터 fetch 후 자동으로 merge
                         await send(.mergeCachedRecordsForRefresh(cachedDates))
@@ -265,22 +265,22 @@ struct DailyDetailFeature {
                         let elapsed = Date.now.timeIntervalSince(startTime)
                         let errorMessage = error.localizedDescription
                         AppLogger.dailyDetail.error("refreshHealthKitForCachedDates 실패 - error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
-                        await send(.healthKitDataRefreshFailed(.fetchFailed(underlyingError: errorMessage)))
+                        await send(.healthKitWorkoutRefreshFailed(.fetchFailed(underlyingError: errorMessage)))
                     }
                 }
 
-            case let .healthKitDataRefreshFailed(error):
+            case let .healthKitWorkoutRefreshFailed(error):
                 state.isLoading = false
                 state.error = error
                 let errorMessage = error.localizedDescription
                 AppLogger.dailyDetail.error("weekRecordsFetchFailed - error: \(errorMessage)")
                 return .none
 
-            case let .createRecord(healthKitRecord):
-                AppLogger.dailyDetail.debug("showAddRecord - mode: 추가, date: \(state.selectedDate), healthKitData: \(healthKitRecord)")
+            case let .createRecord(healthKitWorkout):
+                AppLogger.dailyDetail.debug("showAddRecord - mode: 추가, date: \(state.selectedDate), healthKitWorkout: \(healthKitWorkout)")
                 state.addRecord = AddRecordFeature.State(
                     existingRecord: nil,
-                    healthKitData: healthKitRecord
+                    healthKitWorkout: healthKitWorkout
                 )
                 return .none
 
@@ -288,7 +288,7 @@ struct DailyDetailFeature {
                 AppLogger.dailyDetail.debug("showAddRecord - mode: 수정, date: \(state.selectedDate), runningRecord: \(runningRecord)")
                 state.addRecord = AddRecordFeature.State(
                     existingRecord: runningRecord,
-                    healthKitData: nil
+                    healthKitWorkout: nil
                 )
                 return .none
 
@@ -321,7 +321,7 @@ struct DailyDetailFeature {
                 for (yearMonthDay, dailyRecord) in dailyRecords {
                     state.dailyRecords.updateValue(dailyRecord, forKey: yearMonthDay)
                 }
-                state.healthKitDatas = state.calendar?.healthKitDatas ?? [:]
+                state.healthKitWorkouts = state.calendar?.healthKitWorkouts ?? [:]
                 state.runningRecords = state.calendar?.runningRecords ?? [:]
                 return .none
 

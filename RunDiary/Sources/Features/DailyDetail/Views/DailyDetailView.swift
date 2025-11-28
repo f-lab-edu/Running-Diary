@@ -130,7 +130,7 @@ private struct RecordContentSection: View {
                 cachedRecords: [
                     previewKey: DailyRecord(
                         yearMonthDay: previewRecord.yearMonthDay,
-                        healthKitDatas: [],
+                        healthKitWorkouts: [],
                         savedRecords: [previewRecord]
                     )
                 ]

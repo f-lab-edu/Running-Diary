@@ -56,11 +56,11 @@ private struct FormContentView: View {
             VStack(spacing: 16) {
                 // HealthKit 데이터 섹션
                 HealthKitSectionView(
-                    distance: store.healthKitData.data?.formattedDistance ?? "",
-                    duration: store.healthKitData.data?.formattedDuration ?? "",
-                    averagePace: store.healthKitData.data?.averagePace ?? "",
-                    averageHeartRate: store.healthKitData.data?.formattedAverageHeartRate ?? "",
-                    averageCadence: store.healthKitData.data?.formattedAverageCadence ?? ""
+                    distance: store.healthKitWorkout.data?.formattedDistance ?? "",
+                    duration: store.healthKitWorkout.data?.formattedDuration ?? "",
+                    averagePace: store.healthKitWorkout.data?.averagePace ?? "",
+                    averageHeartRate: store.healthKitWorkout.data?.formattedAverageHeartRate ?? "",
+                    averageCadence: store.healthKitWorkout.data?.formattedAverageCadence ?? ""
                 )
 
                 // 신발 섹션
@@ -503,7 +503,7 @@ private struct PainAreaButtonStyle: ButtonStyle {
         AddRecordView(
             store: Store(
                 initialState: AddRecordFeature.State(
-                    healthKitData: HealthKitData(
+                    healthKitWorkout: HealthKitWorkout(
                         distance: 5.2,
                         duration: 3665,  // 1시간 1분 5초
                         averagePace: "5'30\"",

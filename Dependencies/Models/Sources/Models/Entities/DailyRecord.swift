@@ -4,16 +4,16 @@ import Foundation
 /// HealthKit 데이터와 사용자가 저장한 기록을 함께 관리
 public struct DailyRecord: Equatable, Sendable {
     public let yearMonthDay: YearMonthDay
-    public let healthKitDatas: [HealthKitData]  // HealthKit에서 가져온 러닝 기록등
+    public let healthKitWorkouts: [HealthKitWorkout]  // HealthKit에서 가져온 러닝 기록등
     public let savedRecords: [RunningRecord]    // Repository에 저장된 사용자 기록들
 
     public init(
         yearMonthDay: YearMonthDay,
-        healthKitDatas: [HealthKitData],
+        healthKitWorkouts: [HealthKitWorkout],
         savedRecords: [RunningRecord]
     ) {
         self.yearMonthDay = yearMonthDay
-        self.healthKitDatas = healthKitDatas
+        self.healthKitWorkouts = healthKitWorkouts
         self.savedRecords = savedRecords
     }
 }
@@ -22,8 +22,8 @@ public struct DailyRecord: Equatable, Sendable {
 
 extension DailyRecord {
     /// HealthKit 데이터가 존재하는지 여부
-    public var hasHealthKitData: Bool {
-        !healthKitDatas.isEmpty
+    public var hasHealthKitWorkout: Bool {
+        !healthKitWorkouts.isEmpty
     }
 
     /// 저장된 기록이 존재하는지 여부
@@ -33,6 +33,6 @@ extension DailyRecord {
 
     /// 표시할 데이터가 하나라도 있는지 여부
     public var hasAnyData: Bool {
-        hasHealthKitData || hasSavedRecord
+        hasHealthKitWorkout || hasSavedRecord
     }
 }

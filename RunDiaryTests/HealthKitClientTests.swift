@@ -56,7 +56,7 @@ struct HealthKitClientTests {
   func fetchRunningDataOnDateReturnsData() async throws {
     let testDate = Date.now
     let expectedData = [
-      HealthKitData(
+      HealthKitWorkout(
         distance: 5.2,
         duration: 1800,
         averagePace: "5'30\"",
@@ -66,7 +66,7 @@ struct HealthKitClientTests {
         startDate: testDate,
         endDate: Calendar.current.date(byAdding: .second, value: 1800, to: testDate)!
       ),
-      HealthKitData(
+      HealthKitWorkout(
         distance: 3.5,
         duration: 1200,
         averagePace: "5'42\"",
@@ -134,7 +134,7 @@ struct HealthKitClientTests {
     let endDate = Date.now
 
     let expectedData = [
-      HealthKitData(
+      HealthKitWorkout(
         distance: 5.0,
         duration: 1800,
         averagePace: "6'00\"",
@@ -144,7 +144,7 @@ struct HealthKitClientTests {
         startDate: Calendar.current.date(byAdding: .day, value: -5, to: endDate)!,
         endDate: Calendar.current.date(byAdding: .day, value: -5, to: endDate)!.addingTimeInterval(1800)
       ),
-      HealthKitData(
+      HealthKitWorkout(
         distance: 7.5,
         duration: 2700,
         averagePace: "6'00\"",
@@ -154,7 +154,7 @@ struct HealthKitClientTests {
         startDate: Calendar.current.date(byAdding: .day, value: -3, to: endDate)!,
         endDate: Calendar.current.date(byAdding: .day, value: -3, to: endDate)!.addingTimeInterval(2700)
       ),
-      HealthKitData(
+      HealthKitWorkout(
         distance: 10.0,
         duration: 3600,
         averagePace: "6'00\"",

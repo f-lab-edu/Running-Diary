@@ -19,20 +19,20 @@ struct AddRecordFeatureTests {
     // MARK: - Initialization Tests
 
     @Test("Add mode: HealthKit 데이터와 함께 초기화")
-    func initializeWithHealthKitData() async {
+    func initializeWithHealthKitWorkout() async {
         // Given
         let expectedDistance = 5.2
         let expectedDuration = TimeInterval(1800)
         let expectedMode = RecordMode.add
-        let healthKitData = makeHealthKitData(distance: expectedDistance, duration: expectedDuration)
+        let healthKitWorkout = makeHealthKitWorkout(distance: expectedDistance, duration: expectedDuration)
 
         // When
-        let state = AddRecordFeature.State(healthKitData: healthKitData)
+        let state = AddRecordFeature.State(healthKitWorkout: healthKitWorkout)
 
         // Then
         #expect(state.mode == expectedMode)
-        #expect(state.healthKitData.data?.distance == expectedDistance)
-        #expect(state.healthKitData.data?.duration == expectedDuration)
+        #expect(state.healthKitWorkout.data?.distance == expectedDistance)
+        #expect(state.healthKitWorkout.data?.duration == expectedDuration)
         #expect(state.existingRecord == nil)
         #expect(state.weather == nil)
         #expect(state.selectedDifficultyLevel == nil)
@@ -93,8 +93,8 @@ struct AddRecordFeatureTests {
         let expectedWeather = WeatherData(temperature: 20.0, humidity: 55, windSpeed: 2.5)
         var savedRecord: RunningRecord?
 
-        let healthKitData = makeHealthKitData(distance: expectedDistance)
-        var initialState = AddRecordFeature.State(healthKitData: healthKitData)
+        let healthKitWorkout = makeHealthKitWorkout(distance: expectedDistance)
+        var initialState = AddRecordFeature.State(healthKitWorkout: healthKitWorkout)
         initialState.condition.selectedShoe = makeShoeModel()
         initialState.condition.selectedRunningStyle = .midfoot
         initialState.condition.sleepHours = "8"
@@ -135,11 +135,11 @@ struct AddRecordFeatureTests {
         var updatedRecord: RunningRecord?
 
         let existingRecord = makeExistingRecord(id: expectedRecordId, distance: 3.0)
-        let healthKitData = makeHealthKitData(distance: expectedDistance, duration: 2100)
+        let healthKitWorkout = makeHealthKitWorkout(distance: expectedDistance, duration: 2100)
 
         var initialState = AddRecordFeature.State(
             existingRecord: existingRecord,
-            healthKitData: healthKitData
+            healthKitWorkout: healthKitWorkout
         )
         initialState.condition.selectedShoe = makeShoeModel()
         initialState.condition.selectedRunningStyle = .forefoot
@@ -177,9 +177,9 @@ struct AddRecordFeatureTests {
         // Given
         let expectedErrorMessage = "Save failed"
         let expectedWeather = WeatherData(temperature: 20.0, humidity: 55, windSpeed: 2.5)
-        let healthKitData = makeHealthKitData()
+        let healthKitWorkout = makeHealthKitWorkout()
 
-        var initialState = AddRecordFeature.State(healthKitData: healthKitData)
+        var initialState = AddRecordFeature.State(healthKitWorkout: healthKitWorkout)
         initialState.condition.selectedShoe = makeShoeModel()
         initialState.condition.selectedRunningStyle = .midfoot
         initialState.condition.sleepHours = "8"
@@ -219,9 +219,9 @@ struct AddRecordFeatureTests {
     func formValid_allRequiredFieldsPresent() async {
         // Given
         let expectedIsValid = true
-        let healthKitData = makeHealthKitData()
+        let healthKitWorkout = makeHealthKitWorkout()
 
-        var state = AddRecordFeature.State(healthKitData: healthKitData)
+        var state = AddRecordFeature.State(healthKitWorkout: healthKitWorkout)
         state.condition.selectedShoe = makeShoeModel()
         state.condition.selectedRunningStyle = .midfoot
         state.condition.sleepHours = "8"
@@ -232,7 +232,7 @@ struct AddRecordFeatureTests {
     }
 
     @Test("폼 유효성 검사: HealthKit 데이터가 없으면 무효함")
-    func formInvalid_healthKitDataMissing() async {
+    func formInvalid_healthKitWorkoutMissing() async {
         // Given
         let expectedIsValid = false
 
@@ -250,9 +250,9 @@ struct AddRecordFeatureTests {
     func formInvalid_shoeNotSelected() async {
         // Given
         let expectedIsValid = false
-        let healthKitData = makeHealthKitData()
+        let healthKitWorkout = makeHealthKitWorkout()
 
-        var state = AddRecordFeature.State(healthKitData: healthKitData)
+        var state = AddRecordFeature.State(healthKitWorkout: healthKitWorkout)
         state.condition.selectedRunningStyle = .midfoot
         state.condition.sleepHours = "8"
         state.selectedDifficultyLevel = .medium
@@ -265,9 +265,9 @@ struct AddRecordFeatureTests {
     func formInvalid_runningStyleNotSelected() async {
         // Given
         let expectedIsValid = false
-        let healthKitData = makeHealthKitData()
+        let healthKitWorkout = makeHealthKitWorkout()
 
-        var state = AddRecordFeature.State(healthKitData: healthKitData)
+        var state = AddRecordFeature.State(healthKitWorkout: healthKitWorkout)
         state.condition.selectedShoe = makeShoeModel()
         state.condition.sleepHours = "8"
         state.selectedDifficultyLevel = .medium
@@ -280,10 +280,9 @@ struct AddRecordFeatureTests {
     func formInvalid_sleepHoursInvalid() async {
         // Given
         let expectedIsValid = false
-        let invalidSleepHours = "25"
-        let healthKitData = makeHealthKitData()
+        let healthKitWorkout = makeHealthKitWorkout()
 
-        var state = AddRecordFeature.State(healthKitData: healthKitData)
+        var state = AddRecordFeature.State(healthKitWorkout: healthKitWorkout)
         state.condition.selectedShoe = makeShoeModel()
         state.condition.selectedRunningStyle = .midfoot
         state.condition.sleepHours = invalidSleepHours
@@ -297,9 +296,9 @@ struct AddRecordFeatureTests {
     func formInvalid_difficultyNotSelected() async {
         // Given
         let expectedIsValid = false
-        let healthKitData = makeHealthKitData()
+        let healthKitWorkout = makeHealthKitWorkout()
 
-        var state = AddRecordFeature.State(healthKitData: healthKitData)
+        var state = AddRecordFeature.State(healthKitWorkout: healthKitWorkout)
         state.condition.selectedShoe = makeShoeModel()
         state.condition.selectedRunningStyle = .midfoot
         state.condition.sleepHours = "8"
@@ -313,16 +312,16 @@ struct AddRecordFeatureTests {
 
 private extension AddRecordFeatureTests {
 
-    func makeHealthKitData(
+    func makeHealthKitWorkout(
         distance: Double = 5.0,
         duration: TimeInterval = 1800,
         averagePace: String = "6'00\"",
         averageHeartRate: Int = 150,
         averageCadence: Int = 170,
         routeData: Data? = nil
-    ) -> HealthKitData {
+    ) -> HealthKitWorkout {
         let testDate = Date.now
-        return HealthKitData(
+        return HealthKitWorkout(
             distance: distance,
             duration: duration,
             averagePace: averagePace,

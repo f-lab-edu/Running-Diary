@@ -10,6 +10,6 @@ import Models
 
 public protocol HealthKitManagerProtocol {
     func ensureAuthorizationIfNeeded() async throws
-    func fetchRunningData(for date: Date) async throws -> [HealthKitData]
-    func fetchWeeklyRunningData(from startDate: Date, to endDate: Date) async throws -> [HealthKitData]
+    func fetchRunningData(for date: Date) async throws -> [HealthKitWorkout]
+    func fetchWeeklyRunningData(from startDate: Date, to endDate: Date) async throws -> [HealthKitWorkout]
 }

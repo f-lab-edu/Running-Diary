@@ -11,7 +11,7 @@ import Testing
 
 @testable import RunDiary
 
-@Suite("RunningRecordClient Tests")
+@Suite("RunningRecordClient")
 struct RunningRecordClientTests {
 
   // MARK: - Test Helpers

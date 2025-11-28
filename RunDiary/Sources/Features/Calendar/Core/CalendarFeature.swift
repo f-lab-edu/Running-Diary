@@ -17,7 +17,7 @@ struct CalendarFeature {
     struct State: Equatable {
         fileprivate(set) var startDate: YearMonthDay
         fileprivate(set) var endDate: YearMonthDay
-        fileprivate(set) var healthKitDatas: [YearMonthDay: [HealthKitData]]
+        fileprivate(set) var healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]]
         fileprivate(set) var runningRecords: [YearMonthDay: [RunningRecord]]
         fileprivate(set) var dailyRecords: [YearMonthDay: DailyRecord]
         fileprivate(set) var monthlyTotals: [YearMonth: Double] = [:]
@@ -32,7 +32,7 @@ struct CalendarFeature {
 
         init(
             selectedDate: YearMonthDay,
-            healthKitDatas: [YearMonthDay: [HealthKitData]] = [:],
+            healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]] = [:],
             runningRecords: [YearMonthDay: [RunningRecord]] = [:],
             dailyRecords: [YearMonthDay: DailyRecord] = [:]
         ) {
@@ -53,7 +53,7 @@ struct CalendarFeature {
             self.endDate = monthDiff < 6 ? todayYearMonthDay : tentativeEndDate
 
             self.selectedDate = selectedDate
-            self.healthKitDatas = healthKitDatas
+            self.healthKitWorkouts = healthKitWorkouts
             self.runningRecords = runningRecords
             self.dailyRecords = dailyRecords
         }
@@ -64,9 +64,9 @@ struct CalendarFeature {
     enum Action {
         case onAppear
         case fetchRecords(startDate: YearMonthDay, endDate: YearMonthDay)
-        case healthKitDataFetched([YearMonthDay: [HealthKitData]])
+        case healthKitWorkoutFetched([YearMonthDay: [HealthKitWorkout]])
         case runningRecordsFetched([YearMonthDay: [RunningRecord]])
-        case mergeDailyRecords(healthKitDatas: [YearMonthDay: [HealthKitData]], runningRecords: [YearMonthDay: [RunningRecord]])
+        case mergeDailyRecords(healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]], runningRecords: [YearMonthDay: [RunningRecord]])
         case recordsFetchedFailure(CalendarError)
         case oldestMonthBecameVisible
         case fetchOlderRecords
@@ -107,23 +107,23 @@ struct CalendarFeature {
                 return .run { send in
                     do {
                         try await healthKitClient.ensureAuthorizationIfNeeded()
-                        async let healthKitDatas = try await healthKitClient.fetchRunningDataBetweenDates(startDate.toDate(), endDate.toDate())
+                        async let healthKitWorkouts = try await healthKitClient.fetchRunningDataBetweenDates(startDate.toDate(), endDate.toDate())
                         async let runningRecords = try await runningRecordClient.fetchRecords(startDate.toDate(), endDate.toDate())
-                        let groupedHealthKitDatas = try await Dictionary(grouping: healthKitDatas, by: { $0.yearMonthDay })
+                        let groupedHealthKitWorkouts = try await Dictionary(grouping: healthKitWorkouts, by: { $0.yearMonthDay })
                         let groupedRunningRecords = try await Dictionary(grouping: runningRecords, by: { $0.yearMonthDay })
 
-                        await send(.healthKitDataFetched(groupedHealthKitDatas))
+                        await send(.healthKitWorkoutFetched(groupedHealthKitWorkouts))
                         await send(.runningRecordsFetched(groupedRunningRecords))
-                        await send(.mergeDailyRecords(healthKitDatas: groupedHealthKitDatas, runningRecords: groupedRunningRecords))
+                        await send(.mergeDailyRecords(healthKitWorkouts: groupedHealthKitWorkouts, runningRecords: groupedRunningRecords))
                     } catch {
                         let errorMessage = error.localizedDescription
                         await send(.recordsFetchedFailure(.fetchFailed(underlyingError: errorMessage)))
                     }
                 }
 
-            case let .healthKitDataFetched(healthKitDatas):
-                state.healthKitDatas.merge(healthKitDatas) { _, new in new }
-                AppLogger.calendar.info("healthKitDataFetched 완료 - 총 저장된 날짜 수: \(state.healthKitDatas.count)")
+            case let .healthKitWorkoutFetched(healthKitWorkouts):
+                state.healthKitWorkouts.merge(healthKitWorkouts) { _, new in new }
+                AppLogger.calendar.info("healthKitWorkoutFetched 완료 - 총 저장된 날짜 수: \(state.healthKitWorkouts.count)")
                 return .none
 
             case let .runningRecordsFetched(runninRecords):
@@ -138,25 +138,25 @@ struct CalendarFeature {
 
                 return .none
 
-            case let .mergeDailyRecords(healthKitDatas, runningRecords):
+            case let .mergeDailyRecords(healthKitWorkouts, runningRecords):
                 AppLogger.calendar.debug("mergeDailyRecords 시작")
 
                 var currentDate = state.startDate
 
                 while currentDate <= state.endDate {
                     if state.dailyRecords[currentDate] == nil {
-                        let healthKitDatasOnDate = healthKitDatas[currentDate] ?? []
+                        let healthKitWorkoutsOnDate = healthKitWorkouts[currentDate] ?? []
                         let runningRecordsOnDate = runningRecords[currentDate] ?? []
 
                         // HealthKit 데이터 중 저장된 기록과 중복되지 않는 것만 필터링
-                        let filteredHealthKitRecords = healthKitDatasOnDate.filter { healthKitData in
-                            !runningRecordsOnDate.contains(where: { $0.startTime == healthKitData.startDate })
+                        let filteredHealthKitRecords = healthKitWorkoutsOnDate.filter { healthKitWorkout in
+                            !runningRecordsOnDate.contains(where: { $0.startTime == healthKitWorkout.startDate })
                         }
                         let sortedHealthKitRecords = filteredHealthKitRecords.sorted { $0.startDate < $1.startDate }
 
                         let dailyRecord = DailyRecord(
                             yearMonthDay: currentDate,
-                            healthKitDatas: sortedHealthKitRecords,
+                            healthKitWorkouts: sortedHealthKitRecords,
                             savedRecords: runningRecordsOnDate
                         )
 

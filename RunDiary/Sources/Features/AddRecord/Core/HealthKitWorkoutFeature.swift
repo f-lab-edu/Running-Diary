@@ -1,5 +1,5 @@
 //
-//  HealthKitDataFeature.swift
+//  HealthKitWorkoutFeature.swift
 //  RunDiary
 //
 //  Created by Claude on 10/22/25.
@@ -11,12 +11,12 @@ import Foundation
 import Models
 
 @Reducer
-struct HealthKitDataFeature {
+struct HealthKitWorkoutFeature {
     @ObservableState
     struct State: Equatable {
-        let data: HealthKitData?
+        let data: HealthKitWorkout?
 
-        init(data: HealthKitData?) {
+        init(data: HealthKitWorkout?) {
             self.data = data
         }
     }

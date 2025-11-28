@@ -39,7 +39,7 @@ struct CalendarContentView: View {
                 isToday: $0.yearMonthDay == YearMonthDay.today,
                 records: store.runningRecords[$0.yearMonthDay, default: []],
                 isSelected: store.selectedDate == $0.yearMonthDay,
-                hasUnsavedWorkout: store.dailyRecords[$0.yearMonthDay]?.hasHealthKitData ?? false
+                hasUnsavedWorkout: store.dailyRecords[$0.yearMonthDay]?.hasHealthKitWorkout ?? false
             )
         }
         .onDaySelection {

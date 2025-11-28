@@ -13,8 +13,8 @@ import Models
 @DependencyClient
 struct HealthKitClient {
     var ensureAuthorizationIfNeeded: @MainActor @Sendable () async throws -> Void
-    var fetchRunningDataOnDate: @MainActor @Sendable (Date) async throws -> [HealthKitData]
-    var fetchRunningDataBetweenDates: @MainActor @Sendable (Date, Date) async throws -> [HealthKitData]
+    var fetchRunningDataOnDate: @MainActor @Sendable (Date) async throws -> [HealthKitWorkout]
+    var fetchRunningDataBetweenDates: @MainActor @Sendable (Date, Date) async throws -> [HealthKitWorkout]
 }
 
 extension HealthKitClient: DependencyKey {
@@ -47,7 +47,7 @@ extension HealthKitClient: DependencyKey {
         fetchRunningDataOnDate: { _ in
             // Mock 데이터 반환
             [
-                HealthKitData(
+                HealthKitWorkout(
                     distance: 5.2,
                     duration: 3665,  // 1시간 1분 5초
                     averagePace: "5'30\"",
@@ -64,7 +64,7 @@ extension HealthKitClient: DependencyKey {
             (0..<7).map { index in
                 // 일부 날짜는 데이터가 없도록 nil 반환
                 let duration = Double.random(in: 1800...5400)
-                return index % 3 == 0 ? nil : HealthKitData(
+                return index % 3 == 0 ? nil : HealthKitWorkout(
                     distance: Double.random(in: 3.0...10.0),
                     duration: duration,
                     averagePace: "5'30\"",

@@ -13,20 +13,21 @@ import Testing
 
 @testable import RunDiary
 
-@Suite("DailyDetail Feature")
+@Suite("DailyDetailFeature")
 struct DailyDetailFeatureTests {
+
     // MARK: - Initialization Tests
 
     @Test("앱 시작 시 빈 currentWeekDates로 주 날짜 초기화 및 fetch 트리거")
     func onAppearInitializesDatesAndFetchesWeekRecords() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
-        let mockHealthKit = makeHealthKitData(yearMonthDay: testDate)
+        let mockHealthKit = makeHealthKitWorkout(yearMonthDay: testDate)
         let mockRecord = makeRunningRecord(yearMonthDay: testDate)
         let weekDates = makeWeekDates(containing: testDate)
-
-        let expectedValue = makeExpectedDailyRecords(
+        let expectedDailyRecords = makeExpectedDailyRecords(
             forWeekContaining: testDate,
-            healthKitDatas: [testDate: [mockHealthKit]],
+            healthKitWorkouts: [testDate: [mockHealthKit]],
             runningRecords: [testDate: [mockRecord]]
         )
 
@@ -38,7 +39,9 @@ struct DailyDetailFeatureTests {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [mockHealthKit] }
         }
 
+        // When
         await store.send(.onAppear) {
+            // Then
             $0.currentWeekDates = weekDates
         }
 
@@ -47,8 +50,8 @@ struct DailyDetailFeatureTests {
             $0.error = nil
         }
 
-        await store.receive(\.healthKitDatasFetched) {
-            $0.healthKitDatas[testDate] = [mockHealthKit]
+        await store.receive(\.healthKitWorkoutsFetched) {
+            $0.healthKitWorkouts[testDate] = [mockHealthKit]
         }
 
         await store.receive(\.runningRecordsFetched) {
@@ -57,7 +60,7 @@ struct DailyDetailFeatureTests {
 
         await store.receive(\.mergeDailyRecords) {
             $0.isLoading = false
-            $0.dailyRecords = expectedValue
+            $0.dailyRecords = expectedDailyRecords
         }
     }
 
@@ -65,13 +68,13 @@ struct DailyDetailFeatureTests {
 
     @Test("날짜 선택 시 캐시 미스면 주 단위 기록 조회")
     func dateSelectionWithCacheMissTriggersWeekFetch() async {
+        // Given
         let selectedDate = makeTodayYearMonthDay()
-        let mockHealthKit = makeHealthKitData(yearMonthDay: selectedDate)
+        let mockHealthKit = makeHealthKitWorkout(yearMonthDay: selectedDate)
         let mockRecord = makeRunningRecord(yearMonthDay: selectedDate)
-
-        let expectedValue = makeExpectedDailyRecords(
+        let expectedDailyRecords = makeExpectedDailyRecords(
             forWeekContaining: selectedDate,
-            healthKitDatas: [selectedDate: [mockHealthKit]],
+            healthKitWorkouts: [selectedDate: [mockHealthKit]],
             runningRecords: [selectedDate: [mockRecord]]
         )
 
@@ -86,13 +89,15 @@ struct DailyDetailFeatureTests {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [mockHealthKit] }
         }
 
+        // When
         await store.send(.fetchWeekRecords) {
+            // Then
             $0.isLoading = true
             $0.error = nil
         }
 
-        await store.receive(\.healthKitDatasFetched) {
-            $0.healthKitDatas = [selectedDate: [mockHealthKit]]
+        await store.receive(\.healthKitWorkoutsFetched) {
+            $0.healthKitWorkouts = [selectedDate: [mockHealthKit]]
         }
 
         await store.receive(\.runningRecordsFetched) {
@@ -101,24 +106,22 @@ struct DailyDetailFeatureTests {
 
         await store.receive(\.mergeDailyRecords) {
             $0.isLoading = false
-            $0.dailyRecords = expectedValue
+            $0.dailyRecords = expectedDailyRecords
         }
     }
 
     @Test("날짜 선택 시 캐시 히트면 fetch 생략")
     func dateSelectionWithCacheHitSkipsFetch() async {
+        // Given
         let initialDate = makeTodayYearMonthDay()
         let selectedDate = initialDate.add(day: -1)!
         let weekDates = DateHelper.getWeekDates(for: initialDate.toDate()).map { YearMonthDay(date: $0) }
-
-        // 캐시 준비: weekDates의 모든 날짜에 대한 DailyRecord 생성
         let records = weekDates.map {
-            let dailyRecord = DailyRecord(yearMonthDay: $0, healthKitDatas: [], savedRecords: [])
+            let dailyRecord = DailyRecord(yearMonthDay: $0, healthKitWorkouts: [], savedRecords: [])
             return ($0, dailyRecord)
         }
         let cachedRecords = Dictionary(uniqueKeysWithValues: records)
 
-        // initialState에 currentWeekDates와 캐시된 dailyRecords 설정
         var initialState = DailyDetailFeature.State(selectedDate: initialDate)
         initialState.currentWeekDates = weekDates
         initialState.dailyRecords = cachedRecords
@@ -127,7 +130,7 @@ struct DailyDetailFeatureTests {
             DailyDetailFeature()
         }
 
-        // 캐시에 이미 있으므로 fetch가 발생하지 않음
+        // When & Then
         await store.send(.dateSelected(selectedDate)) {
             $0.selectedDate = selectedDate
         }
@@ -137,15 +140,13 @@ struct DailyDetailFeatureTests {
 
     @Test("주 변경 시 캐시 미스로 다음 주 이동 및 fetch 발생")
     func weekChangedForwardWithCacheMissTriggersWeekFetch() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
         let currentWeekDates = makeWeekDates(containing: testDate)
-
         let nextWeekStart = DateHelper.addWeeks(1, to: currentWeekDates.first!.toDate())
         let nextWeekDates = DateHelper.getWeekDates(for: nextWeekStart).map { YearMonthDay(date: $0) }
         let nextWeekRecord = makeRunningRecord(yearMonthDay: nextWeekDates.first!)
-
-        // fetch 후 기대되는 dailyRecords 정의
-        let expectedValue = makeExpectedDailyRecords(
+        let expectedDailyRecords = makeExpectedDailyRecords(
             forWeekContaining: nextWeekDates.first!,
             runningRecords: [nextWeekDates.first!: [nextWeekRecord]]
         )
@@ -161,10 +162,11 @@ struct DailyDetailFeatureTests {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
 
+        // When
         await store.send(.weekChanged(offset: 1)) {
+            // Then
             $0.currentWeekDates = nextWeekDates
 
-            // selectedDate가 같은 요일로 이동
             let calendar = Calendar.current
             let currentWeekday = calendar.component(.weekday, from: testDate.toDate())
             if let newSelectedDate = nextWeekDates.first(where: {
@@ -176,13 +178,12 @@ struct DailyDetailFeatureTests {
             }
         }
 
-        // 캐시 미스로 fetch 발생
         await store.receive(\.fetchWeekRecords) {
             $0.isLoading = true
             $0.error = nil
         }
 
-        await store.receive(\.healthKitDatasFetched)
+        await store.receive(\.healthKitWorkoutsFetched)
 
         await store.receive(\.runningRecordsFetched) {
             let firstDate = nextWeekDates.first!
@@ -191,33 +192,32 @@ struct DailyDetailFeatureTests {
 
         await store.receive(\.mergeDailyRecords) {
             $0.isLoading = false
-            $0.dailyRecords = expectedValue
+            $0.dailyRecords = expectedDailyRecords
         }
     }
 
     @Test("주 변경 시 캐시 히트로 fetch 생략")
     func weekChangedWithCacheHitSkipsFetch() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
         let currentWeekDates = makeWeekDates(containing: testDate)
-
         let nextWeekStart = DateHelper.addWeeks(1, to: currentWeekDates.first!.toDate())
         let nextWeekDates = DateHelper.getWeekDates(for: nextWeekStart).map { YearMonthDay(date: $0) }
 
         var initialState = DailyDetailFeature.State(selectedDate: testDate)
         initialState.currentWeekDates = currentWeekDates
 
-        // 현재 주와 다음 주 모두 캐싱
         for date in currentWeekDates {
             initialState.dailyRecords[date] = DailyRecord(
                 yearMonthDay: date,
-                healthKitDatas: [],
+                healthKitWorkouts: [],
                 savedRecords: []
             )
         }
         for date in nextWeekDates {
             initialState.dailyRecords[date] = DailyRecord(
                 yearMonthDay: date,
-                healthKitDatas: [],
+                healthKitWorkouts: [],
                 savedRecords: []
             )
         }
@@ -226,11 +226,10 @@ struct DailyDetailFeatureTests {
             DailyDetailFeature()
         }
 
-        // 다음 주로 이동
+        // When & Then
         await store.send(.weekChanged(offset: 1)) {
             $0.currentWeekDates = nextWeekDates
 
-            // selectedDate가 같은 요일로 이동
             let calendar = Calendar.current
             let currentWeekday = calendar.component(.weekday, from: testDate.toDate())
             if let newSelectedDate = nextWeekDates.first(where: {
@@ -241,26 +240,23 @@ struct DailyDetailFeatureTests {
                 $0.selectedDate = nextWeekDates.first!
             }
         }
-
-        // 캐시 히트로 fetch가 발생하지 않음
     }
 
     @Test("주 변경 시 선택된 날짜가 같은 요일로 이동")
     func weekChangedPreservesWeekday() async {
-        let testDate = makeYearMonthDay(year: 2025, month: 11, day: 27) // 목요일
+        // Given
+        let testDate = makeYearMonthDay(year: 2025, month: 11, day: 27)
         let currentWeekDates = makeWeekDates(containing: testDate)
-
         let nextWeekStart = DateHelper.addWeeks(1, to: currentWeekDates.first!.toDate())
         let nextWeekDates = DateHelper.getWeekDates(for: nextWeekStart).map { YearMonthDay(date: $0) }
 
         var initialState = DailyDetailFeature.State(selectedDate: testDate)
         initialState.currentWeekDates = currentWeekDates
 
-        // 다음 주 캐싱
         for date in nextWeekDates {
             initialState.dailyRecords[date] = DailyRecord(
                 yearMonthDay: date,
-                healthKitDatas: [],
+                healthKitWorkouts: [],
                 savedRecords: []
             )
         }
@@ -269,17 +265,17 @@ struct DailyDetailFeatureTests {
             DailyDetailFeature()
         }
 
+        // When
         await store.send(.weekChanged(offset: 1)) {
+            // Then
             $0.currentWeekDates = nextWeekDates
 
-            // 같은 요일(목요일)로 이동 확인
             let calendar = Calendar.current
             let currentWeekday = calendar.component(.weekday, from: testDate.toDate())
             if let newSelectedDate = nextWeekDates.first(where: {
                 calendar.component(.weekday, from: $0.toDate()) == currentWeekday
             }) {
                 $0.selectedDate = newSelectedDate
-                // 새 선택 날짜도 목요일인지 확인
                 let newWeekday = calendar.component(.weekday, from: newSelectedDate.toDate())
                 #expect(newWeekday == currentWeekday)
             }
@@ -290,13 +286,18 @@ struct DailyDetailFeatureTests {
 
     @Test("주 단위 기록 조회 성공 시 HealthKit과 RunningRecord 모두 fetch")
     func fetchWeekRecordsSuccessFetchesBothDataSources() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
         let weekDates = makeWeekDates(containing: testDate)
-        let mockHealthKit = makeHealthKitData(yearMonthDay: testDate)
+        let mockHealthKit = makeHealthKitWorkout(yearMonthDay: testDate)
         let mockRunningRecord = makeRunningRecord(yearMonthDay: testDate)
-        let groupedHealthKitData = makeGroupedHealthKitData([(testDate, mockHealthKit)])
+        let groupedHealthKitWorkout = makeGroupedHealthKitWorkout([(testDate, mockHealthKit)])
         let groupedRunningRecord = makeGroupedRunningRecords([(testDate, mockRunningRecord)])
-        let dailyRecords = makeDailyRecords(healthKitDatas: groupedHealthKitData, runningRecords: groupedRunningRecord, weekDates: weekDates)
+        let expectedDailyRecords = makeDailyRecords(
+            healthKitWorkouts: groupedHealthKitWorkout,
+            runningRecords: groupedRunningRecord,
+            weekDates: weekDates
+        )
 
         var initialState = DailyDetailFeature.State()
         initialState.currentWeekDates = weekDates
@@ -309,13 +310,15 @@ struct DailyDetailFeatureTests {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [mockHealthKit] }
         }
 
+        // When
         await store.send(.fetchWeekRecords) {
+            // Then
             $0.isLoading = true
             $0.error = nil
         }
 
-        await store.receive(\.healthKitDatasFetched) {
-            $0.healthKitDatas[testDate] = [mockHealthKit]
+        await store.receive(\.healthKitWorkoutsFetched) {
+            $0.healthKitWorkouts[testDate] = [mockHealthKit]
         }
 
         await store.receive(\.runningRecordsFetched) {
@@ -324,18 +327,21 @@ struct DailyDetailFeatureTests {
 
         await store.receive(\.mergeDailyRecords) {
             $0.isLoading = false
-            $0.dailyRecords = dailyRecords
+            $0.dailyRecords = expectedDailyRecords
         }
     }
 
     @Test("주 단위 기록 조회 시 빈 currentWeekDates면 에러 발생")
     func fetchWeekRecordsWithEmptyCurrentWeekDatesFails() async {
+        // Given
         let store = TestStore(initialState: DailyDetailFeature.State()) {
             DailyDetailFeature()
         }
 
+        // When
         await store.send(.fetchWeekRecords)
 
+        // Then
         await store.receive(\.weekRecordsFetchFailed) {
             $0.isLoading = false
             $0.error = .emptyWeekDates
@@ -344,6 +350,7 @@ struct DailyDetailFeatureTests {
 
     @Test("주 단위 기록 조회 실패 시 에러 상태 설정")
     func fetchWeekRecordsFailureSetsErrorState() async {
+        // Given
         struct TestError: Error, LocalizedError {
             var errorDescription: String? { "Test network error" }
         }
@@ -361,7 +368,9 @@ struct DailyDetailFeatureTests {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
 
+        // When
         await store.send(.fetchWeekRecords) {
+            // Then
             $0.isLoading = true
             $0.error = nil
         }
@@ -376,19 +385,17 @@ struct DailyDetailFeatureTests {
 
     @Test("mergeDailyRecords는 currentWeekDates의 모든 날짜에 대해 DailyRecord 생성")
     func mergeDailyRecordsCreatesRecordsForAllCurrentWeekDates() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
         let weekDates = makeWeekDates(containing: testDate)
-
-        // 7일 중 2개만 데이터가 있는 경우
         let firstDate = weekDates.first!
         let lastDate = weekDates.last!
-
-        let healthKitData = makeHealthKitData(yearMonthDay: firstDate)
+        let healthKitWorkout = makeHealthKitWorkout(yearMonthDay: firstDate)
         let runningRecord = makeRunningRecord(yearMonthDay: lastDate)
 
         var initialState = DailyDetailFeature.State()
         initialState.currentWeekDates = weekDates
-        initialState.healthKitDatas = [firstDate: [healthKitData]]
+        initialState.healthKitWorkouts = [firstDate: [healthKitWorkout]]
         initialState.runningRecords = [lastDate: [runningRecord]]
         initialState.isLoading = true
 
@@ -398,12 +405,13 @@ struct DailyDetailFeatureTests {
 
         store.exhaustivity = .off
 
+        // When
         await store.send(.mergeDailyRecords(
-            healthKitDatas: initialState.healthKitDatas,
+            healthKitWorkouts: initialState.healthKitWorkouts,
             runningRecords: initialState.runningRecords
         ))
 
-        // 검증
+        // Then
         #expect(store.state.isLoading == false)
         #expect(store.state.dailyRecords.count == 7)
 
@@ -412,30 +420,28 @@ struct DailyDetailFeatureTests {
             #expect(dailyRecord != nil)
 
             if date == firstDate {
-                #expect(dailyRecord?.healthKitDatas.count == 1)
+                #expect(dailyRecord?.healthKitWorkouts.count == 1)
                 #expect(dailyRecord?.savedRecords.isEmpty == true)
             } else if date == lastDate {
-                #expect(dailyRecord?.healthKitDatas.isEmpty == true)
+                #expect(dailyRecord?.healthKitWorkouts.isEmpty == true)
                 #expect(dailyRecord?.savedRecords.count == 1)
             } else {
-                #expect(dailyRecord?.healthKitDatas.isEmpty == true)
+                #expect(dailyRecord?.healthKitWorkouts.isEmpty == true)
                 #expect(dailyRecord?.savedRecords.isEmpty == true)
             }
         }
     }
 
     @Test("mergeDailyRecords는 중복된 HealthKit 데이터 필터링")
-    func mergeDailyRecordsFiltersDuplicateHealthKitData() async {
+    func mergeDailyRecordsFiltersDuplicateHealthKitWorkout() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
-        let startTime = testDate.toDate().addingTimeInterval(3600) // 1시간 후
-
-        // 같은 startTime을 가진 HealthKit 데이터와 RunningRecord
-        let healthKitData = makeHealthKitData(yearMonthDay: testDate, startOffset: 3600)
+        let healthKitWorkout = makeHealthKitWorkout(yearMonthDay: testDate, startOffset: 3600)
         let runningRecord = makeRunningRecord(yearMonthDay: testDate, startOffset: 3600)
 
         var initialState = DailyDetailFeature.State()
         initialState.currentWeekDates = makeWeekDates(containing: testDate)
-        initialState.healthKitDatas = [testDate: [healthKitData]]
+        initialState.healthKitWorkouts = [testDate: [healthKitWorkout]]
         initialState.runningRecords = [testDate: [runningRecord]]
 
         let store = TestStore(initialState: initialState) {
@@ -444,51 +450,49 @@ struct DailyDetailFeatureTests {
 
         store.exhaustivity = .off
 
+        // When
         await store.send(.mergeDailyRecords(
-            healthKitDatas: initialState.healthKitDatas,
+            healthKitWorkouts: initialState.healthKitWorkouts,
             runningRecords: initialState.runningRecords
         ))
 
-        // 검증
+        // Then
         #expect(store.state.isLoading == false)
 
         let dailyRecord = store.state.dailyRecords[testDate]
         #expect(dailyRecord != nil)
-
-        // HealthKit 데이터는 중복으로 제거되어야 함
-        #expect(dailyRecord?.healthKitDatas.isEmpty == true)
-        // RunningRecord는 남아있어야 함
+        #expect(dailyRecord?.healthKitWorkouts.isEmpty == true)
         #expect(dailyRecord?.savedRecords.count == 1)
     }
 
     @Test("mergeDailyRecords는 HealthKit 데이터를 startDate 순으로 정렬")
-    func mergeDailyRecordsSortsHealthKitDataByStartDate() async {
+    func mergeDailyRecordsSortsHealthKitWorkoutByStartDate() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
-
-        // 3개의 HealthKit 데이터를 다른 시간대로 생성
-        let healthKit1 = makeHealthKitData(yearMonthDay: testDate, startOffset: 3600)  // 1시간 후
-        let healthKit2 = makeHealthKitData(yearMonthDay: testDate, startOffset: 7200)  // 2시간 후
-        let healthKit3 = makeHealthKitData(yearMonthDay: testDate, startOffset: 10800) // 3시간 후
-
-        let expectedValue = makeExpectedDailyRecords(
+        let healthKit1 = makeHealthKitWorkout(yearMonthDay: testDate, startOffset: 3600)
+        let healthKit2 = makeHealthKitWorkout(yearMonthDay: testDate, startOffset: 7200)
+        let healthKit3 = makeHealthKitWorkout(yearMonthDay: testDate, startOffset: 10800)
+        let expectedDailyRecords = makeExpectedDailyRecords(
             forWeekContaining: testDate,
-            healthKitDatas: [testDate: [healthKit1, healthKit2, healthKit3]]
+            healthKitWorkouts: [testDate: [healthKit1, healthKit2, healthKit3]]
         )
 
         var initialState = DailyDetailFeature.State(selectedDate: testDate)
         initialState.currentWeekDates = makeWeekDates(containing: testDate)
-        initialState.healthKitDatas = [testDate: [healthKit1, healthKit2, healthKit3]]
+        initialState.healthKitWorkouts = [testDate: [healthKit1, healthKit2, healthKit3]]
 
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         }
 
+        // When
         await store.send(.mergeDailyRecords(
-            healthKitDatas: initialState.healthKitDatas,
+            healthKitWorkouts: initialState.healthKitWorkouts,
             runningRecords: initialState.runningRecords
         )) {
+            // Then
             $0.isLoading = false
-            $0.dailyRecords = expectedValue
+            $0.dailyRecords = expectedDailyRecords
         }
     }
 
@@ -496,8 +500,9 @@ struct DailyDetailFeatureTests {
 
     @Test("createRecord는 AddRecord를 추가 모드로 표시")
     func createRecordOpensAddRecordInAddMode() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
-        let healthKitData = makeHealthKitData(yearMonthDay: testDate)
+        let healthKitWorkout = makeHealthKitWorkout(yearMonthDay: testDate)
 
         let store = TestStore(
             initialState: DailyDetailFeature.State(selectedDate: testDate)
@@ -507,15 +512,18 @@ struct DailyDetailFeatureTests {
 
         store.exhaustivity = .off
 
-        await store.send(.createRecord(healthKitData))
+        // When
+        await store.send(.createRecord(healthKitWorkout))
 
+        // Then
         #expect(store.state.addRecord != nil)
         #expect(store.state.addRecord?.existingRecord == nil)
-        #expect(store.state.addRecord?.healthKitData.data == healthKitData)
+        #expect(store.state.addRecord?.healthKitWorkout.data == healthKitWorkout)
     }
 
     @Test("editRecord는 AddRecord를 편집 모드로 표시")
     func editRecordOpensAddRecordInEditMode() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
         let runningRecord = makeRunningRecord(yearMonthDay: testDate)
 
@@ -525,26 +533,29 @@ struct DailyDetailFeatureTests {
             DailyDetailFeature()
         }
 
+        // When & Then
         await store.send(.editRecord(runningRecord)) {
             $0.addRecord = AddRecordFeature.State(
                 existingRecord: runningRecord,
-                healthKitData: nil
+                healthKitWorkout: nil
             )
         }
     }
 
     @Test("addRecord dismiss 시 시트 닫힘")
     func addRecordDismissClosesSheet() async {
+        // Given
         var initialState = DailyDetailFeature.State()
         initialState.addRecord = AddRecordFeature.State(
             existingRecord: nil,
-            healthKitData: nil
+            healthKitWorkout: nil
         )
 
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         }
 
+        // When & Then
         await store.send(.addRecord(.dismiss)) {
             $0.addRecord = nil
         }
@@ -552,17 +563,22 @@ struct DailyDetailFeatureTests {
 
     @Test("addRecord recordSaved 시 캐시 무효화 및 주 단위 새로고침")
     func addRecordSavedClearsCacheAndRefetchesWeek() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
         let weekDates = makeWeekDates(containing: testDate)
         let runningRecord = makeRunningRecord(yearMonthDay: testDate)
         let groupedRunningRecords = makeGroupedRunningRecords([(testDate, runningRecord)])
-        var expectedValue = makeDailyRecords(healthKitDatas: [:], runningRecords: groupedRunningRecords, weekDates: weekDates)
+        let expectedDailyRecords = makeDailyRecords(
+            healthKitWorkouts: [:],
+            runningRecords: groupedRunningRecords,
+            weekDates: weekDates
+        )
 
         var initialState = DailyDetailFeature.State(selectedDate: testDate)
         initialState.currentWeekDates = makeWeekDates(containing: testDate)
         initialState.addRecord = AddRecordFeature.State(
             existingRecord: nil,
-            healthKitData: nil
+            healthKitWorkout: nil
         )
 
         let store = TestStore(initialState: initialState) {
@@ -573,7 +589,9 @@ struct DailyDetailFeatureTests {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
 
+        // When
         await store.send(.addRecord(.presented(.recordSaved))) {
+            // Then
             $0.addRecord = nil
             $0.dailyRecords.removeAll()
         }
@@ -583,7 +601,7 @@ struct DailyDetailFeatureTests {
             $0.error = nil
         }
 
-        await store.receive(\.healthKitDatasFetched)
+        await store.receive(\.healthKitWorkoutsFetched)
 
         await store.receive(\.runningRecordsFetched) {
             $0.runningRecords[testDate] = [runningRecord]
@@ -591,8 +609,7 @@ struct DailyDetailFeatureTests {
 
         await store.receive(\.mergeDailyRecords) {
             $0.isLoading = false
-            $0.dailyRecords = expectedValue
-
+            $0.dailyRecords = expectedDailyRecords
         }
     }
 
@@ -600,6 +617,7 @@ struct DailyDetailFeatureTests {
 
     @Test("calendarButtonTapped 시 Calendar 시트 표시")
     func calendarButtonTappedOpensCalendarSheet() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
 
         let store = TestStore(
@@ -608,6 +626,7 @@ struct DailyDetailFeatureTests {
             DailyDetailFeature()
         }
 
+        // When & Then
         await store.send(.calendarButtonTapped) {
             $0.calendar = CalendarFeature.State(selectedDate: testDate)
         }
@@ -615,6 +634,7 @@ struct DailyDetailFeatureTests {
 
     @Test("calendar dismiss 시 시트 닫힘")
     func calendarDismissClosesSheet() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
 
         var initialState = DailyDetailFeature.State(selectedDate: testDate)
@@ -624,6 +644,7 @@ struct DailyDetailFeatureTests {
             DailyDetailFeature()
         }
 
+        // When & Then
         await store.send(.calendar(.dismiss)) {
             $0.calendar = nil
         }
@@ -631,18 +652,18 @@ struct DailyDetailFeatureTests {
 
     @Test("calendar navigateToDiary 시 주와 날짜 변경 및 캐시 미스면 fetch")
     func calendarNavigateToDiaryChangesWeekAndDateWithCacheMiss() async {
+        // Given
         let currentDate = makeYearMonthDay(year: 2025, month: 11, day: 27)
-        let selectedDate = makeYearMonthDay(year: 2025, month: 12, day: 10) // 다른 주
+        let selectedDate = makeYearMonthDay(year: 2025, month: 12, day: 10)
+        let expectedDailyRecords = makeExpectedDailyRecords(
+            forWeekContaining: selectedDate,
+            healthKitWorkouts: [:],
+            runningRecords: [:]
+        )
 
         var initialState = DailyDetailFeature.State(selectedDate: currentDate)
         initialState.currentWeekDates = makeWeekDates(containing: currentDate)
         initialState.calendar = CalendarFeature.State(selectedDate: selectedDate)
-
-        let expectedValue = makeExpectedDailyRecords(
-            forWeekContaining: selectedDate,
-            healthKitDatas: [:],
-            runningRecords: [:]
-        )
 
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
@@ -652,25 +673,26 @@ struct DailyDetailFeatureTests {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
 
+        // When
         await store.send(.calendar(.presented(.navigateToDiary))) {
+            // Then
             $0.calendar = nil
             $0.currentWeekDates = makeWeekDates(containing: selectedDate)
             $0.selectedDate = selectedDate
         }
 
-        // 캐시 미스로 fetch 발생
         await store.receive(\.fetchWeekRecords) {
             $0.isLoading = true
             $0.error = nil
         }
 
-        await store.receive(\.healthKitDatasFetched)
+        await store.receive(\.healthKitWorkoutsFetched)
 
         await store.receive(\.runningRecordsFetched)
 
         await store.receive(\.mergeDailyRecords) {
             $0.isLoading = false
-            $0.dailyRecords = expectedValue
+            $0.dailyRecords = expectedDailyRecords
         }
     }
 
@@ -678,25 +700,28 @@ struct DailyDetailFeatureTests {
 
     @Test("currentDailyRecord는 선택된 날짜의 기록 반환")
     func currentDailyRecordReturnsCorrectRecord() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
-        let dailyRecord = DailyRecord(
+        let expectedDailyRecord = DailyRecord(
             yearMonthDay: testDate,
-            healthKitDatas: [],
+            healthKitWorkouts: [],
             savedRecords: []
         )
 
         var initialState = DailyDetailFeature.State(selectedDate: testDate)
-        initialState.dailyRecords = [testDate: dailyRecord]
+        initialState.dailyRecords = [testDate: expectedDailyRecord]
 
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         }
 
-        #expect(store.state.currentDailyRecord == dailyRecord)
+        // When & Then
+        #expect(store.state.currentDailyRecord == expectedDailyRecord)
     }
 
     @Test("currentDailyRecord는 캐시되지 않은 날짜면 nil 반환")
     func currentDailyRecordReturnsNilWhenNotCached() async {
+        // Given
         let testDate = makeTodayYearMonthDay()
 
         let initialState = DailyDetailFeature.State(selectedDate: testDate)
@@ -705,6 +730,7 @@ struct DailyDetailFeatureTests {
             DailyDetailFeature()
         }
 
+        // When & Then
         #expect(store.state.currentDailyRecord == nil)
     }
 
@@ -712,20 +738,23 @@ struct DailyDetailFeatureTests {
 
     @Test("weekRecordsFetchFailed 시 에러 상태 설정")
     func weekRecordsFetchFailedSetsErrorState() async {
-        let error = DailyDetailError.fetchFailed(underlyingError: "Network error")
+        // Given
+        let expectedError = DailyDetailError.fetchFailed(underlyingError: "Network error")
 
         let store = TestStore(initialState: DailyDetailFeature.State(isLoading: true)) {
             DailyDetailFeature()
         }
 
-        await store.send(.weekRecordsFetchFailed(error)) {
+        // When & Then
+        await store.send(.weekRecordsFetchFailed(expectedError)) {
             $0.isLoading = false
-            $0.error = error
+            $0.error = expectedError
         }
     }
 
     @Test("조회 실패 시 캐시가 손상되지 않음")
     func fetchFailureDoesNotCorruptCache() async {
+        // Given
         struct TestError: Error, LocalizedError {
             var errorDescription: String? { "Test error" }
         }
@@ -733,7 +762,7 @@ struct DailyDetailFeatureTests {
         let testDate = makeTodayYearMonthDay()
         let existingRecord = DailyRecord(
             yearMonthDay: testDate,
-            healthKitDatas: [],
+            healthKitWorkouts: [],
             savedRecords: []
         )
 
@@ -751,7 +780,9 @@ struct DailyDetailFeatureTests {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
 
+        // When
         await store.send(.fetchWeekRecords) {
+            // Then
             $0.isLoading = true
             $0.error = nil
         }
@@ -759,8 +790,6 @@ struct DailyDetailFeatureTests {
         await store.receive(\.weekRecordsFetchFailed) {
             $0.isLoading = false
             $0.error = .fetchFailed(underlyingError: "Test error")
-
-            // 기존 캐시는 그대로 유지되어야 함
             #expect($0.dailyRecords[testDate] == existingRecord)
         }
     }
@@ -768,9 +797,9 @@ struct DailyDetailFeatureTests {
 
 // MARK: - Test Helpers
 
-extension DailyDetailFeatureTests {
+private extension DailyDetailFeatureTests {
     /// 오늘 날짜의 YearMonthDay 반환
-    private func makeTodayYearMonthDay() -> YearMonthDay {
+    func makeTodayYearMonthDay() -> YearMonthDay {
         YearMonthDay(date: Date())
     }
 
@@ -780,7 +809,7 @@ extension DailyDetailFeatureTests {
     ///   - month: 월 (기본값: 1)
     ///   - day: 일 (기본값: 1)
     /// - Returns: 지정된 날짜의 YearMonthDay
-    private func makeYearMonthDay(
+    func makeYearMonthDay(
         year: Int? = nil,
         month: Int = 1,
         day: Int = 1
@@ -793,7 +822,7 @@ extension DailyDetailFeatureTests {
     /// 랜덤한 날짜의 YearMonthDay 반환
     /// - Parameter excluding: 제외할 날짜 목록 (옵셔널)
     /// - Returns: excluding에 포함되지 않은 랜덤 YearMonthDay
-    private func makeRandomYearMonthDay(excluding: [YearMonthDay]? = nil) -> YearMonthDay {
+    func makeRandomYearMonthDay(excluding: [YearMonthDay]? = nil) -> YearMonthDay {
         let calendar = Calendar.current
         let currentYear = calendar.component(.year, from: Date())
 
@@ -828,14 +857,14 @@ extension DailyDetailFeatureTests {
         return YearMonthDay(year: year, month: month, day: Int.random(in: 1...maxDay))
     }
 
-    /// HealthKitData 생성 헬퍼
-    private func makeHealthKitData(
+    /// HealthKitWorkout 생성 헬퍼
+    func makeHealthKitWorkout(
         yearMonthDay: YearMonthDay,
         distance: Double = 5.0,
         startOffset: TimeInterval = 0
-    ) -> HealthKitData {
+    ) -> HealthKitWorkout {
         let startDate = yearMonthDay.toDate().addingTimeInterval(startOffset)
-        return HealthKitData(
+        return HealthKitWorkout(
             distance: distance,
             duration: 1800,
             averagePace: "6'00\"",
@@ -848,7 +877,7 @@ extension DailyDetailFeatureTests {
     }
 
     /// RunningRecord 생성 헬퍼
-    private func makeRunningRecord(
+    func makeRunningRecord(
         yearMonthDay: YearMonthDay,
         distance: Double = 5.0,
         startOffset: TimeInterval = 0
@@ -868,37 +897,37 @@ extension DailyDetailFeatureTests {
     }
 
     /// 그룹화된 HealthKit 데이터 생성 헬퍼
-    private func makeGroupedHealthKitData(
-        _ data: [(YearMonthDay, HealthKitData)]
-    ) -> [YearMonthDay: [HealthKitData]] {
+    func makeGroupedHealthKitWorkout(
+        _ data: [(YearMonthDay, HealthKitWorkout)]
+    ) -> [YearMonthDay: [HealthKitWorkout]] {
         Dictionary(grouping: data.map { $1 }, by: { $0.yearMonthDay })
     }
 
     /// 그룹화된 RunningRecord 생성 헬퍼
-    private func makeGroupedRunningRecords(
+    func makeGroupedRunningRecords(
         _ records: [(YearMonthDay, RunningRecord)]
     ) -> [YearMonthDay: [RunningRecord]] {
         Dictionary(grouping: records.map { $1 }, by: { $0.yearMonthDay })
     }
 
     /// 주 날짜 배열 생성 헬퍼
-    private func makeWeekDates(containing date: YearMonthDay) -> [YearMonthDay] {
+    func makeWeekDates(containing date: YearMonthDay) -> [YearMonthDay] {
         DateHelper.getWeekDates(for: date.toDate()).map { YearMonthDay(date: $0) }
     }
 
-    private func makeDailyRecords(
-        healthKitDatas: [YearMonthDay: [HealthKitData]],
+    func makeDailyRecords(
+        healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]],
         runningRecords: [YearMonthDay: [RunningRecord]],
         weekDates: [YearMonthDay]
     ) -> [YearMonthDay: DailyRecord] {
         var dailyRecords: [YearMonthDay: DailyRecord] = [:]
         for weekDate in weekDates {
             let runningRecord = runningRecords[weekDate] ?? []
-            let healthKitData = healthKitDatas[weekDate] ?? []
-            let filteredHealthKitData = healthKitData.filter { data in !runningRecord.contains(where: { $0.startTime == data.startDate }) }
+            let healthKitWorkout = healthKitWorkouts[weekDate] ?? []
+            let filteredHealthKitWorkout = healthKitWorkout.filter { data in !runningRecord.contains(where: { $0.startTime == data.startDate }) }
             let dailyRecord = DailyRecord(
                 yearMonthDay: weekDate,
-                healthKitDatas: filteredHealthKitData,
+                healthKitWorkouts: filteredHealthKitWorkout,
                 savedRecords: runningRecords[weekDate] ?? []
             )
             dailyRecords.updateValue(dailyRecord, forKey: weekDate)
@@ -907,14 +936,14 @@ extension DailyDetailFeatureTests {
     }
 
     /// ExpectedValue 생성 간소화 헬퍼 - 주어진 데이터로부터 예상되는 DailyRecords를 자동으로 생성
-    private func makeExpectedDailyRecords(
+    func makeExpectedDailyRecords(
         forWeekContaining date: YearMonthDay,
-        healthKitDatas: [YearMonthDay: [HealthKitData]] = [:],
+        healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]] = [:],
         runningRecords: [YearMonthDay: [RunningRecord]] = [:]
     ) -> [YearMonthDay: DailyRecord] {
         let weekDates = makeWeekDates(containing: date)
         return makeDailyRecords(
-            healthKitDatas: healthKitDatas,
+            healthKitWorkouts: healthKitWorkouts,
             runningRecords: runningRecords,
             weekDates: weekDates
         )

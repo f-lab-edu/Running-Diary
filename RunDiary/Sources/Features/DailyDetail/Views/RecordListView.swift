@@ -21,13 +21,13 @@ struct RecordListView: View {
                     RunningRecordCard(record: record, onEdit: { store.send(.editRecord(record)) })
                 }
 
-                if !dailyRecord.savedRecords.isEmpty || !dailyRecord.healthKitDatas.isEmpty {
+                if !dailyRecord.savedRecords.isEmpty || !dailyRecord.healthKitWorkouts.isEmpty {
                     Divider()
                         .padding(.horizontal, 20)
                 }
 
-                ForEach(dailyRecord.healthKitDatas) { record in
-                    HealthKitDataCard(record: record, onCreate: { store.send(.createRecord(record)) })
+                ForEach(dailyRecord.healthKitWorkouts) { record in
+                    HealthKitWorkoutCard(record: record, onCreate: { store.send(.createRecord(record)) })
                 }
             }
             .padding(.vertical, 20)
@@ -37,8 +37,8 @@ struct RecordListView: View {
     }
 }
 
-struct HealthKitDataCard: View {
-    let record: HealthKitData
+struct HealthKitWorkoutCard: View {
+    let record: HealthKitWorkout
     let onCreate: () -> Void
 
     var body: some View {
