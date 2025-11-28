@@ -32,7 +32,7 @@ struct AddRecordFeature {
         var weather: WeatherData?
 
         var isLoading: Bool = false
-        var errorMessage: String?
+        var errorMassage: String?
 
         var isFormValid: Bool {
             guard healthKitData.data != nil else { return false }
@@ -102,7 +102,7 @@ struct AddRecordFeature {
             case .saveRecord:
                 guard let healthKitData = state.healthKitData.data else { return .none }
                 state.isLoading = true
-                state.errorMessage = nil
+                state.errorMassage = nil
 
                 let location = extractLocationFromRoute(healthKitData.routeData)
                 let yearMonthDay = YearMonthDay(date: healthKitData.startDate)
@@ -165,7 +165,11 @@ struct AddRecordFeature {
 
                         await send(.recordSaved)
                     } catch {
-                        await send(.recordSaveFailed(error.localizedDescription))
+                        if let runningRecordError = error as? RunningRecordError {
+                            await send(.recordSaveFailed(runningRecordError.errorDescription ?? runningRecordError.localizedDescription))
+                        } else {
+                            await send(.recordSaveFailed(error.localizedDescription))
+                        }
                     }
                 }
 
@@ -179,9 +183,9 @@ struct AddRecordFeature {
                     await dismiss()
                 }
 
-            case .recordSaveFailed(let error):
+            case .recordSaveFailed(let errorMassage):
                 state.isLoading = false
-                state.errorMessage = "\(L10n.Record.Error.saveContext): \(error)"
+                state.errorMassage = errorMassage
                 return .none
             }
         }

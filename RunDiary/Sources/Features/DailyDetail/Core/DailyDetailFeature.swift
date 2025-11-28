@@ -85,8 +85,7 @@ struct DailyDetailFeature {
                 AppLogger.dailyDetail.debug("onAppear - 화면 표시됨")
                 // 현재 주의 날짜들로 초기화
                 if state.currentWeekDates.isEmpty {
-                    let today = Date.now
-                    state.currentWeekDates = DateHelper.getWeekDates(for: today).map { YearMonthDay(date: $0) }
+                    state.currentWeekDates = DateHelper.getWeekDates(for: state.selectedDate.toDate()).map { YearMonthDay(date: $0) }
                     AppLogger.dailyDetail.info("주간 날짜 초기화 완료 - 시작일: \(state.currentWeekDates.first ?? nil)")
                 }
                 return .send(.fetchWeekRecords)
@@ -141,7 +140,7 @@ struct DailyDetailFeature {
             case .fetchWeekRecords:
                 guard let weekStart = state.currentWeekDates.first,
                       let weekEnd = state.currentWeekDates.last else {
-                    return .send(.weekRecordsFetchFailed(.fetchFailed(underlyingError: "currentWeekDates가 비어있음")))
+                    return .send(.weekRecordsFetchFailed(.emptyWeekDates))
                 }
 
                 state.isLoading = true
@@ -175,13 +174,13 @@ struct DailyDetailFeature {
                 state.runningRecords.merge(runningRecords) { _, new in new }
                 return .none
 
-            case .mergeDailyRecords:
+            case let .mergeDailyRecords(healthKitDatas, runningRecords):
                 AppLogger.dailyDetail.debug("mergeCachedRecords 시작")
 
                 // currentWeekDates의 모든 날짜에 대해 DailyRecord 생성
                 for yearMonthDay in state.currentWeekDates {
-                    let savedRecords = state.runningRecords[yearMonthDay] ?? []
-                    let healthKitRecords = state.healthKitDatas[yearMonthDay] ?? []
+                    let savedRecords = runningRecords[yearMonthDay] ?? []
+                    let healthKitRecords = healthKitDatas[yearMonthDay] ?? []
 
                     // HealthKit 데이터 중 저장된 기록과 중복되지 않는 것만 필터링
                     let filteredHealthKitRecords = healthKitRecords.filter { healthKitData in

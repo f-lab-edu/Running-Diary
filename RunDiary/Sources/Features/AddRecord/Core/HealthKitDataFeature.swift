@@ -17,20 +17,7 @@ struct HealthKitDataFeature {
         let data: HealthKitData?
 
         init(data: HealthKitData?) {
-            if let data {
-                self.data = HealthKitData(
-                    distance: data.distance,
-                    duration: data.duration,
-                    averagePace: data.averagePace,
-                    averageHeartRate: data.averageHeartRate,
-                    averageCadence: data.averageCadence,
-                    routeData: data.routeData,
-                    startDate: data.startDate,
-                    endDate: data.endDate
-                )
-            } else {
-                self.data = nil
-            }
+            self.data = data
         }
     }
 
