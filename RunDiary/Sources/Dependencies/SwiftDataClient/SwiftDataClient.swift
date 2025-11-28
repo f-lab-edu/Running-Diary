@@ -1,5 +1,5 @@
 //
-//  RunningRecordClient.swift
+//  SwiftDataClient.swift
 //  RunDiary
 //
 //  Created by Claude on 10/19/25.
@@ -12,7 +12,7 @@ import SwiftData
 import Models
 
 @DependencyClient
-struct RunningRecordClient {
+struct SwiftDataClient {
     var fetch: @MainActor @Sendable (Date) async throws -> RunningRecord?
     var fetchRecords: @MainActor @Sendable (Date, Date) async throws -> [RunningRecord]
     var save: @MainActor @Sendable (RunningRecord) async throws -> Void
@@ -20,8 +20,8 @@ struct RunningRecordClient {
     var delete: @MainActor @Sendable (RunningRecord) async throws -> Void
 }
 
-extension RunningRecordClient: DependencyKey {
-    static let liveValue: RunningRecordClient = RunningRecordClient(
+extension SwiftDataClient: DependencyKey {
+    static let liveValue: SwiftDataClient = SwiftDataClient(
         fetch: { _ in
             fatalError("RepositoryClient.fetch must be overridden with live implementation")
         },
@@ -39,7 +39,7 @@ extension RunningRecordClient: DependencyKey {
         }
     )
 
-    static let testValue = RunningRecordClient(
+    static let testValue = SwiftDataClient(
         fetch: unimplemented("\(Self.self).fetch"),
         fetchRecords: unimplemented("\(Self.self).fetchRecords"),
         save: unimplemented("\(Self.self).save"),
@@ -47,7 +47,7 @@ extension RunningRecordClient: DependencyKey {
         delete: unimplemented("\(Self.self).delete")
     )
 
-    static let previewValue = RunningRecordClient(
+    static let previewValue = SwiftDataClient(
         fetch: { date in
             // RunningRecordModel.previewRecords에서 날짜가 일치하는 레코드 찾기
             let calendar = Calendar.current
@@ -68,33 +68,33 @@ extension RunningRecordClient: DependencyKey {
 }
 
 extension DependencyValues {
-    var runningRecordClient: RunningRecordClient {
-        get { self[RunningRecordClient.self] }
-        set { self[RunningRecordClient.self] = newValue }
+    var swiftDataClient: SwiftDataClient {
+        get { self[SwiftDataClient.self] }
+        set { self[SwiftDataClient.self] = newValue }
     }
 }
 
 // MARK: - Helper
 
-extension RunningRecordClient {
-    static func live(modelContext: ModelContext) -> RunningRecordClient {
-        let repository = RunningRecordRepository(modelContext: modelContext)
+extension SwiftDataClient {
+    static func live(modelContext: ModelContext) -> SwiftDataClient {
+        let repository = LiveSwiftDataRepository(modelContext: modelContext)
 
-        return RunningRecordClient(
+        return SwiftDataClient(
             fetch: { date in
-                try await repository.fetch(for: date)
+                try await repository.fetchRunningRecord(for: date)
             },
             fetchRecords: { startDate, endDate in
-                try await repository.fetchRecords(from: startDate, to: endDate)
+                try await repository.fetchRunningRecords(from: startDate, to: endDate)
             },
             save: { record in
-                try await repository.save(record)
+                try await repository.saveRunningRecord(record)
             },
             update: { record in
-                try await repository.update(record)
+                try await repository.updateRunningRecord(record)
             },
             delete: { record in
-                try await repository.delete(record)
+                try await repository.deleteRunningRecord(record)
             }
         )
     }

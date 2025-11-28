@@ -84,7 +84,7 @@ struct CalendarView: View {
         store: Store(initialState: CalendarFeature.State(selectedDate: YearMonthDay(date: .now))) {
             CalendarFeature()
         } withDependencies: {
-            $0.runningRecordClient = .previewValue
+            $0.swiftDataClient = .previewValue
         }
     )
 }

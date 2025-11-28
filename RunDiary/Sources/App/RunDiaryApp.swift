@@ -20,7 +20,7 @@ struct RunDiaryApp: App {
             DailyDetailFeature()
                 ._printChanges()
         } withDependencies: {
-            $0.runningRecordClient = .live(modelContext: DataModel.shared.modelContainer.mainContext)
+            $0.swiftDataClient = .live(modelContext: DataModel.shared.modelContainer.mainContext)
             $0.healthKitClient = .liveValue
         }
     }

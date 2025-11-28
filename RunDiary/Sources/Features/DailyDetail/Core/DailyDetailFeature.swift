@@ -73,7 +73,7 @@ struct DailyDetailFeature {
 
     // MARK: - Dependency
 
-    @Dependency(\.runningRecordClient) var runningRecordClient
+    @Dependency(\.swiftDataClient) var swiftDataClient
     @Dependency(\.healthKitClient) var healthKitClient
 
     // MARK: - Reducer
@@ -153,7 +153,7 @@ struct DailyDetailFeature {
                         let endDate = weekEnd.toDate()
                         try await healthKitClient.ensureAuthorizationIfNeeded()
                         async let healthKitWorkouts = try await healthKitClient.fetchRunningDataBetweenDates(startDate, endDate)
-                        async let runningRecords = try await runningRecordClient.fetchRecords(startDate, endDate)
+                        async let runningRecords = try await swiftDataClient.fetchRecords(startDate, endDate)
                         let groupedHealthKitWorkouts = try await Dictionary(grouping: healthKitWorkouts, by: { $0.yearMonthDay })
                         let groupedRunningRecords = try await Dictionary(grouping: runningRecords, by: { $0.yearMonthDay })
 

@@ -16,6 +16,8 @@ import Testing
 @Suite("AddRecordFeature")
 struct AddRecordFeatureTests {
 
+    private let invalidSleepHours = "abc"
+
     // MARK: - Initialization Tests
 
     @Test("Add mode: HealthKit 데이터와 함께 초기화")
@@ -105,7 +107,7 @@ struct AddRecordFeatureTests {
             AddRecordFeature()
         } withDependencies: {
             $0.weatherClient.fetchWeather = { _, _ in expectedWeather }
-            $0.runningRecordClient.save = { record in
+            $0.swiftDataClient.save = { record in
                 savedRecord = record
             }
             $0.dismiss = DismissEffect { }
@@ -150,7 +152,7 @@ struct AddRecordFeatureTests {
             AddRecordFeature()
         } withDependencies: {
             $0.weatherClient.fetchWeather = { _, _ in expectedWeather }
-            $0.runningRecordClient.update = { record in
+            $0.swiftDataClient.update = { record in
                 updatedRecord = record
             }
             $0.dismiss = DismissEffect { }
@@ -194,7 +196,7 @@ struct AddRecordFeatureTests {
             AddRecordFeature()
         } withDependencies: {
             $0.weatherClient.fetchWeather = { _, _ in expectedWeather }
-            $0.runningRecordClient.save = { _ in
+            $0.swiftDataClient.save = { _ in
                 throw TestError.saveFailed
             }
             $0.dismiss = DismissEffect { }

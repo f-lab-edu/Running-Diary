@@ -1,5 +1,5 @@
 //
-//  RunningRecordRepository.swift
+//  LiveSwiftDataRepository.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -9,14 +9,14 @@ import Foundation
 import Models
 import SwiftData
 
-final class RunningRecordRepository: RunningRecordRepositoryProtocol {
+final class LiveSwiftDataRepository: SwiftDataRepository {
     private let modelContext: ModelContext
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
 
-    func fetch(for date: Date) async throws -> RunningRecord? {
+    func fetchRunningRecord(for date: Date) async throws -> RunningRecord? {
         let startTime = Date.now
         AppLogger.database.debug("fetch 시작 - date: \(date)")
 
@@ -49,7 +49,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
         return result
     }
 
-    func fetchRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord] {
+    func fetchRunningRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord] {
         let startTime = Date.now
         AppLogger.database.debug("fetchRecords 시작 - startDate: \(startDate), endDate: \(endDate)")
 
@@ -76,7 +76,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
         return records
     }
 
-    func save(_ record: RunningRecord) async throws {
+    func saveRunningRecord(_ record: RunningRecord) async throws {
         let startTime = Date.now
         AppLogger.database.debug("save 시작 - recordId: \(record.id), date: \(record.yearMonthDay)")
 
@@ -91,11 +91,11 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
             let elapsed = Date.now.timeIntervalSince(startTime)
             let errorMessage = error.localizedDescription
             AppLogger.database.error("save 실패 - recordId: \(record.id), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
-            throw RunningRecordError.saveFailed
+            throw SwiftDataError.saveFailed
         }
     }
 
-    func update(_ record: RunningRecord) async throws {
+    func updateRunningRecord(_ record: RunningRecord) async throws {
         let startTime = Date.now
         AppLogger.database.debug("update 시작 - recordId: \(record.id), date: \(record.yearMonthDay)")
 
@@ -108,7 +108,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
 
         guard let existingModel = try modelContext.fetch(descriptor).first else {
             AppLogger.database.error("update 실패 - recordId: \(recordId), 기존 레코드를 찾을 수 없음")
-            throw RunningRecordError.notFound
+            throw SwiftDataError.notFound
         }
 
         // 업데이트
@@ -144,11 +144,11 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
             let elapsed = Date.now.timeIntervalSince(startTime)
             let errorMessage = error.localizedDescription
             AppLogger.database.error("update 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
-            throw RunningRecordError.updateFailed
+            throw SwiftDataError.updateFailed
         }
     }
 
-    func delete(_ record: RunningRecord) async throws {
+    func deleteRunningRecord(_ record: RunningRecord) async throws {
         let startTime = Date.now
         AppLogger.database.debug("delete 시작 - recordId: \(record.id)")
 
@@ -160,7 +160,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
 
         guard let model = try modelContext.fetch(descriptor).first else {
             AppLogger.database.error("delete 실패 - recordId: \(recordId), 기존 레코드를 찾을 수 없음")
-            throw RunningRecordError.notFound
+            throw SwiftDataError.notFound
         }
 
         modelContext.delete(model)
@@ -173,7 +173,7 @@ final class RunningRecordRepository: RunningRecordRepositoryProtocol {
             let elapsed = Date.now.timeIntervalSince(startTime)
             let errorMessage = error.localizedDescription
             AppLogger.database.error("delete 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
-            throw RunningRecordError.deleteFailed
+            throw SwiftDataError.deleteFailed
         }
     }
 }

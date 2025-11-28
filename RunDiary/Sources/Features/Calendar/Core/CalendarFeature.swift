@@ -82,7 +82,7 @@ struct CalendarFeature {
 
     // MARK: - Dependency
 
-    @Dependency(\.runningRecordClient) var runningRecordClient
+    @Dependency(\.swiftDataClient) var swiftDataClient
     @Dependency(\.healthKitClient) var healthKitClient
 
     // MARK: - Reducer
@@ -108,7 +108,7 @@ struct CalendarFeature {
                     do {
                         try await healthKitClient.ensureAuthorizationIfNeeded()
                         async let healthKitWorkouts = try await healthKitClient.fetchRunningDataBetweenDates(startDate.toDate(), endDate.toDate())
-                        async let runningRecords = try await runningRecordClient.fetchRecords(startDate.toDate(), endDate.toDate())
+                        async let runningRecords = try await swiftDataClient.fetchRecords(startDate.toDate(), endDate.toDate())
                         let groupedHealthKitWorkouts = try await Dictionary(grouping: healthKitWorkouts, by: { $0.yearMonthDay })
                         let groupedRunningRecords = try await Dictionary(grouping: runningRecords, by: { $0.yearMonthDay })
 

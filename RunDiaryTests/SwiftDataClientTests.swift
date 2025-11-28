@@ -11,8 +11,8 @@ import Testing
 
 @testable import RunDiary
 
-@Suite("RunningRecordClient")
-struct RunningRecordClientTests {
+@Suite("SwiftDataClient")
+struct SwiftDataClientTests {
 
   // MARK: - Test Helpers
 
@@ -52,7 +52,7 @@ struct RunningRecordClientTests {
       endTime: endTime
     )
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { date in
         #expect(Calendar.current.isDate(date, inSameDayAs: testDate.toDate()))
         return expectedRecord
@@ -81,7 +81,7 @@ struct RunningRecordClientTests {
   func fetchReturnsNilWhenNoRecord() async throws {
     let testDate = makeYearMonthDay()
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { date in
         #expect(Calendar.current.isDate(date, inSameDayAs: testDate.toDate()))
         return nil
@@ -103,7 +103,7 @@ struct RunningRecordClientTests {
       case fetchFailed
     }
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in
         throw TestError.fetchFailed
       },
@@ -161,7 +161,7 @@ struct RunningRecordClientTests {
       ),
     ]
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { start, end in
         #expect(Calendar.current.isDate(start, inSameDayAs: startDate))
@@ -188,7 +188,7 @@ struct RunningRecordClientTests {
     let startDate = makeDate()
     let endDate = Calendar.current.date(byAdding: .day, value: 7, to: startDate)!
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -253,7 +253,7 @@ struct RunningRecordClientTests {
       ),
     ]
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { start, end in
         #expect(start <= end, "시작 날짜는 종료 날짜보다 이전이어야 합니다")
@@ -279,7 +279,7 @@ struct RunningRecordClientTests {
       case fetchFailed
     }
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in
         throw TestError.fetchFailed
@@ -321,7 +321,7 @@ struct RunningRecordClientTests {
 
     var savedRecord: RunningRecord?
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { record in
@@ -365,7 +365,7 @@ struct RunningRecordClientTests {
 
     var savedRecord: RunningRecord?
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { record in
@@ -390,7 +390,7 @@ struct RunningRecordClientTests {
       case saveFailed
     }
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in
@@ -445,7 +445,7 @@ struct RunningRecordClientTests {
 
     var updated: RunningRecord?
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -492,7 +492,7 @@ struct RunningRecordClientTests {
 
     var updated: RunningRecord?
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -517,7 +517,7 @@ struct RunningRecordClientTests {
       case updateFailed
     }
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -573,7 +573,7 @@ struct RunningRecordClientTests {
 
     var deletedRecord: RunningRecord?
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -597,7 +597,7 @@ struct RunningRecordClientTests {
       case deleteFailed
     }
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -655,7 +655,7 @@ struct RunningRecordClientTests {
       )
     ]
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { date in
         storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
       },
@@ -721,7 +721,7 @@ struct RunningRecordClientTests {
     let time2Start = makeDate(day: 30)
     let time2End = time2Start.addingTimeInterval(2100)
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { date in
         storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
       },
@@ -784,7 +784,7 @@ struct RunningRecordClientTests {
     let startTime = makeDate()
     let endTime = startTime.addingTimeInterval(1800)
 
-    let client = RunningRecordClient(
+    let client = SwiftDataClient(
       fetch: { date in
         storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
       },

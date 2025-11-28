@@ -1,5 +1,5 @@
 //
-//  RunningRecordError.swift
+//  SwiftDataError.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 11/5/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum RunningRecordError: LocalizedError, Equatable {
+enum SwiftDataError: LocalizedError, Equatable {
     case notFound
     case saveFailed
     case updateFailed

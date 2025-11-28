@@ -34,7 +34,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.runningRecordClient.fetchRecords = { _, _ in [mockRecord] }
+            $0.swiftDataClient.fetchRecords = { _, _ in [mockRecord] }
             $0.healthKitClient.ensureAuthorizationIfNeeded = {}
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [mockHealthKit] }
         }
@@ -84,7 +84,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.runningRecordClient.fetchRecords = { _, _ in [mockRecord] }
+            $0.swiftDataClient.fetchRecords = { _, _ in [mockRecord] }
             $0.healthKitClient.ensureAuthorizationIfNeeded = {}
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [mockHealthKit] }
         }
@@ -157,7 +157,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.runningRecordClient.fetchRecords = { _, _ in [nextWeekRecord] }
+            $0.swiftDataClient.fetchRecords = { _, _ in [nextWeekRecord] }
             $0.healthKitClient.ensureAuthorizationIfNeeded = {}
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
@@ -305,7 +305,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.runningRecordClient.fetchRecords = { _, _ in [mockRunningRecord] }
+            $0.swiftDataClient.fetchRecords = { _, _ in [mockRunningRecord] }
             $0.healthKitClient.ensureAuthorizationIfNeeded = {}
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [mockHealthKit] }
         }
@@ -361,7 +361,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.runningRecordClient.fetchRecords = { _, _ in
+            $0.swiftDataClient.fetchRecords = { _, _ in
                 throw TestError()
             }
             $0.healthKitClient.ensureAuthorizationIfNeeded = {}
@@ -584,7 +584,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.runningRecordClient.fetchRecords = { _, _ in [runningRecord] }
+            $0.swiftDataClient.fetchRecords = { _, _ in [runningRecord] }
             $0.healthKitClient.ensureAuthorizationIfNeeded = {}
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
@@ -668,7 +668,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.runningRecordClient.fetchRecords = { _, _ in [] }
+            $0.swiftDataClient.fetchRecords = { _, _ in [] }
             $0.healthKitClient.ensureAuthorizationIfNeeded = {}
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
@@ -773,7 +773,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.runningRecordClient.fetchRecords = { _, _ in
+            $0.swiftDataClient.fetchRecords = { _, _ in
                 throw TestError()
             }
             $0.healthKitClient.ensureAuthorizationIfNeeded = {}
