@@ -94,8 +94,10 @@ struct DailyDetailFeatureTests {
     func dateSelectionWithCacheHitSkipsFetch() async {
         // Given
         let initialDate = makeTodayYearMonthDay()
-        let selectedDate = initialDate.add(day: -1)!
         let weekDates = DateHelper.getWeekDates(for: initialDate.toDate()).map { YearMonthDay(date: $0) }
+        // selectedDate는 weekDates 중 하나를 선택 (캐시에 존재하도록)
+        let selectedDate = weekDates[3] // 중간 날짜 선택
+
         let records = weekDates.map {
             let dailyRecord = DailyRecord(yearMonthDay: $0, healthKitWorkouts: [], savedRecords: [])
             return ($0, dailyRecord)
@@ -110,7 +112,7 @@ struct DailyDetailFeatureTests {
             DailyDetailFeature()
         }
 
-        // When & Then
+        // When & Then - 캐시 히트이므로 추가 액션 없음
         await store.send(.dateSelected(selectedDate)) {
             $0.selectedDate = selectedDate
         }
