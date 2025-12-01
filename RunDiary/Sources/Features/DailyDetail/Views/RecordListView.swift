@@ -16,21 +16,22 @@ struct RecordListView: View {
 
     var body: some View {
         if dailyRecord.hasAnyData {
-            LazyVStack(spacing: 20) {
+            LazyVStack(spacing: 12) {
                 ForEach(dailyRecord.savedRecords) { record in
                     RunningRecordCard(record: record, onEdit: { store.send(.editRecord(record)) })
                 }
 
                 if !dailyRecord.savedRecords.isEmpty && !dailyRecord.healthKitWorkouts.isEmpty {
                     Divider()
-                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
                 }
 
                 ForEach(dailyRecord.healthKitWorkouts) { record in
                     HealthKitWorkoutCard(record: record, onCreate: { store.send(.createRecord(record)) })
                 }
             }
-            .padding(.vertical, 10)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 20)
         } else {
             EmptyRecordView()
         }
@@ -85,11 +86,12 @@ struct HealthKitWorkoutCard: View {
         }
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-        .padding(.horizontal, 20)
     }
 }
 
 struct RunningRecordCard: View {
+    @State private var isFolded: Bool = true
+
     let record: RunningRecord
     let onEdit: () -> Void
 
@@ -118,107 +120,120 @@ struct RunningRecordCard: View {
                     }
                 }
 
-                Divider()
+                if isFolded {
+                    Button {
+                        withAnimation(.linear(duration: 0.2)) {
+                            isFolded = false
+                        }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text("자세히 보기")
+                            Image(systemName: "chevron.down")
+                            Spacer()
+                        }
+                        .foregroundStyle(.gray300)
+                    }
+                    .frame(height: 20)
+                } else {
+                    Divider()
 
-                // 신발
-                if let shoes = record.shoes {
-                    DetailRowView(title: L10n.Record.Field.shoesLabel, value: shoes)
-                }
+                    // 신발
+                    if let shoesId = record.shoes, let shoesName = ShoeStorage.search(id: shoesId)?.name {
+                        DetailRowView(title: L10n.Record.Field.shoesLabel, value: shoesName)
+                    }
 
-                // 주법
-                if let style = record.runningStyle {
-                    DetailRowView(title: L10n.Record.Field.runningStyleLabel, value: style.localizedName)
-                }
+                    // 주법
+                    if let style = record.runningStyle {
+                        DetailRowView(title: L10n.Record.Field.runningStyleLabel, value: style.localizedName)
+                    }
 
-                // 통증 부위
-                if !record.painAreas.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(L10n.Record.Field.painAreas)
-                            .foregroundColor(.gray)
+                    // 통증 부위
+                    if !record.painAreas.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(L10n.Record.Field.painAreas)
+                                .foregroundColor(.gray)
 
-                        DynamicGridLayout(items: record.painAreas) { item in
-                            Text(item.localizedName)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.blue700.opacity(0.1))
-                                .foregroundColor(.blue700)
-                                .cornerRadius(8)
+                            DynamicGridLayout(items: record.painAreas) { item in
+                                Text(item.localizedName)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.blue700.opacity(0.1))
+                                    .foregroundColor(.blue700)
+                                    .cornerRadius(8)
+                            }
                         }
                     }
-                }
 
-                Divider()
+                    Divider()
 
-                // 날씨 데이터
-                if let weather = record.weather {
-                    WeatherSectionView(weather: weather)
-                }
-
-                Divider()
-
-                // 수면시간, 식사여부, 음주여부
-                VStack(alignment: .leading, spacing: 14) {
-                    if let sleep = record.condition.sleep {
-                        DetailRowView(title: L10n.Record.Field.sleepLabel, value: "\(sleep)시간")
+                    // 날씨 데이터
+                    if let weather = record.weather {
+                        WeatherSectionView(weather: weather)
                     }
 
-                    DetailIconRowView(title: L10n.Record.Field.mealLabel, isChecked: record.condition.meal)
-                    DetailIconRowView(title: L10n.Record.Field.alcoholLabel, isChecked: record.condition.alcohol)
-                }
+                    Divider()
 
-//                Divider()
+                    // 수면시간, 식사여부, 음주여부
+                    VStack(alignment: .leading, spacing: 14) {
+                        if let sleep = record.condition.sleep {
+                            DetailRowView(title: L10n.Record.Field.sleepLabel, value: "\(sleep)시간")
+                        }
 
-                // 운동 강도
-//                DifficultyLevelView(difficultyLevel: record.difficultyLevel?.rawValue)
-
-                // 지도
-//                if record.hasMap {
-//                    Rectangle()
-//                        .fill(Color.gray100)
-//                        .frame(height: 200)
-//                        .cornerRadius(12)
-//                        .overlay(
-//                            Text("지도 영역")
-//                                .foregroundColor(.gray)
-//                        )
-//                }
-
-                // 메모
-                if let memo = record.condition.memo {
-                    VStack(spacing: 20) {
-                        Image("quotes_leading")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 30)
-                            .opacity(0.3)
-
-                        Text(memo)
-                            .font(.body)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-
-                        Image("quotes_trailing")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 30)
-                            .opacity(0.3)
+                        DetailIconRowView(title: L10n.Record.Field.mealLabel, isChecked: record.condition.meal)
+                        DetailIconRowView(title: L10n.Record.Field.alcoholLabel, isChecked: record.condition.alcohol)
                     }
-                    .padding(.vertical)
+
+    //                Divider()
+
+                    // 운동 강도
+    //                DifficultyLevelView(difficultyLevel: record.difficultyLevel?.rawValue)
+
+                    // 지도
+    //                if record.hasMap {
+    //                    Rectangle()
+    //                        .fill(Color.gray100)
+    //                        .frame(height: 200)
+    //                        .cornerRadius(12)
+    //                        .overlay(
+    //                            Text("지도 영역")
+    //                                .foregroundColor(.gray)
+    //                        )
+    //                }
+
+                    // 메모
+                    if let memo = record.condition.memo {
+                        VStack(spacing: 20) {
+                            Image("quotes_leading")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 30)
+                                .opacity(0.3)
+
+                            Text(memo)
+                                .font(.body)
+                                .foregroundColor(.black)
+                                .frame(maxWidth: .infinity)
+
+                            Image("quotes_trailing")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 30)
+                                .opacity(0.3)
+                        }
+                        .padding(.vertical)
+                    }
                 }
             }
             .padding(20)
             .background(Color.white)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-            .padding(.vertical, 18)
-            .padding(.horizontal, 14)
 
             // 수정 버튼
 //            EditButton(onEdit: onEdit)
 //                .padding(.trailing, 4)
         }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 2)
     }
 }
 
