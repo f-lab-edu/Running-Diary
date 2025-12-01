@@ -23,7 +23,7 @@ struct CalendarView: View {
     var body: some View {
         VStack(spacing: 0) {
             TodayButton(
-                canAutoScrollToToday: store.state.canAutoScrollToToday,
+                isEnabled: store.state.isEnabledTodayButton,
                 onTap: {
                     scrollToDay(.now, animated: true)
                     store.send(.selectDate(.today))
@@ -51,7 +51,7 @@ struct CalendarView: View {
             store.send(.onAppear)
             scrollToDay(store.selectedDate.toDate())
         }
-        .animation(.linear, value: store.state.canAutoScrollToToday)
+        .animation(.linear(duration: 0.2), value: store.state.isEnabledTodayButton)
     }
 
     private func scrollToDay(_ date: Date, animated: Bool = false) {

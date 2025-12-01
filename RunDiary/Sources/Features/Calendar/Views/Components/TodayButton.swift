@@ -9,7 +9,7 @@ import CommonFoundation
 import SwiftUI
 
 struct TodayButton: View {
-    let canAutoScrollToToday: Bool
+    let isEnabled: Bool
     let onTap: () -> Void
 
     var body: some View {
@@ -31,9 +31,9 @@ struct TodayButton: View {
                     Capsule()
                         .stroke(lineWidth: 1)
                 )
-                .foregroundStyle(canAutoScrollToToday ? .blue300 : .gray300)
+                .foregroundStyle(isEnabled ? .blue300 : .gray300)
             }
-            .disabled(!canAutoScrollToToday)
+            .disabled(!isEnabled)
             .padding([.top, .trailing], 24)
             .padding(.bottom, 4)
             .transition(.opacity)
@@ -43,7 +43,7 @@ struct TodayButton: View {
 
 #Preview {
     VStack {
-        TodayButton(canAutoScrollToToday: true, onTap: {})
-        TodayButton(canAutoScrollToToday: false, onTap: {})
+        TodayButton(isEnabled: true, onTap: {})
+        TodayButton(isEnabled: false, onTap: {})
     }
 }

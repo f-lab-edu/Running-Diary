@@ -23,7 +23,8 @@ struct CalendarFeature {
         fileprivate(set) var isLoading: Bool = false
 
         fileprivate(set) var lastVisibleMonth: YearMonth?
-        var canAutoScrollToToday: Bool {
+        var isEnabledTodayButton: Bool {
+            guard selectedDate == .today else { return true }
             guard let lastVisibleMonth else { return false }
             return lastVisibleMonth < YearMonth(date: .now)
         }
