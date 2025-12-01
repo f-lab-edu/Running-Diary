@@ -19,6 +19,8 @@ final class LiveRunningRecordClient {
     init() {}
 
     func fetchData(from: YearMonthDay, to: YearMonthDay) async throws -> [YearMonthDay: DailyRecord] {
+        try await healthKitClient.ensureAuthorizationIfNeeded()
+
         let requiredMonths = calculateMonthsInRange(from: from, to: to)
         let monthsToFetch = requiredMonths.filter { !cache.keys.contains($0) }
 
