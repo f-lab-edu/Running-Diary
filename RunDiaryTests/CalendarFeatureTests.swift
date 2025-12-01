@@ -22,13 +22,17 @@ struct CalendarFeatureTests {
         let selectedDate = YearMonthDay(year: 2025, month: 6, day: 15)
         let store = makeTestStore(selectedDate: selectedDate)
 
-        // When & Then
+        // When
         await store.send(.onAppear)
-        await store.receive(\.fetchRecords) { state in
-            // startDate는 selectedDate - 6개월
-            #expect(state.startDate.year == 2024)
-            #expect(state.startDate.month == 12)
+
+        // Then
+        await store.receive(\.fetchRecords) {
+            $0.isLoading = true
         }
+        await store.receive(\.recordsFetched) {
+            $0.isLoading = false
+        }
+        await store.receive(\.delegate)
     }
 
     @Test("fetchRecords 성공 시 dailyRecords 및 monthlyTotals 업데이트")
@@ -53,19 +57,16 @@ struct CalendarFeatureTests {
         )
 
         // When
-        await store.send(.fetchRecords(startDate: startDate, endDate: endDate)) { state in
-            #expect(state.isLoading == true)
+        await store.send(.fetchRecords(startDate: startDate, endDate: endDate)) {
+            $0.isLoading = true
         }
 
         // Then
-        await store.receive(\.recordsFetched) { state in
-            #expect(state.isLoading == false)
-            #expect(state.dailyRecords.count == 1)
-            #expect(state.dailyRecords[startDate]?.savedRecords.count == 1)
-
-            // monthlyTotals 계산 확인
+        await store.receive(\.recordsFetched) {
+            $0.isLoading = false
+            $0.dailyRecords = expectedDailyRecords
             let yearMonth = startDate.toYearMonth()
-            #expect(state.monthlyTotals[yearMonth] == 5.0)
+            $0.monthlyTotals[yearMonth] = 5.0
         }
 
         await store.receive(\.delegate)
@@ -83,13 +84,13 @@ struct CalendarFeatureTests {
         )
 
         // When
-        await store.send(.fetchRecords(startDate: startDate, endDate: endDate)) { state in
-            #expect(state.isLoading == true)
+        await store.send(.fetchRecords(startDate: startDate, endDate: endDate)) {
+            $0.isLoading = true
         }
 
         // Then
-        await store.receive(\.recordsFetchedFailure) { state in
-            #expect(state.isLoading == false)
+        await store.receive(\.recordsFetchedFailure) {
+            $0.isLoading = false
         }
     }
 
@@ -113,14 +114,20 @@ struct CalendarFeatureTests {
         let originalStartDate = store.state.startDate
 
         // When
-        await store.send(.fetchOlderRecords) { state in
+        await store.send(.fetchOlderRecords) {
             // startDate가 6개월 이전으로 확장
-            let expectedNewStart = originalStartDate.add(month: -6)
-            #expect(state.startDate == expectedNewStart)
+            let expectedNewStart = originalStartDate.add(month: -6)!
+            $0.startDate = expectedNewStart
         }
 
-        // Then
-        await store.receive(\.fetchRecords)
+        // Then - fetchRecords 액션과 그 결과를 모두 받아야 함
+        await store.receive(\.fetchRecords) {
+            $0.isLoading = true
+        }
+        await store.receive(\.recordsFetched) {
+            $0.isLoading = false
+        }
+        await store.receive(\.delegate)
     }
 
     @Test("selectDate 시 selectedDate 업데이트")
@@ -131,8 +138,8 @@ struct CalendarFeatureTests {
         let store = makeTestStore(selectedDate: initialDate)
 
         // When & Then
-        await store.send(.selectDate(newDate)) { state in
-            #expect(state.selectedDate == newDate)
+        await store.send(.selectDate(newDate)) {
+            $0.selectedDate = newDate
         }
     }
 
