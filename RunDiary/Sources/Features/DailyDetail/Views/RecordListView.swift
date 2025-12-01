@@ -21,7 +21,7 @@ struct RecordListView: View {
                     RunningRecordCard(record: record, onEdit: { store.send(.editRecord(record)) })
                 }
 
-                if !dailyRecord.savedRecords.isEmpty || !dailyRecord.healthKitWorkouts.isEmpty {
+                if !dailyRecord.savedRecords.isEmpty && !dailyRecord.healthKitWorkouts.isEmpty {
                     Divider()
                         .padding(.horizontal, 20)
                 }
@@ -30,7 +30,7 @@ struct RecordListView: View {
                     HealthKitWorkoutCard(record: record, onCreate: { store.send(.createRecord(record)) })
                 }
             }
-            .padding(.vertical, 20)
+            .padding(.vertical, 10)
         } else {
             EmptyRecordView()
         }
@@ -120,12 +120,10 @@ struct RunningRecordCard: View {
 
                 Divider()
 
-                // 날씨 데이터
-                if let weather = record.weather {
-                    WeatherSectionView(weather: weather)
+                // 신발
+                if let shoes = record.shoes {
+                    DetailRowView(title: L10n.Record.Field.shoesLabel, value: shoes)
                 }
-
-                Divider()
 
                 // 주법
                 if let style = record.runningStyle {
@@ -149,9 +147,11 @@ struct RunningRecordCard: View {
                     }
                 }
 
-                // 신발
-                if let shoes = record.shoes {
-                    DetailRowView(title: L10n.Record.Field.shoesLabel, value: shoes)
+                Divider()
+
+                // 날씨 데이터
+                if let weather = record.weather {
+                    WeatherSectionView(weather: weather)
                 }
 
                 Divider()

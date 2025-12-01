@@ -165,52 +165,36 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         }
         let average = totalHeartRate / Double(samples.count)
 
-        return Int(average)
+        return Int(floor(average))
     }
 
     private func fetchAverageCadence(for workout: HKWorkout) async throws -> Int? {
-        guard
-            let cadenceType = HKQuantityType.quantityType(
-                forIdentifier: .stepCount
-            )
-        else {
+        guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
             return nil
         }
 
-        let predicate = HKQuery.predicateForSamples(
-            withStart: workout.startDate,
-            end: workout.endDate,
-            options: .strictStartDate
-        )
+        let predicate = HKQuery.predicateForSamples(withStart: workout.startDate, end: workout.endDate, options: .strictStartDate)
 
-        let samples = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKQuantitySample], Error>) in
-            let query = HKSampleQuery(
-                sampleType: cadenceType,
-                predicate: predicate,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: nil
-            ) { _, samples, error in
+        let totalSteps = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Double, Error>) in
+            let query = HKStatisticsQuery(
+                quantityType: stepType,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum
+            ) { _, statistics, error in
                 if let error = error {
                     continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(
-                        returning: samples as? [HKQuantitySample] ?? []
-                    )
+                    return
                 }
+
+                let sum = statistics?.sumQuantity()?.doubleValue(for: .count())
+                continuation.resume(returning: sum ?? 0)
             }
             healthStore.execute(query)
         }
-
-        guard !samples.isEmpty else {
-            return nil
-        }
-
-        let totalSteps = samples.reduce(0.0) {
-            $0 + $1.quantity.doubleValue(for: .count())
-        }
+        
         let durationInMinutes = workout.duration / 60.0
 
-        guard durationInMinutes > 0 else {
+        guard durationInMinutes > 0, totalSteps > 0 else {
             return nil
         }
 

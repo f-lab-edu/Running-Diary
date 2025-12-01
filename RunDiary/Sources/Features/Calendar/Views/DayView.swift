@@ -86,7 +86,8 @@ private struct UnsavedWorkoutDot: View {
                 Circle()
                     .fill(isPresented ? .coral : .clear)
                     .frame(width: 6, height: 6)
-                    .padding(6)
+                    .padding(.trailing, 6)
+                    .padding(.top, 8)
             }
             Spacer()
         }

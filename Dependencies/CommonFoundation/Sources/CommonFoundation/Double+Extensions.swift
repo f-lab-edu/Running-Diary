@@ -9,10 +9,18 @@ import Foundation
 
 extension Double {
     public var to1f: String {
-        String(format: "%.1f", self)
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = 1
+        formatter.maximumFractionDigits = 1
+        formatter.roundingMode = .down
+        return formatter.string(from: NSNumber(value: self)) ?? ""
     }
 
     public var to2f: String {
-        String(format: "%.2f", self)
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        formatter.roundingMode = .down
+        return formatter.string(from: NSNumber(value: self)) ?? ""
     }
 }

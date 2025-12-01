@@ -34,9 +34,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient.fetchRecords = { _, _ in [mockRecord] }
-            $0.healthKitClient.ensureAuthorizationIfNeeded = {}
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [mockHealthKit] }
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
         }
 
         // When
@@ -50,15 +48,7 @@ struct DailyDetailFeatureTests {
             $0.error = nil
         }
 
-        await store.receive(\.healthKitWorkoutsFetched) {
-            $0.healthKitWorkouts[testDate] = [mockHealthKit]
-        }
-
-        await store.receive(\.runningRecordsFetched) {
-            $0.runningRecords[testDate] = [mockRecord]
-        }
-
-        await store.receive(\.mergeDailyRecords) {
+        await store.receive(\.weekRecordsFetched) {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
@@ -84,9 +74,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient.fetchRecords = { _, _ in [mockRecord] }
-            $0.healthKitClient.ensureAuthorizationIfNeeded = {}
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [mockHealthKit] }
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
         }
 
         // When
@@ -96,15 +84,7 @@ struct DailyDetailFeatureTests {
             $0.error = nil
         }
 
-        await store.receive(\.healthKitWorkoutsFetched) {
-            $0.healthKitWorkouts = [selectedDate: [mockHealthKit]]
-        }
-
-        await store.receive(\.runningRecordsFetched) {
-            $0.runningRecords = [selectedDate: [mockRecord]]
-        }
-
-        await store.receive(\.mergeDailyRecords) {
+        await store.receive(\.weekRecordsFetched) {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
@@ -157,9 +137,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient.fetchRecords = { _, _ in [nextWeekRecord] }
-            $0.healthKitClient.ensureAuthorizationIfNeeded = {}
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
         }
 
         // When
@@ -183,14 +161,7 @@ struct DailyDetailFeatureTests {
             $0.error = nil
         }
 
-        await store.receive(\.healthKitWorkoutsFetched)
-
-        await store.receive(\.runningRecordsFetched) {
-            let firstDate = nextWeekDates.first!
-            $0.runningRecords[firstDate] = [nextWeekRecord]
-        }
-
-        await store.receive(\.mergeDailyRecords) {
+        await store.receive(\.weekRecordsFetched) {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
@@ -305,9 +276,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient.fetchRecords = { _, _ in [mockRunningRecord] }
-            $0.healthKitClient.ensureAuthorizationIfNeeded = {}
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [mockHealthKit] }
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
         }
 
         // When
@@ -317,15 +286,7 @@ struct DailyDetailFeatureTests {
             $0.error = nil
         }
 
-        await store.receive(\.healthKitWorkoutsFetched) {
-            $0.healthKitWorkouts[testDate] = [mockHealthKit]
-        }
-
-        await store.receive(\.runningRecordsFetched) {
-            $0.runningRecords[testDate] = [mockRunningRecord]
-        }
-
-        await store.receive(\.mergeDailyRecords) {
+        await store.receive(\.weekRecordsFetched) {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
@@ -361,11 +322,9 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient.fetchRecords = { _, _ in
+            $0.runningRecordClient.fetchData = { _, _ in
                 throw TestError()
             }
-            $0.healthKitClient.ensureAuthorizationIfNeeded = {}
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
 
         // When
@@ -378,121 +337,6 @@ struct DailyDetailFeatureTests {
         await store.receive(\.weekRecordsFetchFailed) {
             $0.isLoading = false
             $0.error = .fetchFailed(underlyingError: "Test network error")
-        }
-    }
-
-    // MARK: - Data Merging Tests
-
-    @Test("mergeDailyRecords는 currentWeekDates의 모든 날짜에 대해 DailyRecord 생성")
-    func mergeDailyRecordsCreatesRecordsForAllCurrentWeekDates() async {
-        // Given
-        let testDate = makeTodayYearMonthDay()
-        let weekDates = makeWeekDates(containing: testDate)
-        let firstDate = weekDates.first!
-        let lastDate = weekDates.last!
-        let healthKitWorkout = makeHealthKitWorkout(yearMonthDay: firstDate)
-        let runningRecord = makeRunningRecord(yearMonthDay: lastDate)
-
-        var initialState = DailyDetailFeature.State()
-        initialState.currentWeekDates = weekDates
-        initialState.healthKitWorkouts = [firstDate: [healthKitWorkout]]
-        initialState.runningRecords = [lastDate: [runningRecord]]
-        initialState.isLoading = true
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-
-        store.exhaustivity = .off
-
-        // When
-        await store.send(.mergeDailyRecords(
-            healthKitWorkouts: initialState.healthKitWorkouts,
-            runningRecords: initialState.runningRecords
-        ))
-
-        // Then
-        #expect(store.state.isLoading == false)
-        #expect(store.state.dailyRecords.count == 7)
-
-        for date in weekDates {
-            let dailyRecord = store.state.dailyRecords[date]
-            #expect(dailyRecord != nil)
-
-            if date == firstDate {
-                #expect(dailyRecord?.healthKitWorkouts.count == 1)
-                #expect(dailyRecord?.savedRecords.isEmpty == true)
-            } else if date == lastDate {
-                #expect(dailyRecord?.healthKitWorkouts.isEmpty == true)
-                #expect(dailyRecord?.savedRecords.count == 1)
-            } else {
-                #expect(dailyRecord?.healthKitWorkouts.isEmpty == true)
-                #expect(dailyRecord?.savedRecords.isEmpty == true)
-            }
-        }
-    }
-
-    @Test("mergeDailyRecords는 중복된 HealthKit 데이터 필터링")
-    func mergeDailyRecordsFiltersDuplicateHealthKitWorkout() async {
-        // Given
-        let testDate = makeTodayYearMonthDay()
-        let healthKitWorkout = makeHealthKitWorkout(yearMonthDay: testDate, startOffset: 3600)
-        let runningRecord = makeRunningRecord(yearMonthDay: testDate, startOffset: 3600)
-
-        var initialState = DailyDetailFeature.State()
-        initialState.currentWeekDates = makeWeekDates(containing: testDate)
-        initialState.healthKitWorkouts = [testDate: [healthKitWorkout]]
-        initialState.runningRecords = [testDate: [runningRecord]]
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-
-        store.exhaustivity = .off
-
-        // When
-        await store.send(.mergeDailyRecords(
-            healthKitWorkouts: initialState.healthKitWorkouts,
-            runningRecords: initialState.runningRecords
-        ))
-
-        // Then
-        #expect(store.state.isLoading == false)
-
-        let dailyRecord = store.state.dailyRecords[testDate]
-        #expect(dailyRecord != nil)
-        #expect(dailyRecord?.healthKitWorkouts.isEmpty == true)
-        #expect(dailyRecord?.savedRecords.count == 1)
-    }
-
-    @Test("mergeDailyRecords는 HealthKit 데이터를 startDate 순으로 정렬")
-    func mergeDailyRecordsSortsHealthKitWorkoutByStartDate() async {
-        // Given
-        let testDate = makeTodayYearMonthDay()
-        let healthKit1 = makeHealthKitWorkout(yearMonthDay: testDate, startOffset: 3600)
-        let healthKit2 = makeHealthKitWorkout(yearMonthDay: testDate, startOffset: 7200)
-        let healthKit3 = makeHealthKitWorkout(yearMonthDay: testDate, startOffset: 10800)
-        let expectedDailyRecords = makeExpectedDailyRecords(
-            forWeekContaining: testDate,
-            healthKitWorkouts: [testDate: [healthKit1, healthKit2, healthKit3]]
-        )
-
-        var initialState = DailyDetailFeature.State(selectedDate: testDate)
-        initialState.currentWeekDates = makeWeekDates(containing: testDate)
-        initialState.healthKitWorkouts = [testDate: [healthKit1, healthKit2, healthKit3]]
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-
-        // When
-        await store.send(.mergeDailyRecords(
-            healthKitWorkouts: initialState.healthKitWorkouts,
-            runningRecords: initialState.runningRecords
-        )) {
-            // Then
-            $0.isLoading = false
-            $0.dailyRecords = expectedDailyRecords
         }
     }
 
@@ -561,8 +405,8 @@ struct DailyDetailFeatureTests {
         }
     }
 
-    @Test("addRecord recordSaved 시 캐시 무효화 및 주 단위 새로고침")
-    func addRecordSavedClearsCacheAndRefetchesWeek() async {
+    @Test("addRecord recordSaved 시 주 단위 새로고침")
+    func addRecordSavedRefetchesWeek() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let weekDates = makeWeekDates(containing: testDate)
@@ -584,16 +428,13 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient.fetchRecords = { _, _ in [runningRecord] }
-            $0.healthKitClient.ensureAuthorizationIfNeeded = {}
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
         }
 
         // When
         await store.send(.addRecord(.presented(.recordSaved))) {
             // Then
             $0.addRecord = nil
-            $0.dailyRecords.removeAll()
         }
 
         await store.receive(\.fetchWeekRecords) {
@@ -601,13 +442,7 @@ struct DailyDetailFeatureTests {
             $0.error = nil
         }
 
-        await store.receive(\.healthKitWorkoutsFetched)
-
-        await store.receive(\.runningRecordsFetched) {
-            $0.runningRecords[testDate] = [runningRecord]
-        }
-
-        await store.receive(\.mergeDailyRecords) {
+        await store.receive(\.weekRecordsFetched) {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
@@ -668,9 +503,7 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient.fetchRecords = { _, _ in [] }
-            $0.healthKitClient.ensureAuthorizationIfNeeded = {}
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
         }
 
         // When
@@ -686,11 +519,7 @@ struct DailyDetailFeatureTests {
             $0.error = nil
         }
 
-        await store.receive(\.healthKitWorkoutsFetched)
-
-        await store.receive(\.runningRecordsFetched)
-
-        await store.receive(\.mergeDailyRecords) {
+        await store.receive(\.weekRecordsFetched) {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
@@ -773,11 +602,9 @@ struct DailyDetailFeatureTests {
         let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient.fetchRecords = { _, _ in
+            $0.runningRecordClient.fetchData = { _, _ in
                 throw TestError()
             }
-            $0.healthKitClient.ensureAuthorizationIfNeeded = {}
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
         }
 
         // When
