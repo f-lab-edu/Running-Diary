@@ -463,6 +463,10 @@ private extension RunningRecordClientTests {
         onFetch: @escaping ([Int]) -> Void = { _ in }
     ) -> RunningRecordClient {
         withDependencies {
+            $0.healthKitClient.ensureAuthorizationIfNeeded = {
+                // Mock implementation - do nothing
+            }
+
             $0.healthKitClient.fetchRunningDataBetweenDates = { startDate, endDate in
                 // Track which months were fetched
                 let startMonth = Calendar.current.component(.month, from: startDate)
