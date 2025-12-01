@@ -15,12 +15,12 @@ struct CalendarFeature {
 
     @ObservableState
     struct State: Equatable {
-        fileprivate(set) var startDate: YearMonthDay
-        fileprivate(set) var endDate: YearMonthDay
-        fileprivate(set) var dailyRecords: [YearMonthDay: DailyRecord]
-        fileprivate(set) var monthlyTotals: [YearMonth: Double] = [:]
-        fileprivate(set) var selectedDate: YearMonthDay
-        fileprivate(set) var isLoading: Bool = false
+        var startDate: YearMonthDay
+        var endDate: YearMonthDay
+        var dailyRecords: [YearMonthDay: DailyRecord]
+        var monthlyTotals: [YearMonth: Double] = [:]
+        var selectedDate: YearMonthDay
+        var isLoading: Bool = false
 
         fileprivate(set) var lastVisibleMonth: YearMonth?
         var isEnabledTodayButton: Bool {
