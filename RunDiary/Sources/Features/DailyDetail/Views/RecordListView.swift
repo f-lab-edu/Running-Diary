@@ -128,7 +128,7 @@ struct RunningRecordCard: View {
                     } label: {
                         HStack {
                             Spacer()
-                            Text("자세히 보기")
+                            Text(L10n.UI.viewDetails)
                             Image(systemName: "chevron.down")
                             Spacer()
                         }

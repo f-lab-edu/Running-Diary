@@ -151,6 +151,8 @@ enum L10n {
         static let save = String(localized: "ui.save")
         /// Today
         static let today = String(localized: "ui.today")
+        /// View Details
+        static let viewDetails = String(localized: "ui.view_details")
     }
     
     // MARK: - Unit

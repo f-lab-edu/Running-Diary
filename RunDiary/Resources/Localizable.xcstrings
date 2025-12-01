@@ -1963,7 +1963,7 @@
         }
       }
     },
-    "자세히 보기" : {
+    "ui.view_details" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
