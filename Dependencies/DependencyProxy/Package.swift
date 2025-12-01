@@ -13,7 +13,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/airbnb/HorizonCalendar.git", branch: "master")
+        .package(url: "https://github.com/airbnb/HorizonCalendar.git", from: "1.0.0")
     ],
     targets: [
         .target(
