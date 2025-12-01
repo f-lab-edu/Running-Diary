@@ -17,8 +17,6 @@ struct CalendarFeature {
     struct State: Equatable {
         fileprivate(set) var startDate: YearMonthDay
         fileprivate(set) var endDate: YearMonthDay
-        fileprivate(set) var healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]]
-        fileprivate(set) var runningRecords: [YearMonthDay: [RunningRecord]]
         fileprivate(set) var dailyRecords: [YearMonthDay: DailyRecord]
         fileprivate(set) var monthlyTotals: [YearMonth: Double] = [:]
         fileprivate(set) var selectedDate: YearMonthDay
@@ -32,8 +30,6 @@ struct CalendarFeature {
 
         init(
             selectedDate: YearMonthDay,
-            healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]] = [:],
-            runningRecords: [YearMonthDay: [RunningRecord]] = [:],
             dailyRecords: [YearMonthDay: DailyRecord] = [:]
         ) {
             let today = Date.now
@@ -53,8 +49,6 @@ struct CalendarFeature {
             self.endDate = monthDiff < 6 ? todayYearMonthDay : tentativeEndDate
 
             self.selectedDate = selectedDate
-            self.healthKitWorkouts = healthKitWorkouts
-            self.runningRecords = runningRecords
             self.dailyRecords = dailyRecords
         }
     }
@@ -64,9 +58,7 @@ struct CalendarFeature {
     enum Action {
         case onAppear
         case fetchRecords(startDate: YearMonthDay, endDate: YearMonthDay)
-        case healthKitWorkoutFetched([YearMonthDay: [HealthKitWorkout]])
-        case runningRecordsFetched([YearMonthDay: [RunningRecord]])
-        case mergeDailyRecords(healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]], runningRecords: [YearMonthDay: [RunningRecord]])
+        case recordsFetched([YearMonthDay: DailyRecord])
         case recordsFetchedFailure(CalendarError)
         case oldestMonthBecameVisible
         case fetchOlderRecords
@@ -82,8 +74,7 @@ struct CalendarFeature {
 
     // MARK: - Dependency
 
-    @Dependency(\.swiftDataClient) var swiftDataClient
-    @Dependency(\.healthKitClient) var healthKitClient
+    @Dependency(\.runningRecordClient) var runningRecordClient
 
     // MARK: - Reducer
 
@@ -106,71 +97,28 @@ struct CalendarFeature {
 
                 return .run { send in
                     do {
-                        try await healthKitClient.ensureAuthorizationIfNeeded()
-                        async let healthKitWorkouts = try await healthKitClient.fetchRunningDataBetweenDates(startDate.toDate(), endDate.toDate())
-                        async let runningRecords = try await swiftDataClient.fetchRecords(startDate.toDate(), endDate.toDate())
-                        let groupedHealthKitWorkouts = try await Dictionary(grouping: healthKitWorkouts, by: { $0.yearMonthDay })
-                        let groupedRunningRecords = try await Dictionary(grouping: runningRecords, by: { $0.yearMonthDay })
-
-                        await send(.healthKitWorkoutFetched(groupedHealthKitWorkouts))
-                        await send(.runningRecordsFetched(groupedRunningRecords))
-                        await send(.mergeDailyRecords(healthKitWorkouts: groupedHealthKitWorkouts, runningRecords: groupedRunningRecords))
+                        let dailyRecords = try await runningRecordClient.fetchData(
+                            from: startDate,
+                            to: endDate
+                        )
+                        await send(.recordsFetched(dailyRecords))
                     } catch {
                         let errorMessage = error.localizedDescription
                         await send(.recordsFetchedFailure(.fetchFailed(underlyingError: errorMessage)))
                     }
                 }
 
-            case let .healthKitWorkoutFetched(healthKitWorkouts):
-                state.healthKitWorkouts.merge(healthKitWorkouts) { _, new in new }
-                AppLogger.calendar.info("healthKitWorkoutFetched 완료 - 총 저장된 날짜 수: \(state.healthKitWorkouts.count)")
-                return .none
-
-            case let .runningRecordsFetched(runninRecords):
-                state.runningRecords.merge(runninRecords) { _, new in new }
-                AppLogger.calendar.info("repositoryRecordsFetched 완료 - 총 저장된 날짜 수: \(state.runningRecords.count)")
-
-                for (yearMonthDay, records) in runninRecords {
-                    let yearMonth = yearMonthDay.toYearMonth()
-                    let totalDistances = records.reduce(0.0) { $0 + $1.distanceInKilometers }
-                    state.monthlyTotals.updateValue(totalDistances, forKey: yearMonth)
-                }
-
-                return .none
-
-            case let .mergeDailyRecords(healthKitWorkouts, runningRecords):
-                AppLogger.calendar.debug("mergeDailyRecords 시작")
-
-                var currentDate = state.startDate
-
-                while currentDate <= state.endDate {
-                    if state.dailyRecords[currentDate] == nil {
-                        let healthKitWorkoutsOnDate = healthKitWorkouts[currentDate] ?? []
-                        let runningRecordsOnDate = runningRecords[currentDate] ?? []
-
-                        // HealthKit 데이터 중 저장된 기록과 중복되지 않는 것만 필터링
-                        let filteredHealthKitRecords = healthKitWorkoutsOnDate.filter { healthKitWorkout in
-                            !runningRecordsOnDate.contains(where: { $0.startTime == healthKitWorkout.startDate })
-                        }
-                        let sortedHealthKitRecords = filteredHealthKitRecords.sorted { $0.startDate < $1.startDate }
-
-                        let dailyRecord = DailyRecord(
-                            yearMonthDay: currentDate,
-                            healthKitWorkouts: sortedHealthKitRecords,
-                            savedRecords: runningRecordsOnDate
-                        )
-
-                        state.dailyRecords.updateValue(dailyRecord, forKey: currentDate)
-                    }
-
-                    guard let nextDate = currentDate.add(day: 1) else {
-                        break
-                    }
-                    currentDate = nextDate
-                }
-
+            case let .recordsFetched(dailyRecords):
+                state.dailyRecords.merge(dailyRecords) { _, new in new }
                 state.isLoading = false
-                AppLogger.calendar.info("mergeDailyRecords 완료 - 총 DailyRecord 수: \(state.dailyRecords.count)")
+                AppLogger.calendar.info("recordsFetched 완료 - 총 DailyRecord 수: \(state.dailyRecords.count)")
+
+                // monthlyTotals 계산
+                for (yearMonthDay, dailyRecord) in dailyRecords {
+                    let yearMonth = yearMonthDay.toYearMonth()
+                    let totalDistances = dailyRecord.savedRecords.reduce(0.0) { $0 + $1.distanceInKilometers }
+                    state.monthlyTotals[yearMonth, default: 0] += totalDistances
+                }
 
                 return .send(.delegate(.dailyRecordSaved(state.dailyRecords)))
 

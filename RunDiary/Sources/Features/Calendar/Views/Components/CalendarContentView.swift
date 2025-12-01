@@ -20,7 +20,7 @@ struct CalendarContentView: View {
             calendar: .current,
             visibleDateRange: store.startDate.toDate()...store.endDate.toDate(),
             monthsLayout: .vertical(options: VerticalMonthsLayoutOptions(pinDaysOfWeekToTop: true)),
-            dataDependency: (store.runningRecords, store.selectedDate),
+            dataDependency: (store.dailyRecords, store.selectedDate),
             proxy: proxy
         )
         .interMonthSpacing(40)
@@ -37,7 +37,7 @@ struct CalendarContentView: View {
                 day: $0.day,
                 isSunday: $0.isSunday,
                 isToday: $0.yearMonthDay == YearMonthDay.today,
-                records: store.runningRecords[$0.yearMonthDay, default: []],
+                records: store.dailyRecords[$0.yearMonthDay]?.savedRecords ?? [],
                 isSelected: store.selectedDate == $0.yearMonthDay,
                 hasUnsavedWorkout: store.dailyRecords[$0.yearMonthDay]?.hasHealthKitWorkout ?? false
             )
