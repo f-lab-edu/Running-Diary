@@ -97,6 +97,7 @@ private struct RecordContentSection: View {
             }
         }
         .background(Color.gray50)
+        .loadingIndicatorIfNeeded(store.isLoading, backgroundColor: .gray50)
     }
 }
 

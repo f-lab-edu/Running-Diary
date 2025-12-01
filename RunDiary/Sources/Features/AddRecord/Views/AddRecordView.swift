@@ -6,6 +6,7 @@
 //
 
 import ComposableArchitecture
+import CommonFoundation
 import SwiftUI
 import Models
 
@@ -28,6 +29,7 @@ struct AddRecordView: View {
 
             ToolbarItem(placement: .confirmationAction) {
                 Button(L10n.UI.save) {
+                    hideKeyboard()
                     store.send(.saveRecord)
                 }
                 .foregroundStyle(store.isLoading || !store.isFormValid ? .blue300.opacity(0.3) : .blue300)
@@ -37,12 +39,7 @@ struct AddRecordView: View {
         .task {
             store.send(.onAppear)
         }
-        .overlay {
-            if store.isLoading {
-                ProgressView()
-                    .contentShape(Rectangle())
-            }
-        }
+        .loadingIndicatorIfNeeded(store.isLoading)
     }
 }
 
@@ -129,11 +126,7 @@ private struct FormContentView: View {
         }
         .background(Color.gray50)
         .scrollDismissesKeyboard(.interactively)
-        .simultaneousGesture(
-            TapGesture().onEnded {
-                hideKeyboard()
-            }
-        )
+        .hideKeyboardOnTapOutside()
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -142,11 +135,6 @@ private struct FormContentView: View {
                 }
             }
         }
-    }
-
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 
