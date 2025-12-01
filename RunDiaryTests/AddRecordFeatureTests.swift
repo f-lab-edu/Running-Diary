@@ -107,7 +107,7 @@ struct AddRecordFeatureTests {
             AddRecordFeature()
         } withDependencies: {
             $0.weatherClient.fetchWeather = { _, _ in expectedWeather }
-            $0.swiftDataClient.save = { record in
+            $0.runningRecordClient.saveRecord = { record in
                 savedRecord = record
             }
             $0.dismiss = DismissEffect { }
@@ -152,7 +152,7 @@ struct AddRecordFeatureTests {
             AddRecordFeature()
         } withDependencies: {
             $0.weatherClient.fetchWeather = { _, _ in expectedWeather }
-            $0.swiftDataClient.update = { record in
+            $0.runningRecordClient.updateRecord = { record in
                 updatedRecord = record
             }
             $0.dismiss = DismissEffect { }
@@ -196,7 +196,7 @@ struct AddRecordFeatureTests {
             AddRecordFeature()
         } withDependencies: {
             $0.weatherClient.fetchWeather = { _, _ in expectedWeather }
-            $0.swiftDataClient.save = { _ in
+            $0.runningRecordClient.saveRecord = { _ in
                 throw TestError.saveFailed
             }
             $0.dismiss = DismissEffect { }

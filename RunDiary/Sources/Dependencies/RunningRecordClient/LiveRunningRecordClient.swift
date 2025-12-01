@@ -35,6 +35,12 @@ final class LiveRunningRecordClient {
         cache.removeValue(forKey: month)
     }
 
+    func updateRecord(_ record: RunningRecord) async throws {
+        try await swiftDataClient.update(record)
+        let month = record.yearMonthDay.toYearMonth()
+        cache.removeValue(forKey: month)
+    }
+
     func clearCache() {
         cache.removeAll()
     }

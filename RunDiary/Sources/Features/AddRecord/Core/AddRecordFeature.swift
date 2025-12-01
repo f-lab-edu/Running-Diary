@@ -67,7 +67,7 @@ struct AddRecordFeature {
         case recordSaveFailed(String)
     }
 
-    @Dependency(\.swiftDataClient) var swiftDataClient
+    @Dependency(\.runningRecordClient) var runningRecordClient
     @Dependency(\.weatherClient) var weatherClient
     @Dependency(\.dismiss) var dismiss
 
@@ -158,9 +158,9 @@ struct AddRecordFeature {
                         )
 
                         if mode == .add {
-                            try await swiftDataClient.save(record)
+                            try await runningRecordClient.saveRecord(record)
                         } else {
-                            try await swiftDataClient.update(record)
+                            try await runningRecordClient.updateRecord(record)
                         }
 
                         await send(.recordSaved)

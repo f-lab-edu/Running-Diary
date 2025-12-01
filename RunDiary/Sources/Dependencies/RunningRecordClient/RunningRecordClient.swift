@@ -13,6 +13,7 @@ import Models
 struct RunningRecordClient {
     var fetchData: @MainActor @Sendable (_ from: YearMonthDay, _ to: YearMonthDay) async throws -> [YearMonthDay: DailyRecord]
     var saveRecord: @MainActor @Sendable (_ record: RunningRecord) async throws -> Void
+    var updateRecord: @MainActor @Sendable (_ record: RunningRecord) async throws -> Void
     var clearCache: @MainActor @Sendable () -> Void
 }
 
@@ -26,6 +27,9 @@ extension RunningRecordClient: DependencyKey {
             saveRecord: { record in
                 try await cache.saveRecord(record)
             },
+            updateRecord: { record in
+                try await cache.updateRecord(record)
+            },
             clearCache: {
                 cache.clearCache()
             }
@@ -35,6 +39,7 @@ extension RunningRecordClient: DependencyKey {
     static let testValue = RunningRecordClient(
         fetchData: unimplemented("\(Self.self).fetchData"),
         saveRecord: unimplemented("\(Self.self).saveRecord"),
+        updateRecord: unimplemented("\(Self.self).updateRecord"),
         clearCache: unimplemented("\(Self.self).clearCache")
     )
 
@@ -50,6 +55,7 @@ extension RunningRecordClient: DependencyKey {
             })
         },
         saveRecord: { _ in },
+        updateRecord: { _ in },
         clearCache: { }
     )
 
