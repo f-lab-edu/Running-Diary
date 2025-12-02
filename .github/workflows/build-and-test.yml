@@ -13,7 +13,7 @@ jobs:
 
     env:
       SCHEME: RunDiary
-      DESTINATION: "platform=iOS Simulator,name=iPhone 15 Pro,OS=latest"
+      DESTINATION: "platform=iOS Simulator,name=iPhone 15"
 
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +22,11 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: 'latest-stable'
-          
+
+      - name: Resolve Swift Package Dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies -workspace RunDiary.xcodeproj/project.xcworkspace -scheme "$SCHEME"
+
       - name: Start xcode build 🛠
         run: |
-          xcodebuild clean test -workspace RunDiary.xcodeproj/project.xcworkspace -scheme "$SCHEME" -destination "$DESTINATION" -enableCodeCoverage YES SKIP_MACRO_VALIDATION=YES ENABLE_USER_SCRIPT_SANDBOXING=NO
+          xcodebuild clean test -workspace RunDiary.xcodeproj/project.xcworkspace -scheme "$SCHEME" -destination "$DESTINATION" -enableCodeCoverage YES -skipMacroValidation -skipPackagePluginValidation
