@@ -13,8 +13,7 @@ jobs:
 
     env:
       SCHEME: RunDiary
-      PROJECT: RunDiary.xcodeproj
-      DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
+      DESTINATION: "platform=iOS Simulator,name=iPhone 15 Pro,OS=latest"
 
     steps:
       - uses: actions/checkout@v4
@@ -26,4 +25,4 @@ jobs:
           
       - name: Start xcode build 🛠
         run: |
-          xcodebuild clean test -project "$PROJECT" -scheme "$SCHEME" -destination "$DESTINATION" -enableCodeCoverage YES SKIP_MACRO_VALIDATION=YES
+          xcodebuild clean test -workspace RunDiary.xcodeproj/project.xcworkspace -scheme "$SCHEME" -destination "$DESTINATION" -enableCodeCoverage YES SKIP_MACRO_VALIDATION=YES ENABLE_USER_SCRIPT_SANDBOXING=NO
