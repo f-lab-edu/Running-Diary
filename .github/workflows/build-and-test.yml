@@ -13,7 +13,7 @@ jobs:
 
     env:
       SCHEME: RunDiary
-      DESTINATION: "platform=iOS Simulator,name=iPhone 15"
+      DESTINATION: "platform=iOS Simulator,name=iPhone 16"
 
     steps:
       - uses: actions/checkout@v4
