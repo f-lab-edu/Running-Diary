@@ -58,11 +58,17 @@ struct DayView: View {
 
                 Spacer()
 
-                Text(totalDistance.map { "\($0.to1f)km" } ?? "-")
-                    .font(.caption)
-                    .foregroundStyle(isSelected ? .white : .gray)
-                    .opacity(records.isEmpty ? 0.2 : 1)
-                    .bold(!totalDistance.isNil && isToday)
+                Group {
+                    if let totalDistance = totalDistance {
+                        L10n.Format.km.text(totalDistance.to1f)
+                    } else {
+                        Text("-")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(isSelected ? .white : .gray)
+                .opacity(records.isEmpty ? 0.2 : 1)
+                .bold(!totalDistance.isNil && isToday)
             }
             .padding(10)
 

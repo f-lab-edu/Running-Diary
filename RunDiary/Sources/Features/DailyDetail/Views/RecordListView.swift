@@ -52,17 +52,17 @@ struct HealthKitWorkoutCard: View {
                 }
 
                 HStack(spacing: 20) {
-                    RecordRowView(title: L10n.Record.Field.distance, value: record.distance.to2f)
-                    RecordRowView(title: L10n.Record.Field.duration, value: record.formattedDuration)
+                    RecordRowView(title: L10n.Record.Field.distance.value, value: record.distance.to2f)
+                    RecordRowView(title: L10n.Record.Field.duration.value, value: record.formattedDuration)
                 }
 
                 HStack(spacing: 20) {
-                    RecordRowView(title: L10n.Record.Field.pace, value: record.averagePace)
-                    RecordRowView(title: L10n.Record.Field.heartRate, value: "\(record.averageHeartRate) bpm")
+                    RecordRowView(title: L10n.Record.Field.pace.value, value: record.averagePace)
+                    RecordRowView(title: L10n.Record.Field.heartRate.value, value: "\(record.averageHeartRate) bpm")
                 }
 
                 HStack(spacing: 20) {
-                    RecordRowView(title: L10n.Record.Field.cadence, value: "\(record.averageCadence) spm")
+                    RecordRowView(title: L10n.Record.Field.cadence.value, value: "\(record.averageCadence) spm")
                 }
             }
             .padding(20)
@@ -75,7 +75,7 @@ struct HealthKitWorkoutCard: View {
                     Capsule()
                         .foregroundStyle(.yellow100)
 
-                    Text(L10n.Record.writeDiaryButton)
+                    L10n.Record.writeDiaryButton.text
                         .fontWeight(.semibold)
                         .foregroundColor(.blue700)
                         .padding()
@@ -106,17 +106,17 @@ struct RunningRecordCard: View {
                 // HealthKit 데이터
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 20) {
-                        RecordRowView(title: L10n.Record.Field.distance, value: record.distanceInKilometers.to2f)
-                        RecordRowView(title: L10n.Record.Field.duration, value: record.formattedDuration)
+                        RecordRowView(title: L10n.Record.Field.distance.value, value: record.distanceInKilometers.to2f)
+                        RecordRowView(title: L10n.Record.Field.duration.value, value: record.formattedDuration)
                     }
 
                     HStack(spacing: 20) {
-                        RecordRowView(title: L10n.Record.Field.pace, value: record.averagePace)
-                        RecordRowView(title: L10n.Record.Field.heartRate, value: "\(record.averageHeartRate) bpm")
+                        RecordRowView(title: L10n.Record.Field.pace.value, value: record.averagePace)
+                        RecordRowView(title: L10n.Record.Field.heartRate.value, value: "\(record.averageHeartRate) bpm")
                     }
 
                     HStack(spacing: 20) {
-                        RecordRowView(title: L10n.Record.Field.cadence, value: "\(record.averageCadence) spm")
+                        RecordRowView(title: L10n.Record.Field.cadence.value, value: "\(record.averageCadence) spm")
                     }
                 }
 
@@ -128,7 +128,7 @@ struct RunningRecordCard: View {
                     } label: {
                         HStack {
                             Spacer()
-                            Text(L10n.UI.viewDetails)
+                            L10n.UI.viewDetails.text
                             Image(systemName: "chevron.down")
                             Spacer()
                         }
@@ -140,18 +140,18 @@ struct RunningRecordCard: View {
 
                     // 신발
                     if let shoesId = record.shoes, let shoesName = ShoeStorage.search(id: shoesId)?.name {
-                        DetailRowView(title: L10n.Record.Field.shoesLabel, value: shoesName)
+                        DetailRowView(title: L10n.Record.Field.shoesLabel.value, value: shoesName)
                     }
 
                     // 주법
                     if let style = record.runningStyle {
-                        DetailRowView(title: L10n.Record.Field.runningStyleLabel, value: style.localizedName)
+                        DetailRowView(title: L10n.Record.Field.runningStyleLabel.value, value: style.localizedName)
                     }
 
                     // 통증 부위
                     if !record.painAreas.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(L10n.Record.Field.painAreas)
+                            L10n.Record.Field.painAreas.text
                                 .foregroundColor(.gray)
 
                             DynamicGridLayout(items: record.painAreas) { item in
@@ -177,11 +177,17 @@ struct RunningRecordCard: View {
                     // 수면시간, 식사여부, 음주여부
                     VStack(alignment: .leading, spacing: 14) {
                         if let sleep = record.condition.sleep {
-                            DetailRowView(title: L10n.Record.Field.sleepLabel, value: "\(sleep)시간")
+                            DetailRowView(title: L10n.Record.Field.sleepLabel.value, value: "\(sleep)시간")
                         }
 
-                        DetailIconRowView(title: L10n.Record.Field.mealLabel, isChecked: record.condition.meal)
-                        DetailIconRowView(title: L10n.Record.Field.alcoholLabel, isChecked: record.condition.alcohol)
+                        DetailIconRowView(
+                            title: L10n.Record.Field.mealLabel.value,
+                            isChecked: record.condition.meal
+                        )
+                        DetailIconRowView(
+                            title: L10n.Record.Field.alcoholLabel.value,
+                            isChecked: record.condition.alcohol
+                        )
                     }
 
     //                Divider()
@@ -394,7 +400,7 @@ private struct WeatherSectionView: View {
         HStack(spacing: 0) {
             WeatherItemView(
                 icon: "thermometer",
-                title: L10n.Weather.Field.temperature,
+                title: L10n.Weather.Field.temperature.value,
                 value: String(format: "%.1f°C", weather.temperature)
             )
 
@@ -406,7 +412,7 @@ private struct WeatherSectionView: View {
 
             WeatherItemView(
                 icon: "humidity.fill",
-                title: L10n.Weather.Field.humidity,
+                title: L10n.Weather.Field.humidity.value,
                 value: "\(weather.humidity)%"
             )
 
@@ -418,7 +424,7 @@ private struct WeatherSectionView: View {
 
             WeatherItemView(
                 icon: "wind",
-                title: L10n.Weather.Field.windSpeed,
+                title: L10n.Weather.Field.windSpeed.value,
                 value: String(format: "%.1fm/s", weather.windSpeed)
             )
         }

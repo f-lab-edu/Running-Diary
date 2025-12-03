@@ -16,30 +16,30 @@ struct AddRecordView: View {
 
     var body: some View {
         FormContentView(store: store)
-        .navigationTitle(store.mode == .add ? L10n.Record.add : L10n.Record.edit)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button(L10n.UI.cancel) {
-                    dismiss()
+            .navigationTitle(store.mode == .add ? L10n.Record.add.value : L10n.Record.edit.value)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(L10n.UI.cancel.value) {
+                        dismiss()
+                    }
+                    .foregroundStyle(.gray500)
                 }
-                .foregroundStyle(.gray500)
-            }
 
-            ToolbarItem(placement: .confirmationAction) {
-                Button(L10n.UI.save) {
-                    hideKeyboard()
-                    store.send(.saveRecord)
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(L10n.UI.save.value) {
+                        hideKeyboard()
+                        store.send(.saveRecord)
+                    }
+                    .foregroundStyle(store.isLoading || !store.isFormValid ? .blue300.opacity(0.3) : .blue300)
+                    .disabled(store.isLoading || !store.isFormValid)
                 }
-                .foregroundStyle(store.isLoading || !store.isFormValid ? .blue300.opacity(0.3) : .blue300)
-                .disabled(store.isLoading || !store.isFormValid)
             }
-        }
-        .task {
-            store.send(.onAppear)
-        }
-        .loadingIndicatorIfNeeded(store.isLoading)
+            .task {
+                store.send(.onAppear)
+            }
+            .loadingIndicatorIfNeeded(store.isLoading)
     }
 }
 
@@ -130,7 +130,7 @@ private struct FormContentView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button(L10n.UI.done) {
+                Button(L10n.UI.done.value) {
                     hideKeyboard()
                 }
             }
@@ -149,24 +149,24 @@ private struct HealthKitSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.fitnessData)
+            L10n.Record.fitnessData.text
                 .font(.headline)
                 .foregroundStyle(.blue700)
                 .padding(.bottom, 4)
 
             VStack(spacing: 12) {
                 HStack {
-                    Text(L10n.Record.Field.distance)
+                    L10n.Record.Field.distance.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(distance)
                         .foregroundStyle(.blue700)
-                    Text(L10n.Unit.km)
+                    L10n.Unit.km.text
                         .foregroundColor(.gray)
                 }
 
                 HStack {
-                    Text(L10n.Record.Field.duration)
+                    L10n.Record.Field.duration.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(duration)
@@ -174,7 +174,7 @@ private struct HealthKitSectionView: View {
                 }
 
                 HStack {
-                    Text(L10n.Record.Field.pace)
+                    L10n.Record.Field.pace.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(averagePace)
@@ -182,22 +182,22 @@ private struct HealthKitSectionView: View {
                 }
 
                 HStack {
-                    Text(L10n.Record.Field.heartRate)
+                    L10n.Record.Field.heartRate.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(averageHeartRate)
                         .foregroundStyle(.blue700)
-                    Text(L10n.Unit.bpm)
+                    L10n.Unit.bpm.text
                         .foregroundColor(.gray)
                 }
 
                 HStack {
-                    Text(L10n.Record.Field.cadence)
+                    L10n.Record.Field.cadence.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(averageCadence)
                         .foregroundStyle(.blue700)
-                    Text(L10n.Unit.spm)
+                    L10n.Unit.spm.text
                         .foregroundColor(.gray500)
                 }
             }
@@ -214,7 +214,7 @@ private struct PainAreasSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.painAreas)
+            L10n.Record.Field.painAreas.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
@@ -249,7 +249,7 @@ private struct RunningStyleSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.runningStyle)
+            L10n.Record.Field.runningStyle.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
@@ -261,7 +261,7 @@ private struct RunningStyleSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedStyle?.localizedName ?? L10n.Record.Field.runningStylePlaceholder)
+                    Text(selectedStyle?.localizedName ?? L10n.Record.Field.runningStylePlaceholder.value)
                         .foregroundColor(selectedStyle == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -281,7 +281,7 @@ private struct DifficultyLevelSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.intensity)
+            L10n.Record.Field.intensity.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
@@ -293,7 +293,7 @@ private struct DifficultyLevelSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedLevel?.displayName ?? L10n.Record.Field.intensityPlaceholder)
+                    Text(selectedLevel?.displayName ?? L10n.Record.Field.intensityPlaceholder.value)
                         .foregroundColor(selectedLevel == nil ? .gray : .primary)
                     Spacer()
                     if let level = selectedLevel {
@@ -325,13 +325,13 @@ private struct ConditionSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.condition)
+            L10n.Record.Field.condition.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
             VStack(spacing: 12) {
                 HStack {
-                    Text(L10n.Record.Field.sleepDuration)
+                    L10n.Record.Field.sleepDuration.text
                         .foregroundColor(.gray)
                     Spacer()
                     TextField("8", text: $sleepHours)
@@ -358,19 +358,19 @@ private struct ConditionSectionView: View {
                                 sleepHours = oldValue
                             }
                         }
-                    Text(L10n.Unit.hours)
+                    L10n.Unit.hours.text
                         .foregroundColor(.gray)
                 }
 
                 HStack {
-                    Text(L10n.Record.Field.hasMeal)
+                    L10n.Record.Field.hasMeal.text
                         .foregroundColor(.gray)
                     Spacer()
                     CheckboxView(isChecked: $hadMeal)
                 }
 
                 HStack {
-                    Text(L10n.Record.Field.wasDrinking)
+                    L10n.Record.Field.wasDrinking.text
                         .foregroundColor(.gray)
                     Spacer()
                     CheckboxView(isChecked: $hadAlcohol)
@@ -390,7 +390,7 @@ private struct ShoesSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.shoes)
+            L10n.Record.Field.shoes.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
@@ -402,7 +402,7 @@ private struct ShoesSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedShoe?.name ?? L10n.Record.Field.shoesPlaceholder)
+                    Text(selectedShoe?.name ?? L10n.Record.Field.shoesPlaceholder.value)
                         .foregroundColor(selectedShoe == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -422,7 +422,7 @@ private struct MemoSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.memo)
+            L10n.Record.Field.memo.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
@@ -434,7 +434,7 @@ private struct MemoSectionView: View {
                     .cornerRadius(8)
 
                 if memo.isEmpty {
-                    Text(L10n.Record.Field.memoPlaceholder)
+                    Text(L10n.Record.Field.memoPlaceholder.value)
                         .foregroundColor(.gray)
                         .padding(.top, 12)
                         .padding(.leading, 9)

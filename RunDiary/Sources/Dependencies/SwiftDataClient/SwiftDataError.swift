@@ -16,13 +16,13 @@ enum SwiftDataError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .notFound:
-            return L10n.Repository.Error.notFound
+            return L10n.Repository.Error.notFound.value
         case .saveFailed:
-            return L10n.Repository.Error.saveFailed
+            return L10n.Repository.Error.saveFailed.value
         case .updateFailed:
-            return L10n.Repository.Error.updateFailed
+            return L10n.Repository.Error.updateFailed.value
         case .deleteFailed:
-            return L10n.Repository.Error.deleteFailed
+            return L10n.Repository.Error.deleteFailed.value
         }
     }
 }

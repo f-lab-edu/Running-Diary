@@ -14,14 +14,6 @@ public struct YearMonthDay: Comparable, Equatable, Hashable, Sendable {
     public let month: Int
     public let day: Int
 
-    public var full: String {
-        "\(year)년 \(month)월 \(day)일"
-    }
-
-    public var compact: String {
-        "\(month)월 \(day)일"
-    }
-
     public init(year: Int, month: Int, day: Int) {
         self.year = year
         self.month = month

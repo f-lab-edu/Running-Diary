@@ -53,4 +53,17 @@ enum DateHelper {
     ) -> Date {
         calendar.date(byAdding: .weekOfYear, value: weeks, to: date) ?? date
     }
+
+    static func formattedYearMonth(year: Int, month: Int, locale: Locale = .current) -> String {
+        let calendar = Calendar.current
+        guard let date = calendar.date(from: DateComponents(year: year, month: month)) else {
+            return "\(year)-\(month)"
+        }
+
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("MMMM yyyy")
+
+        return formatter.string(from: date)
+    }
 }

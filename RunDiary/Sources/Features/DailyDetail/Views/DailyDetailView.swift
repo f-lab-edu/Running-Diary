@@ -49,8 +49,7 @@ private struct YearAndMonthSection: View {
     let onCalendarTap: () -> Void
 
     init(yearMonthDay: YearMonthDay, onCalendarTap: @escaping () -> Void) {
-        let format = String(localized: "%@년 %@월")
-        self.title = String.localizedStringWithFormat(format, "\(yearMonthDay.year)", "\(yearMonthDay.month)")
+        self.title = DateHelper.formattedYearMonth(year: yearMonthDay.year, month: yearMonthDay.month)
         self.onCalendarTap = onCalendarTap
     }
 

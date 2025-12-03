@@ -18,11 +18,7 @@ struct DiarySwitchButton: View {
                 Capsule()
                     .foregroundStyle(.yellow100)
 
-                Text(String.localizedStringWithFormat(
-                    String(localized: "%lld월 %lld일 다이어리 보기"),
-                    selectedDate.month,
-                    selectedDate.day
-                ))
+                L10n.Format.viewDiaryDate.text(selectedDate.month, selectedDate.day)
                     .bold()
                     .foregroundStyle(.blue700)
                     .padding(.vertical, 12)

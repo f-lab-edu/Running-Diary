@@ -12,9 +12,9 @@ extension WeatherKitError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .missingLocation:
-            return L10n.Weather.Error.locationRequired
+            return L10n.Weather.Error.locationRequired.value
         case .dataUnavailable:
-            return L10n.Weather.Error.dataUnavailable
+            return L10n.Weather.Error.dataUnavailable.value
         }
     }
 }
