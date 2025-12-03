@@ -38,6 +38,7 @@ struct CalendarView: View {
                     checkIfNeedsToSaveLastMonth()
                 }
             )
+            .padding(.horizontal, 4)
 
             DiarySwitchButton(
                 selectedDate: store.selectedDate,

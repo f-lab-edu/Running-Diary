@@ -24,6 +24,7 @@ struct CalendarContentView: View {
             proxy: proxy
         )
         .interMonthSpacing(40)
+        .horizontalDayMargin(6)
         .daysOfTheWeekRowSeparator(options: .systemStyleSeparator)
         .monthHeaders {
             MonthHeaderView(
