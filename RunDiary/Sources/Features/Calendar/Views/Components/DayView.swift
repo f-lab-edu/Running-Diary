@@ -65,7 +65,7 @@ struct DayView: View {
                 .font(.caption)
                 .foregroundStyle(isSelected ? .white : .gray)
                 .opacity(records.isEmpty ? 0.2 : 1)
-                .bold(!totalDistance.isNil && isToday)
+                .bold(totalDistance != nil && isToday)
             }
             .padding(10)
 
