@@ -15,7 +15,7 @@ struct DiarySwitchButton: View {
     var body: some View {
         Button(action: onTap) {
             ZStack {
-                Capsule()
+                RoundedRectangle(cornerRadius: 10)
                     .foregroundStyle(.yellow100)
 
                 L10n.Format.viewDiaryDate.text(selectedDate.month, selectedDate.day)

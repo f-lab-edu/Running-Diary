@@ -26,6 +26,7 @@ struct MonthHeaderView: View {
             }
             Spacer()
         }
-        .padding([.horizontal, .bottom], 18)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 30)
     }
 }

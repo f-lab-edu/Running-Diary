@@ -5,6 +5,7 @@
 //  Created by 김혜지 on 10/21/25.
 //
 
+import CommonFoundation
 import Foundation
 
 enum DateHelper {
@@ -54,16 +55,11 @@ enum DateHelper {
         calendar.date(byAdding: .weekOfYear, value: weeks, to: date) ?? date
     }
 
-    static func formattedYearMonth(year: Int, month: Int, locale: Locale = .current) -> String {
+    static func formattedYearMonth(year: Int, month: Int) -> String {
         let calendar = Calendar.current
         guard let date = calendar.date(from: DateComponents(year: year, month: month)) else {
             return "\(year)-\(month)"
         }
-
-        let formatter = DateFormatter()
-        formatter.locale = locale
-        formatter.setLocalizedDateFormatFromTemplate("MMMM yyyy")
-
-        return formatter.string(from: date)
+        return date.formattedString(dateFormat: .yearMonth)
     }
 }

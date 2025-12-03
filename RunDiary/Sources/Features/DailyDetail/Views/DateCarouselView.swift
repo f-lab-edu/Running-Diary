@@ -171,16 +171,9 @@ private struct DateItemView: View {
         self.width = width
     }
     
-    private var weekday: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "E"
-        formatter.locale = Locale.current
-        return formatter.string(from: date.toDate())
-    }
-    
     var body: some View {
         VStack(spacing: 2) {
-            Text(weekday)
+            Text(date.toDate().formattedString(dateFormat: .weekday))
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(isSelected ? .white : .gray700)

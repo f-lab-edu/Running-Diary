@@ -18,9 +18,6 @@ struct DayView: View {
     let isSelected: Bool
     let hasUnsavedWorkout: Bool
 
-    private var cellHeight: CGFloat {
-        screenWidth / 7
-    }
     private var totalDistance: Double? {
         guard !records.isEmpty else { return nil }
         return records.reduce(0) { $0 + $1.distanceInKilometers }
@@ -74,7 +71,6 @@ struct DayView: View {
 
             UnsavedWorkoutDot(isPresented: hasUnsavedWorkout)
         }
-        .frame(minHeight: cellHeight)
     }
 }
 

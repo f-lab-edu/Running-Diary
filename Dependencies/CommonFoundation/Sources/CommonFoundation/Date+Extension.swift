@@ -8,10 +8,8 @@
 import Foundation
 
 extension Date {
-    public var formmatedTime: String {
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone.current
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: self)
+    @MainActor
+    public func formattedString(dateFormat: DateFormat) -> String {
+        return dateFormat.formatter.string(from: self)
     }
 }
