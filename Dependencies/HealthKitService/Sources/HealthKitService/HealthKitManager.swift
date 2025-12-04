@@ -194,7 +194,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         
         let durationInMinutes = workout.duration / 60.0
 
-        guard durationInMinutes > 0, totalSteps > 0 else {
+        guard durationInMinutes > 0 && totalSteps > 0 else {
             return nil
         }
 

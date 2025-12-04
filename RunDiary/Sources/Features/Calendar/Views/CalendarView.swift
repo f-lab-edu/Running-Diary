@@ -67,7 +67,7 @@ struct CalendarView: View {
     private func checkIfNeedsToLoadOlderData() {
         guard let oldestMonth = proxy.visibleMonthRange?.lowerBound else { return }
         let startDate = store.state.startDate
-        guard startDate.year == oldestMonth.year, startDate.month == oldestMonth.month else { return }
+        guard startDate.year == oldestMonth.year && startDate.month == oldestMonth.month else { return }
         store.send(.oldestMonthBecameVisible)
     }
 
