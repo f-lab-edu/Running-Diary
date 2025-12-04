@@ -190,23 +190,6 @@ struct RunningRecordCard: View {
                         )
                     }
 
-    //                Divider()
-
-                    // 운동 강도
-    //                DifficultyLevelView(difficultyLevel: record.difficultyLevel?.rawValue)
-
-                    // 지도
-    //                if record.hasMap {
-    //                    Rectangle()
-    //                        .fill(Color.gray100)
-    //                        .frame(height: 200)
-    //                        .cornerRadius(12)
-    //                        .overlay(
-    //                            Text("지도 영역")
-    //                                .foregroundColor(.gray)
-    //                        )
-    //                }
-
                     // 메모
                     if let memo = record.condition.memo {
                         VStack(spacing: 20) {
@@ -235,10 +218,6 @@ struct RunningRecordCard: View {
             .background(Color.white)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
-
-            // 수정 버튼
-//            EditButton(onEdit: onEdit)
-//                .padding(.trailing, 4)
         }
     }
 }
