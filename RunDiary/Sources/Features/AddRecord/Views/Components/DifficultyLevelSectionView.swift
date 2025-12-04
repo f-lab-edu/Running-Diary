@@ -13,7 +13,7 @@ struct DifficultyLevelSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.Record.Field.intensity.text
+            L10n.recordFieldIntensity.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
@@ -25,7 +25,7 @@ struct DifficultyLevelSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedLevel?.displayName ?? L10n.Record.Field.intensityPlaceholder.value)
+                    Text(selectedLevel?.displayName ?? L10n.recordFieldIntensityPlaceholder.value)
                         .foregroundColor(selectedLevel == nil ? .gray : .primary)
                     Spacer()
                     if let level = selectedLevel {

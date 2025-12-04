@@ -31,17 +31,17 @@ struct HealthKitWorkoutCard: View {
                 }
 
                 HStack(spacing: 20) {
-                    RecordVerticalRow(title: L10n.Record.Field.distance.value, value: workout.distance.to2f)
-                    RecordVerticalRow(title: L10n.Record.Field.duration.value, value: workout.formattedDuration)
+                    RecordVerticalRow(title: L10n.recordFieldDistance.value, value: workout.distance.to2f)
+                    RecordVerticalRow(title: L10n.recordFieldDuration.value, value: workout.formattedDuration)
                 }
 
                 HStack(spacing: 20) {
-                    RecordVerticalRow(title: L10n.Record.Field.pace.value, value: workout.averagePace)
-                    RecordVerticalRow(title: L10n.Record.Field.heartRate.value, value: "\(workout.averageHeartRate) bpm")
+                    RecordVerticalRow(title: L10n.recordFieldPace.value, value: workout.averagePace)
+                    RecordVerticalRow(title: L10n.recordFieldHeartRate.value, value: "\(workout.averageHeartRate) bpm")
                 }
 
                 HStack(spacing: 20) {
-                    RecordVerticalRow(title: L10n.Record.Field.cadence.value, value: "\(workout.averageCadence) spm")
+                    RecordVerticalRow(title: L10n.recordFieldCadence.value, value: "\(workout.averageCadence) spm")
                 }
             }
             .padding(20)
@@ -54,7 +54,7 @@ struct HealthKitWorkoutCard: View {
                     Capsule()
                         .foregroundStyle(.yellow100)
 
-                    L10n.Record.writeDiaryButton.text
+                    L10n.recordWriteDiaryButton.text
                         .fontWeight(.semibold)
                         .foregroundColor(.blue700)
                         .padding()

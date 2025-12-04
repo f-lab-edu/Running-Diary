@@ -27,29 +27,29 @@ struct RunningRecordCard: View {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 20) {
                         RecordVerticalRow(
-                            title: L10n.Record.Field.distance.value,
+                            title: L10n.recordFieldDistance.value,
                             value: record.distanceInKilometers.to2f
                         )
                         RecordVerticalRow(
-                            title: L10n.Record.Field.duration.value,
+                            title: L10n.recordFieldDuration.value,
                             value: record.formattedDuration
                         )
                     }
 
                     HStack(spacing: 20) {
                         RecordVerticalRow(
-                            title: L10n.Record.Field.pace.value,
+                            title: L10n.recordFieldPace.value,
                             value: record.averagePace
                         )
                         RecordVerticalRow(
-                            title: L10n.Record.Field.heartRate.value,
+                            title: L10n.recordFieldHeartRate.value,
                             value: "\(record.averageHeartRate) bpm"
                         )
                     }
 
                     HStack(spacing: 20) {
                         RecordVerticalRow(
-                            title: L10n.Record.Field.cadence.value,
+                            title: L10n.recordFieldCadence.value,
                             value: "\(record.averageCadence) spm"
                         )
                     }
@@ -63,7 +63,7 @@ struct RunningRecordCard: View {
                     } label: {
                         HStack {
                             Spacer()
-                            L10n.UI.viewDetails.text
+                            L10n.uiViewDetails.text
                             Image(systemName: "chevron.down")
                             Spacer()
                         }
@@ -76,7 +76,7 @@ struct RunningRecordCard: View {
                     // 신발
                     if let shoesId = record.shoes, let shoesName = ShoeStorage.search(id: shoesId)?.name {
                         RecordHorizontalRow(
-                            title: L10n.Record.Field.shoesLabel.value,
+                            title: L10n.recordFieldShoesLabel.value,
                             value: shoesName
                         )
                     }
@@ -84,7 +84,7 @@ struct RunningRecordCard: View {
                     // 주법
                     if let style = record.runningStyle {
                         RecordHorizontalRow(
-                            title: L10n.Record.Field.runningStyleLabel.value,
+                            title: L10n.recordFieldRunningStyleLabel.value,
                             value: style.localizedName
                         )
                     }
@@ -92,7 +92,7 @@ struct RunningRecordCard: View {
                     // 통증 부위
                     if !record.painAreas.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            L10n.Record.Field.painAreas.text
+                            L10n.recordFieldPainAreas.text
                                 .foregroundColor(.gray)
 
                             DynamicGridLayout(items: record.painAreas) { item in
@@ -119,17 +119,17 @@ struct RunningRecordCard: View {
                     VStack(alignment: .leading, spacing: 14) {
                         if let sleep = record.condition.sleep {
                             RecordHorizontalRow(
-                                title: L10n.Record.Field.sleepLabel.value,
+                                title: L10n.recordFieldSleepLabel.value,
                                 value: "\(sleep)시간"
                             )
                         }
 
                         RecordIconRow(
-                            title: L10n.Record.Field.mealLabel.value,
+                            title: L10n.recordFieldMealLabel.value,
                             isChecked: record.condition.meal
                         )
                         RecordIconRow(
-                            title: L10n.Record.Field.alcoholLabel.value,
+                            title: L10n.recordFieldAlcoholLabel.value,
                             isChecked: record.condition.alcohol
                         )
                     }

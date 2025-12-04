@@ -14,7 +14,7 @@ struct RunningStyleSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.Record.Field.runningStyle.text
+            L10n.recordFieldRunningStyle.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
@@ -26,7 +26,7 @@ struct RunningStyleSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedStyle?.localizedName ?? L10n.Record.Field.runningStylePlaceholder.value)
+                    Text(selectedStyle?.localizedName ?? L10n.recordFieldRunningStylePlaceholder.value)
                         .foregroundColor(selectedStyle == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")

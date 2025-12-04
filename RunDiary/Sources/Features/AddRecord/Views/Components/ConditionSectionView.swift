@@ -15,13 +15,13 @@ struct ConditionSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.Record.Field.condition.text
+            L10n.recordFieldCondition.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
             VStack(spacing: 12) {
                 HStack {
-                    L10n.Record.Field.sleepDuration.text
+                    L10n.recordFieldSleepDuration.text
                         .foregroundColor(.gray)
                     Spacer()
                     TextField("8", text: $sleepHours)
@@ -48,19 +48,19 @@ struct ConditionSectionView: View {
                                 sleepHours = oldValue
                             }
                         }
-                    L10n.Unit.hours.text
+                    L10n.unitHours.text
                         .foregroundColor(.gray)
                 }
 
                 HStack {
-                    L10n.Record.Field.hasMeal.text
+                    L10n.recordFieldHasMeal.text
                         .foregroundColor(.gray)
                     Spacer()
                     CheckboxView(isChecked: $hadMeal)
                 }
 
                 HStack {
-                    L10n.Record.Field.wasDrinking.text
+                    L10n.recordFieldWasDrinking.text
                         .foregroundColor(.gray)
                     Spacer()
                     CheckboxView(isChecked: $hadAlcohol)

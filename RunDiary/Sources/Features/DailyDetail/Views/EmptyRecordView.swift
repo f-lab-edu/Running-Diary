@@ -54,8 +54,8 @@ struct EmptyRecordView: View {
 
     private var messageText: String {
         if let error = error {
-            return error.errorDescription ?? L10n.Error.generic.value
+            return error.errorDescription ?? L10n.errorGeneric.value
         }
-        return L10n.Record.empty.value
+        return L10n.recordEmpty.value
     }
 }

@@ -16,24 +16,24 @@ struct HealthKitSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.Record.fitnessData.text
+            L10n.recordFitnessData.text
                 .font(.headline)
                 .foregroundStyle(.blue700)
                 .padding(.bottom, 4)
 
             VStack(spacing: 12) {
                 HStack {
-                    L10n.Record.Field.distance.text
+                    L10n.recordFieldDistance.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(distance)
                         .foregroundStyle(.blue700)
-                    L10n.Unit.km.text
+                    L10n.unitKm.text
                         .foregroundColor(.gray)
                 }
 
                 HStack {
-                    L10n.Record.Field.duration.text
+                    L10n.recordFieldDuration.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(duration)
@@ -41,7 +41,7 @@ struct HealthKitSectionView: View {
                 }
 
                 HStack {
-                    L10n.Record.Field.pace.text
+                    L10n.recordFieldPace.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(averagePace)
@@ -49,22 +49,22 @@ struct HealthKitSectionView: View {
                 }
 
                 HStack {
-                    L10n.Record.Field.heartRate.text
+                    L10n.recordFieldHeartRate.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(averageHeartRate)
                         .foregroundStyle(.blue700)
-                    L10n.Unit.bpm.text
+                    L10n.unitBpm.text
                         .foregroundColor(.gray)
                 }
 
                 HStack {
-                    L10n.Record.Field.cadence.text
+                    L10n.recordFieldCadence.text
                         .foregroundColor(.gray500)
                     Spacer()
                     Text(averageCadence)
                         .foregroundStyle(.blue700)
-                    L10n.Unit.spm.text
+                    L10n.unitSpm.text
                         .foregroundColor(.gray500)
                 }
             }

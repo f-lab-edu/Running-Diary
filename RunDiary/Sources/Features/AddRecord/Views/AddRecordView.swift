@@ -96,24 +96,24 @@ struct AddRecordView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button(L10n.UI.done.value) {
+                Button(L10n.uiDone.value) {
                     hideKeyboard()
                 }
             }
         }
-        .navigationTitle(store.mode == .add ? L10n.Record.add.value : L10n.Record.edit.value)
+        .navigationTitle(store.mode == .add ? L10n.recordAdd.value : L10n.recordEdit.value)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button(L10n.UI.cancel.value) {
+                Button(L10n.uiCancel.value) {
                     dismiss()
                 }
                 .foregroundStyle(.gray500)
             }
 
             ToolbarItem(placement: .confirmationAction) {
-                Button(L10n.UI.save.value) {
+                Button(L10n.uiSave.value) {
                     hideKeyboard()
                     store.send(.saveRecord)
                 }

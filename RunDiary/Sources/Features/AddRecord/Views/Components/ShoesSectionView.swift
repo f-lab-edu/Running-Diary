@@ -19,7 +19,7 @@ struct ShoesSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.Record.Field.shoes.text
+            L10n.recordFieldShoes.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
@@ -31,7 +31,7 @@ struct ShoesSectionView: View {
                 }
             } label: {
                 HStack {
-                    Text(selectedShoe?.name ?? L10n.Record.Field.shoesPlaceholder.value)
+                    Text(selectedShoe?.name ?? L10n.recordFieldShoesPlaceholder.value)
                         .foregroundColor(selectedShoe == nil ? .gray : .primary)
                     Spacer()
                     Image(systemName: "chevron.down")

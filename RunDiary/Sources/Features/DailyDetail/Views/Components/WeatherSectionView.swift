@@ -19,7 +19,7 @@ struct WeatherSectionView: View {
         HStack(spacing: 0) {
             WeatherItemView(
                 icon: "thermometer",
-                title: L10n.Weather.Field.temperature.value,
+                title: L10n.weatherFieldTemperature.value,
                 value: String(format: "%.1f°C", weather.temperature)
             )
 
@@ -31,7 +31,7 @@ struct WeatherSectionView: View {
 
             WeatherItemView(
                 icon: "humidity.fill",
-                title: L10n.Weather.Field.humidity.value,
+                title: L10n.weatherFieldHumidity.value,
                 value: "\(weather.humidity)%"
             )
 
@@ -43,7 +43,7 @@ struct WeatherSectionView: View {
 
             WeatherItemView(
                 icon: "wind",
-                title: L10n.Weather.Field.windSpeed.value,
+                title: L10n.weatherFieldWindSpeed.value,
                 value: String(format: "%.1fm/s", weather.windSpeed)
             )
         }

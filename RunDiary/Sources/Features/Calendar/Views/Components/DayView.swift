@@ -57,7 +57,7 @@ struct DayView: View {
 
                 Group {
                     if let totalDistance = totalDistance {
-                        L10n.Format.km.text(totalDistance.to1f)
+                        L10n.formatKm.text(totalDistance.to1f)
                     } else {
                         Text("-")
                     }

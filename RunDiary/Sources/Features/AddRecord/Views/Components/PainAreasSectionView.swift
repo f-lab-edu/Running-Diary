@@ -14,7 +14,7 @@ struct PainAreasSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.Record.Field.painAreas.text
+            L10n.recordFieldPainAreas.text
                 .font(.headline)
                 .padding(.bottom, 4)
 

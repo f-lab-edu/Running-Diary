@@ -12,11 +12,11 @@ extension HealthKitError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .notAvailable:
-            return L10n.Healthkit.Error.notAvailable.value
+            return L10n.healthkitErrorNotAvailable.value
         case .authorizationFailed:
-            return L10n.Healthkit.Error.authorizationFailed.value
+            return L10n.healthkitErrorAuthorizationFailed.value
         case .dataNotFound:
-            return L10n.Healthkit.Error.dataNotFound.value
+            return L10n.healthkitErrorDataNotFound.value
         }
     }
 }

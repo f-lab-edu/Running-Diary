@@ -20,7 +20,7 @@ struct MonthHeaderView: View {
                 .font(.title2)
                 .bold()
             if totalDistance > 0 {
-                L10n.Format.totalKm.text(totalDistance.to1f)
+                L10n.formatTotalKm.text(totalDistance.to1f)
                     .bold()
                     .foregroundStyle(.gray)
             }

@@ -16,7 +16,7 @@ struct MemoSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.Record.Field.memo.text
+            L10n.recordFieldMemo.text
                 .font(.headline)
                 .padding(.bottom, 4)
 
@@ -28,7 +28,7 @@ struct MemoSectionView: View {
                     .cornerRadius(8)
 
                 if memo.isEmpty {
-                    Text(L10n.Record.Field.memoPlaceholder.value)
+                    Text(L10n.recordFieldMemoPlaceholder.value)
                         .foregroundColor(.gray)
                         .padding(.top, 12)
                         .padding(.leading, 9)

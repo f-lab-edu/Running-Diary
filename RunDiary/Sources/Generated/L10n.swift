@@ -135,209 +135,181 @@ extension LocalizableKey where T == LocalizableParameterCount5 {
 // MARK: - Localization Keys
 
 enum L10n {
-    // MARK: - Format
-    enum Format {
-        /// %@년 %@월 포맷 (2 파라미터)
-        static let yearMonth: LocalizableKey<LocalizableParameterCount2> = .init(key: "format.year_month")
-        /// 총 %@km 포맷 (1 파라미터)
-        static let totalKm: LocalizableKey<LocalizableParameterCount1> = .init(key: "format.total_km")
-        /// %lld월 %lld일 다이어리 보기 포맷 (2 파라미터)
-        static let viewDiaryDate: LocalizableKey<LocalizableParameterCount2> = .init(key: "format.view_diary_date")
-        /// %dkm 포맷(1 파라미터)
-        static let km: LocalizableKey<LocalizableParameterCount1> = .init(key: "format.km")
-    }
+    // MARK: - Error (1 key)
+    /// An error occurred
+    static let errorGeneric: LocalizableKey<LocalizableParameterCount0> = .init(key: "error.generic")
 
-    // MARK: - HealthKit
-    enum Healthkit {
-        enum Data {
-            /// Health data access denied
-            static let empty: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.data.empty")
-            /// Loading fitness data!
-            static let loading: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.data.loading")
-            /// Please allow access in Settings to fetch running data.
-            static let permissionMessage: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.data.permission_message")
-        }
+    // MARK: - Format (4 keys)
+    /// %@km 포맷 (1 파라미터)
+    static let formatKm: LocalizableKey<LocalizableParameterCount1> = .init(key: "format.km")
+    /// 총 %@km 포맷 (1 파라미터)
+    static let formatTotalKm: LocalizableKey<LocalizableParameterCount1> = .init(key: "format.total_km")
+    /// %lld월 %lld일 다이어리 보기 포맷 (2 파라미터)
+    static let formatViewDiaryDate: LocalizableKey<LocalizableParameterCount2> = .init(key: "format.view_diary_date")
+    /// %@년 %@월 포맷 (2 파라미터)
+    static let formatYearMonth: LocalizableKey<LocalizableParameterCount2> = .init(key: "format.year_month")
 
-        enum Error {
-            /// Failed to request HealthKit authorization. Please try again later.
-            static let authorizationFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.error.authorization_failed")
-            /// Data not found
-            static let dataNotFound: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.error.data_not_found")
-            /// Failed to fetch HealthKit data
-            static let fetchContext: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.error.fetch_context")
-            /// HealthKit is not available on this device.
-            static let notAvailable: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.error.not_available")
-        }
+    // MARK: - HealthKit Data (3 keys)
+    /// Health data access denied
+    static let healthkitDataEmpty: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.data.empty")
+    /// Loading fitness data!
+    static let healthkitDataLoading: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.data.loading")
+    /// Please allow access in Settings to fetch running data.
+    static let healthkitDataPermissionMessage: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.data.permission_message")
 
-        /// Failed to fetch fitness data
-        static let fetchFailedTitle: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.fetch_failed_title")
-    }
+    // MARK: - HealthKit Error (4 keys)
+    /// Failed to request HealthKit authorization. Please try again later.
+    static let healthkitErrorAuthorizationFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.error.authorization_failed")
+    /// Data not found
+    static let healthkitErrorDataNotFound: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.error.data_not_found")
+    /// Failed to fetch HealthKit data
+    static let healthkitErrorFetchContext: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.error.fetch_context")
+    /// HealthKit is not available on this device.
+    static let healthkitErrorNotAvailable: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.error.not_available")
 
-    // MARK: - Record
-    enum Record {
-        /// Add Record
-        static let add: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.add")
-        /// Add Record (button)
-        static let addButton: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.add_button")
-        /// Edit Record
-        static let edit: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.edit")
-        /// No running records
-        static let empty: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.empty")
-        /// Fitness Data
-        static let fitnessData: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.fitness_data")
-        /// Write Diary
-        static let writeDiaryButton: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.write_diary_button")
+    // MARK: - HealthKit (1 key)
+    /// Failed to fetch fitness data
+    static let healthkitFetchFailedTitle: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.fetch_failed_title")
 
-        enum Error {
-            /// Failed to load record
-            static let fetchContext: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.error.fetch_context")
-            /// Failed to save record
-            static let saveContext: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.error.save_context")
-        }
+    // MARK: - Record (6 keys)
+    /// Add Record
+    static let recordAdd: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.add")
+    /// Add Record (button)
+    static let recordAddButton: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.add_button")
+    /// Edit Record
+    static let recordEdit: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.edit")
+    /// No running records
+    static let recordEmpty: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.empty")
+    /// Fitness Data
+    static let recordFitnessData: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.fitness_data")
+    /// Write Diary
+    static let recordWriteDiaryButton: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.write_diary_button")
 
-        enum Field {
-            /// Alcohol
-            static let alcoholLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.alcohol_label")
-            /// Average Cadence
-            static let cadence: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.cadence")
-            /// Condition
-            static let condition: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.condition")
-            /// Distance
-            static let distance: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.distance")
-            /// Duration
-            static let duration: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.duration")
-            /// Had Meal
-            static let hasMeal: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.has_meal")
-            /// Average Heart Rate
-            static let heartRate: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.heart_rate")
-            /// Exercise Intensity
-            static let intensity: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.intensity")
-            /// Please select exercise intensity!
-            static let intensityPlaceholder: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.intensity_placeholder")
-            /// Map Area
-            static let map: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.map")
-            /// Meal
-            static let mealLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.meal_label")
-            /// Other Notes
-            static let memo: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.memo")
-            /// Leave a note!\nEx) It was hard to run because of the wind😭
-            static let memoPlaceholder: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.memo_placeholder")
-            /// Average Pace
-            static let pace: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.pace")
-            /// Pain Areas
-            static let painAreas: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.pain_areas")
-            /// Running Style
-            static let runningStyle: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.running_style")
-            /// Running Style
-            static let runningStyleLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.running_style_label")
-            /// What running style did you use?
-            static let runningStylePlaceholder: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.running_style_placeholder")
-            /// Worn Shoes
-            static let shoes: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.shoes")
-            /// Worn Shoes
-            static let shoesLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.shoes_label")
-            /// Which shoes did you wear?
-            static let shoesPlaceholder: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.shoes_placeholder")
-            /// Sleep Duration
-            static let sleepDuration: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.sleep_duration")
-            /// Sleep
-            static let sleepLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.sleep_label")
-            /// Time
-            static let time: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.time")
-            /// Had Alcohol
-            static let wasDrinking: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.was_drinking")
-        }
-    }
+    // MARK: - Record Error (2 keys)
+    /// Failed to load record
+    static let recordErrorFetchContext: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.error.fetch_context")
+    /// Failed to save record
+    static let recordErrorSaveContext: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.error.save_context")
 
-    // MARK: - Repository
-    enum Repository {
-        enum Error {
-            /// Failed to delete record
-            static let deleteFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "repository.error.delete_failed")
-            /// Record not found
-            static let notFound: LocalizableKey<LocalizableParameterCount0> = .init(key: "repository.error.not_found")
-            /// Failed to save record
-            static let saveFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "repository.error.save_failed")
-            /// Failed to update record
-            static let updateFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "repository.error.update_failed")
-        }
-    }
+    // MARK: - Record Field (25 keys)
+    /// Alcohol
+    static let recordFieldAlcoholLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.alcohol_label")
+    /// Average Cadence
+    static let recordFieldCadence: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.cadence")
+    /// Condition
+    static let recordFieldCondition: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.condition")
+    /// Distance
+    static let recordFieldDistance: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.distance")
+    /// Duration
+    static let recordFieldDuration: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.duration")
+    /// Had Meal
+    static let recordFieldHasMeal: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.has_meal")
+    /// Average Heart Rate
+    static let recordFieldHeartRate: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.heart_rate")
+    /// Exercise Intensity
+    static let recordFieldIntensity: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.intensity")
+    /// Please select exercise intensity!
+    static let recordFieldIntensityPlaceholder: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.intensity_placeholder")
+    /// Map Area
+    static let recordFieldMap: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.map")
+    /// Meal
+    static let recordFieldMealLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.meal_label")
+    /// Other Notes
+    static let recordFieldMemo: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.memo")
+    /// Leave a note!\nEx) It was hard to run because of the wind😭
+    static let recordFieldMemoPlaceholder: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.memo_placeholder")
+    /// Average Pace
+    static let recordFieldPace: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.pace")
+    /// Pain Areas
+    static let recordFieldPainAreas: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.pain_areas")
+    /// Running Style
+    static let recordFieldRunningStyle: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.running_style")
+    /// Running Style
+    static let recordFieldRunningStyleLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.running_style_label")
+    /// What running style did you use?
+    static let recordFieldRunningStylePlaceholder: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.running_style_placeholder")
+    /// Worn Shoes
+    static let recordFieldShoes: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.shoes")
+    /// Worn Shoes
+    static let recordFieldShoesLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.shoes_label")
+    /// Which shoes did you wear?
+    static let recordFieldShoesPlaceholder: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.shoes_placeholder")
+    /// Sleep Duration
+    static let recordFieldSleepDuration: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.sleep_duration")
+    /// Sleep
+    static let recordFieldSleepLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.sleep_label")
+    /// Time
+    static let recordFieldTime: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.time")
+    /// Had Alcohol
+    static let recordFieldWasDrinking: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.was_drinking")
 
-    // MARK: - Shoe
-    enum Shoe {
-        enum Error {
-            /// Failed to load shoes
-            static let fetchContext: LocalizableKey<LocalizableParameterCount0> = .init(key: "shoe.error.fetch_context")
-            /// Failed to fetch shoes
-            static let fetchFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "shoe.error.fetch_failed")
-        }
-    }
+    // MARK: - Repository Error (4 keys)
+    /// Failed to delete record
+    static let repositoryErrorDeleteFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "repository.error.delete_failed")
+    /// Record not found
+    static let repositoryErrorNotFound: LocalizableKey<LocalizableParameterCount0> = .init(key: "repository.error.not_found")
+    /// Failed to save record
+    static let repositoryErrorSaveFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "repository.error.save_failed")
+    /// Failed to update record
+    static let repositoryErrorUpdateFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "repository.error.update_failed")
 
-    // MARK: - UI
-    enum UI {
-        /// Back
-        static let back: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.back")
-        /// Cancel
-        static let cancel: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.cancel")
-        /// Done
-        static let done: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.done")
-        /// Edit
-        static let edit: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.edit")
-        /// Go to Settings
-        static let goToSettings: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.go_to_settings")
-        /// Save
-        static let save: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.save")
-        /// Today
-        static let today: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.today")
-        /// View Details
-        static let viewDetails: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.view_details")
-    }
+    // MARK: - Shoe Error (2 keys)
+    /// Failed to load shoes
+    static let shoeErrorFetchContext: LocalizableKey<LocalizableParameterCount0> = .init(key: "shoe.error.fetch_context")
+    /// Failed to fetch shoes
+    static let shoeErrorFetchFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "shoe.error.fetch_failed")
 
-    // MARK: - Unit
-    enum Unit {
-        /// bpm
-        static let bpm: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.bpm")
-        /// hours
-        static let hours: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.hours")
-        /// km
-        static let km: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.km")
-        /// spm
-        static let spm: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.spm")
-    }
+    // MARK: - UI (8 keys)
+    /// Back
+    static let uiBack: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.back")
+    /// Cancel
+    static let uiCancel: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.cancel")
+    /// Done
+    static let uiDone: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.done")
+    /// Edit
+    static let uiEdit: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.edit")
+    /// Go to Settings
+    static let uiGoToSettings: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.go_to_settings")
+    /// Save
+    static let uiSave: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.save")
+    /// Today
+    static let uiToday: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.today")
+    /// View Details
+    static let uiViewDetails: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.view_details")
 
-    // MARK: - Weather
-    enum Weather {
-        /// No weather data
-        static let noData: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.no_data")
+    // MARK: - Unit (4 keys)
+    /// bpm
+    static let unitBpm: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.bpm")
+    /// hours
+    static let unitHours: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.hours")
+    /// km
+    static let unitKm: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.km")
+    /// spm
+    static let unitSpm: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.spm")
 
-        enum Error {
-            /// Weather API key is missing
-            static let apiKeyMissing: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.api_key_missing")
-            /// Weather data is unavailable
-            static let dataUnavailable: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.data_unavailable")
-            /// Invalid response from weather API
-            static let invalidResponse: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.invalid_response")
-            /// Location is required to fetch weather data
-            static let locationRequired: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.location_required")
-            /// Network error occurred
-            static let networkError: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.network_error")
-        }
+    // MARK: - Weather (1 key)
+    /// No weather data
+    static let weatherNoData: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.no_data")
 
-        enum Field {
-            /// Temperature
-            static let temperature: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.temperature")
-            /// Humidity
-            static let humidity: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.humidity")
-            /// Wind Speed
-            static let windSpeed: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.wind_speed")
-        }
-    }
+    // MARK: - Weather Error (5 keys)
+    /// Weather API key is missing
+    static let weatherErrorApiKeyMissing: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.api_key_missing")
+    /// Weather data is unavailable
+    static let weatherErrorDataUnavailable: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.data_unavailable")
+    /// Invalid response from weather API
+    static let weatherErrorInvalidResponse: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.invalid_response")
+    /// Location is required to fetch weather data
+    static let weatherErrorLocationRequired: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.location_required")
+    /// Network error occurred
+    static let weatherErrorNetworkError: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.error.network_error")
 
-    // MARK: - Error
-    enum Error {
-        /// An error occurred
-        static let generic: LocalizableKey<LocalizableParameterCount0> = .init(key: "error.generic")
-    }
+    // MARK: - Weather Field (3 keys)
+    /// Humidity
+    static let weatherFieldHumidity: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.humidity")
+    /// Temperature
+    static let weatherFieldTemperature: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.temperature")
+    /// Wind Speed
+    static let weatherFieldWindSpeed: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.wind_speed")
 }
 
 // MARK: - Helper

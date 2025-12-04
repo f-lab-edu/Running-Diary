@@ -18,7 +18,7 @@ struct DiarySwitchButton: View {
                 RoundedRectangle(cornerRadius: 10)
                     .foregroundStyle(.yellow100)
 
-                L10n.Format.viewDiaryDate.text(selectedDate.month, selectedDate.day)
+                L10n.formatViewDiaryDate.text(selectedDate.month, selectedDate.day)
                     .bold()
                     .foregroundStyle(.blue700)
                     .padding(.vertical, 12)
