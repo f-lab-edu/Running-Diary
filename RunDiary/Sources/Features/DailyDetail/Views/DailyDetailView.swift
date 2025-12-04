@@ -44,7 +44,7 @@ struct DailyDetailView: View {
 
 // MARK: - Subviews
 
-private struct YearAndMonthSection: View {
+struct YearAndMonthSection: View {
     let title: String
     let onCalendarTap: () -> Void
 
@@ -75,7 +75,7 @@ private struct YearAndMonthSection: View {
     }
 }
 
-private struct DateCarouselSection: View {
+struct DateCarouselSection: View {
     let store: StoreOf<DailyDetailFeature>
 
     var body: some View {
@@ -84,7 +84,7 @@ private struct DateCarouselSection: View {
     }
 }
 
-private struct RecordContentSection: View {
+struct RecordContentSection: View {
     let store: StoreOf<DailyDetailFeature>
 
     var body: some View {
