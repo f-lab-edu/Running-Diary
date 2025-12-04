@@ -514,7 +514,7 @@ private struct PainAreaButtonStyle: ButtonStyle {
         AddRecordView(
             store: Store(
                 initialState: AddRecordFeature.State(
-                    existingRecord: RunningRecordSwiftData.preview.toDomain()
+                    existingRecord: RunningRecordPersistenceModel.preview.toDomain()
                 )
             ) {
                 AddRecordFeature()

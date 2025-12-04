@@ -51,13 +51,13 @@ extension SwiftDataClient: DependencyKey {
         fetch: { date in
             // RunningRecordModel.previewRecords에서 날짜가 일치하는 레코드 찾기
             let calendar = Calendar.current
-            return RunningRecordSwiftData.previewRecords
+            return RunningRecordPersistenceModel.previewRecords
                 .first { calendar.isDate($0.date, inSameDayAs: date) }?
                 .toDomain()
         },
         fetchRecords: { startDate, endDate in
             // 날짜 범위에 맞는 레코드들 반환
-            RunningRecordSwiftData.previewRecords
+            RunningRecordPersistenceModel.previewRecords
                 .filter { $0.date >= startDate && $0.date <= endDate }
                 .map { $0.toDomain() }
         },

@@ -12,7 +12,7 @@ import SwiftUI
 public struct SampleData: PreviewModifier {
     public static func makeSharedContext() async throws -> ModelContainer {
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: RunningRecordSwiftData.self, configurations: configuration)
+        let container = try ModelContainer(for: RunningRecordPersistenceModel.self, configurations: configuration)
         SampleData.createSampleData(into: container.mainContext)
         return container
     }
@@ -23,7 +23,7 @@ public struct SampleData: PreviewModifier {
 
     @MainActor
     private static func createSampleData(into modelContext: ModelContext) {
-        let sampleRecords: [RunningRecordSwiftData] = RunningRecordSwiftData.previewRecords
+        let sampleRecords: [RunningRecordPersistenceModel] = RunningRecordPersistenceModel.previewRecords
         sampleRecords.forEach {
             modelContext.insert($0)
         }

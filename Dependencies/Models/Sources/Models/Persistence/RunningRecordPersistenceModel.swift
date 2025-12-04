@@ -1,5 +1,5 @@
 //
-//  RunningRecordSwiftData.swift
+//  RunningRecordPersistenceModel.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-public final class RunningRecordSwiftData {
+public final class RunningRecordPersistenceModel {
     @Attribute(.unique)
     public var id: UUID
     public var date: Date
@@ -86,7 +86,7 @@ public final class RunningRecordSwiftData {
 
 // MARK: - Conversion Methods
 
-public extension RunningRecordSwiftData {
+public extension RunningRecordPersistenceModel {
     func toDomain() -> RunningRecord {
         let condition = RunningCondition(
             sleep: sleepHours,
@@ -132,8 +132,8 @@ public extension RunningRecordSwiftData {
         )
     }
 
-    static func fromDomain(_ record: RunningRecord) -> RunningRecordSwiftData {
-        RunningRecordSwiftData(
+    static func fromDomain(_ record: RunningRecord) -> RunningRecordPersistenceModel {
+        RunningRecordPersistenceModel(
             id: record.id,
             date: record.yearMonthDay.toDate(),
             distance: record.distanceInKilometers,
@@ -162,7 +162,7 @@ public extension RunningRecordSwiftData {
 
 // MARK: - Preview
 
-public extension RunningRecordSwiftData {
+public extension RunningRecordPersistenceModel {
     private static func date(
         calendar: Calendar = Calendar.current,
         timeZone: TimeZone = TimeZone(identifier: "Asia/Seoul")!,
@@ -174,8 +174,8 @@ public extension RunningRecordSwiftData {
         return date ?? Date.now
     }
 
-    static var preview: RunningRecordSwiftData {
-        RunningRecordSwiftData(
+    static var preview: RunningRecordPersistenceModel {
+        RunningRecordPersistenceModel(
             id: UUID(),
             distance: 5.32,
             duration: 1800,
@@ -200,9 +200,9 @@ public extension RunningRecordSwiftData {
         )
     }
 
-    static var previewRecords: [RunningRecordSwiftData] {
+    static var previewRecords: [RunningRecordPersistenceModel] {
         [
-            RunningRecordSwiftData(
+            RunningRecordPersistenceModel(
                 id: UUID(),
                 date: date(year: 2025, month: 10, day: 15),
                 distance: 5.0,
@@ -226,7 +226,7 @@ public extension RunningRecordSwiftData {
                 startTime: date(year: 2025, month: 10, day: 15),
                 endTime: Calendar.current.date(byAdding: .second, value: 1780, to: date(year: 2025, month: 10, day: 15))!
             ),
-            RunningRecordSwiftData(
+            RunningRecordPersistenceModel(
                 id: UUID(),
                 date: date(year: 2025, month: 10, day: 18),
                 distance: 7.8,
@@ -250,7 +250,7 @@ public extension RunningRecordSwiftData {
                 startTime: date(year: 2025, month: 10, day: 18),
                 endTime: Calendar.current.date(byAdding: .second, value: 2600, to: date(year: 2025, month: 10, day: 18))!
             ),
-            RunningRecordSwiftData(
+            RunningRecordPersistenceModel(
                 id: UUID(),
                 distance: 3.5,
                 duration: 1200,
@@ -273,7 +273,7 @@ public extension RunningRecordSwiftData {
                 startTime: .now,
                 endTime: Calendar.current.date(byAdding: .second, value: 1200, to: .now)!
             ),
-            RunningRecordSwiftData.preview,
+            RunningRecordPersistenceModel.preview,
         ]
     }
 }

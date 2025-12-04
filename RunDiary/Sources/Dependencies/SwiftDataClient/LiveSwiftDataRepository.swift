@@ -27,11 +27,11 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
             return nil
         }
 
-        let predicate = #Predicate<RunningRecordSwiftData> { record in
+        let predicate = #Predicate<RunningRecordPersistenceModel> { record in
             record.date >= startOfDay && record.date < endOfDay
         }
 
-        let descriptor = FetchDescriptor<RunningRecordSwiftData>(
+        let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(
             predicate: predicate
         )
 
@@ -57,11 +57,11 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
         let start = calendar.startOfDay(for: startDate)
         let end = calendar.startOfDay(for: endDate)
 
-        let predicate = #Predicate<RunningRecordSwiftData> { record in
+        let predicate = #Predicate<RunningRecordPersistenceModel> { record in
             record.date >= start && record.date <= end
         }
 
-        let descriptor = FetchDescriptor<RunningRecordSwiftData>(
+        let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(
             predicate: predicate,
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
@@ -80,7 +80,7 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
         let startTime = Date.now
         AppLogger.database.debug("save 시작 - recordId: \(record.id), date: \(record.yearMonthDay)")
 
-        let model = RunningRecordSwiftData.fromDomain(record)
+        let model = RunningRecordPersistenceModel.fromDomain(record)
         modelContext.insert(model)
 
         do {
@@ -101,8 +101,8 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
 
         // 기존 레코드 찾기
         let recordId = record.id
-        let predicate = #Predicate<RunningRecordSwiftData> { $0.id == recordId }
-        let descriptor = FetchDescriptor<RunningRecordSwiftData>(
+        let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
+        let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(
             predicate: predicate
         )
 
@@ -153,8 +153,8 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
         AppLogger.database.debug("delete 시작 - recordId: \(record.id)")
 
         let recordId = record.id
-        let predicate = #Predicate<RunningRecordSwiftData> { $0.id == recordId }
-        let descriptor = FetchDescriptor<RunningRecordSwiftData>(
+        let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
+        let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(
             predicate: predicate
         )
 

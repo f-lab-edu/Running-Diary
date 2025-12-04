@@ -471,6 +471,6 @@ private struct WeatherItemView: View {
 
 #Preview(traits: .sampleData) {
     ScrollView(.vertical) {
-        RunningRecordCard(record: RunningRecordSwiftData.preview.toDomain(), onEdit: {})
+        RunningRecordCard(record: RunningRecordPersistenceModel.preview.toDomain(), onEdit: {})
     }
 }

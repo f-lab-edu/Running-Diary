@@ -113,7 +113,7 @@ private struct RecordContentSection: View {
 }
 
 #Preview("With Record", traits: .sampleData) {
-    let previewRecord = RunningRecordSwiftData.preview.toDomain()
+    let previewRecord = RunningRecordPersistenceModel.preview.toDomain()
     let previewDate = Calendar.current.startOfDay(for: previewRecord.startTime)
     let previewKey = YearMonthDay(date: previewDate)
 
