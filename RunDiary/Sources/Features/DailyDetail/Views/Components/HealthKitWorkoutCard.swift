@@ -26,7 +26,7 @@ struct HealthKitWorkoutCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Spacer()
-                    Text(workout.startDate.formattedString(dateFormat: .hourMinutes))
+                    Text(workout.startDate.formattedString(formatter: .hourMinutes))
                         .font(.caption)
                 }
 

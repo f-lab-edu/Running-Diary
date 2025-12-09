@@ -173,7 +173,7 @@ private struct DateItemView: View {
     
     var body: some View {
         VStack(spacing: 2) {
-            Text(date.toDate().formattedString(dateFormat: .weekday))
+            Text(date.toDate().formattedString(formatter: .weekday))
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(isSelected ? .white : .gray700)

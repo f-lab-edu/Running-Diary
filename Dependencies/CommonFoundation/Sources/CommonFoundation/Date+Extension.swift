@@ -9,7 +9,7 @@ import Foundation
 
 extension Date {
     @MainActor
-    public func formattedString(dateFormat: DateFormat) -> String {
-        return dateFormat.formatter.string(from: self)
+    public func formattedString(formatter: DateFormatter) -> String {
+        return formatter.string(from: self)
     }
 }

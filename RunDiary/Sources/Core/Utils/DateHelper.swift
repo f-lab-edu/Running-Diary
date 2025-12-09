@@ -60,6 +60,6 @@ enum DateHelper {
         guard let date = calendar.date(from: DateComponents(year: year, month: month)) else {
             return "\(year)-\(month)"
         }
-        return date.formattedString(dateFormat: .yearMonth)
+        return date.formattedString(formatter: .yearMonth)
     }
 }
