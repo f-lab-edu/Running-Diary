@@ -15,35 +15,42 @@ struct CalendarFeature {
 
     @ObservableState
     struct State: Equatable {
-        let calendar: Calendar
-        var startDate: Date
-        var endDate: Date
-        var recordsByDate: [Date: RunningRecord?] = [:]
-        var monthlyTotals: [String: Double] = [:]
+        var startDate: YearMonthDay
+        var endDate: YearMonthDay
+        var dailyRecords: [YearMonthDay: DailyRecord]
+        var monthlyTotals: [YearMonth: Double] = [:]
+        var selectedDate: YearMonthDay
         var isLoading: Bool = false
-        var error: CalendarError?
 
-        var startDateComponents: DateComponents {
-            calendar.dateComponents([.year, .month], from: startDate)
+        fileprivate(set) var lastVisibleMonth: YearMonth?
+        var isEnabledTodayButton: Bool {
+            guard selectedDate == .today else { return true }
+            guard let lastVisibleMonth else { return false }
+            return lastVisibleMonth < YearMonth(date: .now)
         }
 
-        init(startDate: Date? = nil, endDate: Date? = nil) {
+        init(
+            selectedDate: YearMonthDay,
+            dailyRecords: [YearMonthDay: DailyRecord] = [:]
+        ) {
+            let today = Date.now
             let calendar = Calendar.current
-            let today = Date()
-            self.calendar = calendar
-            self.startDate = startDate ?? calendar.date(byAdding: .year, value: -1, to: today)!
-            self.endDate = endDate ?? calendar.date(byAdding: .month, value: 1, to: today)!
-        }
+            self.startDate = selectedDate.add(month: -6) ?? YearMonthDay(date: calendar.date(byAdding: .month, value: -6, to: today)!)
 
-        /// 특정 날짜의 기록 조회
-        func record(for date: Date) -> RunningRecord? {
-            let normalizedDate = Calendar.current.startOfDay(for: date)
-            return recordsByDate[normalizedDate] ?? nil
-        }
+            // endDate: selectedDate + 6개월 (단, today까지의 차이가 6개월 미만이면 today)
+            let tentativeEndDate = selectedDate.add(month: 6) ?? YearMonthDay(date: calendar.date(byAdding: .month, value: 6, to: selectedDate.toDate())!)
 
-        /// 특정 월의 총 거리 조회 (예: "2025-10")
-        func totalDistance(for yearMonth: String) -> Double {
-            monthlyTotals[yearMonth] ?? 0.0
+            // selectedDate month와 today month 간의 개월 수 차이 계산
+            let todayYearMonthDay = YearMonthDay(date: today)
+            let selectedMonth = selectedDate.year * 12 + selectedDate.month
+            let todayMonth = todayYearMonthDay.year * 12 + todayYearMonthDay.month
+            let monthDiff = todayMonth - selectedMonth
+
+            // 차이가 6개월 미만이면 endDate = today, 아니면 tentativeEndDate
+            self.endDate = monthDiff < 6 ? todayYearMonthDay : tentativeEndDate
+
+            self.selectedDate = selectedDate
+            self.dailyRecords = dailyRecords
         }
     }
 
@@ -51,16 +58,24 @@ struct CalendarFeature {
 
     enum Action {
         case onAppear
-        case fetchRecords(startDate: Date, endDate: Date)
-        case recordsFetchedSuccess([RunningRecord])
+        case fetchRecords(startDate: YearMonthDay, endDate: YearMonthDay)
+        case recordsFetched([YearMonthDay: DailyRecord])
         case recordsFetchedFailure(CalendarError)
         case oldestMonthBecameVisible
         case fetchOlderRecords
+        case saveLastVisibleMonth(YearMonth)
+        case selectDate(YearMonthDay)
+        case navigateToDiary
+        case delegate(Delegate)
+
+        enum Delegate {
+            case dailyRecordSaved([YearMonthDay: DailyRecord])
+        }
     }
 
     // MARK: - Dependency
 
-    @Dependency(\.repositoryClient) var repositoryClient
+    @Dependency(\.runningRecordClient) var runningRecordClient
 
     // MARK: - Reducer
 
@@ -69,86 +84,48 @@ struct CalendarFeature {
             switch action {
             case .onAppear:
                 AppLogger.calendar.debug("onAppear - 캘린더 화면 표시됨")
-                // 초기 날짜 범위로 데이터 조회
-                let startDate = state.startDate
-                let endDate = state.endDate
-                AppLogger.calendar.info("초기 날짜 범위 설정 - startDate: \(startDate), endDate: \(endDate)")
-                return .send(.fetchRecords(startDate: startDate, endDate: endDate))
+                AppLogger.calendar.info("초기 날짜 범위 설정 - startDate: \(state.startDate), endDate: \(state.endDate)")
+                return .send(.fetchRecords(startDate: state.startDate, endDate: state.endDate))
 
             case let .fetchRecords(startDate, endDate):
-                // 날짜 범위 유효성 검사
                 guard startDate <= endDate else {
                     AppLogger.calendar.error("fetchRecords 실패 - 잘못된 날짜 범위: startDate: \(startDate), endDate: \(endDate)")
                     return .send(.recordsFetchedFailure(.dateRangeInvalid))
                 }
 
                 state.isLoading = true
-                state.error = nil
                 AppLogger.calendar.debug("fetchRecords 시작 - startDate: \(startDate), endDate: \(endDate)")
 
                 return .run { send in
-                    let fetchStartTime = Date()
                     do {
-                        // 날짜 범위로 기록 조회
-                        let records = try await repositoryClient.fetchRecords(startDate, endDate)
-                        let elapsed = Date().timeIntervalSince(fetchStartTime)
-                        AppLogger.calendar.info("fetchRecords 성공 - count: \(records.count), elapsed: \(String(format: "%.3f", elapsed))s")
-                        await send(.recordsFetchedSuccess(records))
+                        let dailyRecords = try await runningRecordClient.fetchData(
+                            from: startDate,
+                            to: endDate
+                        )
+                        await send(.recordsFetched(dailyRecords))
                     } catch {
-                        let elapsed = Date().timeIntervalSince(fetchStartTime)
                         let errorMessage = error.localizedDescription
-                        AppLogger.calendar.error("fetchRecords 실패 - error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
                         await send(.recordsFetchedFailure(.fetchFailed(underlyingError: errorMessage)))
                     }
                 }
 
-            case let .recordsFetchedSuccess(records):
+            case let .recordsFetched(dailyRecords):
+                state.dailyRecords.merge(dailyRecords) { _, new in new }
                 state.isLoading = false
-                state.error = nil
+                AppLogger.calendar.info("recordsFetched 완료 - 총 DailyRecord 수: \(state.dailyRecords.count)")
 
-                let calendar = Calendar.current
-
-                // 1. records를 날짜별로 매핑 (정규화된 날짜를 키로 사용)
-                let recordsByDate = Dictionary(uniqueKeysWithValues: records.map { record in
-                    (calendar.startOfDay(for: record.date), record)
-                })
-
-                // 2. startDate부터 endDate까지 모든 날짜를 순회하며 딕셔너리에 저장
-                var currentDate = calendar.startOfDay(for: state.startDate)
-                let normalizedEndDate = calendar.startOfDay(for: state.endDate)
-
-                while currentDate <= normalizedEndDate {
-                    // 해당 날짜의 기록이 있으면 저장, 없으면 nil 저장
-                    if state.recordsByDate[currentDate] == nil {
-                        state.recordsByDate[currentDate] = recordsByDate[currentDate]
-                    }
-
-                    // 다음 날로 이동
-                    guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
-                        break
-                    }
-                    currentDate = nextDate
+                // monthlyTotals 계산
+                for (yearMonthDay, dailyRecord) in dailyRecords {
+                    let yearMonth = yearMonthDay.toYearMonth()
+                    let totalDistances = dailyRecord.savedRecords.reduce(0.0) { $0 + $1.distanceInKilometers }
+                    state.monthlyTotals[yearMonth, default: 0] += totalDistances
                 }
 
-                // 3. 월별 총 거리 계산
-                let yearMonthFormatter = DateFormatter()
-                yearMonthFormatter.dateFormat = "yyyy-MM"
-
-                // 기존 월별 총계에 새로운 레코드의 거리를 추가
-                for record in records {
-                    let yearMonth = yearMonthFormatter.string(from: record.date)
-                    state.monthlyTotals[yearMonth, default: 0.0] += record.distanceInKilometers
-                }
-
-                AppLogger.calendar.info("recordsFetchedSuccess - \(records.count)개 레코드 처리 완료, 총 캐시 크기: \(state.recordsByDate.count), 월별 집계: \(state.monthlyTotals.count)개 월")
-
-                return .none
+                return .send(.delegate(.dailyRecordSaved(state.dailyRecords)))
 
             case let .recordsFetchedFailure(error):
                 state.isLoading = false
-                state.error = error
-                let errorMessage = error.localizedDescription
-                AppLogger.calendar.error("recordsFetchedFailure - error: \(errorMessage)")
+                AppLogger.calendar.error("recordsFetchedFailure - error: \(error.localizedDescription)")
                 return .none
 
             case .oldestMonthBecameVisible:
@@ -156,9 +133,8 @@ struct CalendarFeature {
                 return .send(.fetchOlderRecords)
 
             case .fetchOlderRecords:
-                let calendar = Calendar.current
                 // 현재 startDate에서 6개월 이전으로 확장
-                guard let newStartDate = calendar.date(byAdding: .month, value: -6, to: state.startDate) else {
+                guard let newStartDate = state.startDate.add(month: -6) else {
                     AppLogger.calendar.warning("fetchOlderRecords 실패 - 날짜 계산 오류")
                     return .none
                 }
@@ -168,12 +144,28 @@ struct CalendarFeature {
                 AppLogger.calendar.info("fetchOlderRecords - startDate 확장: \(oldStartDate) -> \(newStartDate)")
 
                 // 확장된 범위의 데이터 조회 (newStartDate ~ oldStartDate - 1일)
-                guard let fetchEndDate = calendar.date(byAdding: .day, value: -1, to: oldStartDate) else {
+                guard let fetchEndDate = oldStartDate.add(day: -1) else {
                     AppLogger.calendar.warning("fetchOlderRecords 실패 - fetchEndDate 계산 오류")
                     return .none
                 }
 
                 return .send(.fetchRecords(startDate: newStartDate, endDate: fetchEndDate))
+
+            case let .saveLastVisibleMonth(lastVisibleMonth):
+                state.lastVisibleMonth = lastVisibleMonth
+                return .none
+
+            case let .selectDate(selectedDate):
+                state.selectedDate = selectedDate
+                AppLogger.calendar.info("selectDay - \(state.selectedDate) 선택")
+                return .none
+
+            case .navigateToDiary:
+                AppLogger.calendar.info("navigateToDiary - \(state.selectedDate) 날짜로 다이어리 이동")
+                return .none
+
+            case .delegate:
+                return .none
             }
         }
     }

@@ -7,12 +7,10 @@
 
 import Models
 
-final class ShoeStorage: Sendable {
-    static let shared = ShoeStorage()
+enum ShoeStorage: Sendable {
+    static let shoeDict: [String: ShoeModel] = Dictionary(uniqueKeysWithValues: shoes.map { ($0.id, $0) })
 
-    private(set) lazy var shoeDict: [String: ShoeModel] = Dictionary(uniqueKeysWithValues: shoes.map { ($0.id, $0) })
-
-    private(set) lazy var shoes: [ShoeModel] = [
+    static let shoes: [ShoeModel] = [
         ShoeModel(name: "Nike Alphafly 3", brand: "Nike"),
         ShoeModel(name: "Nike Vaporfly 4", brand: "Nike"),
         ShoeModel(name: "Adidas Adizero Adios Pro 4", brand: "Adidas"),
@@ -30,5 +28,7 @@ final class ShoeStorage: Sendable {
         ShoeModel(name: "Mizuno Neo Zen", brand: "Mizuno")
     ]
 
-    private init() {}
+    static func search(id: String) -> ShoeModel? {
+        shoes.first { $0.id == id }
+    }
 }

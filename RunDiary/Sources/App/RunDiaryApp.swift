@@ -13,17 +13,22 @@ import SwiftUI
 @main
 struct RunDiaryApp: App {
     let modelContainer = DataModel.shared.modelContainer
+    let store: StoreOf<DailyDetailFeature>
 
-    init() {}
+    init() {
+        self.store = Store(initialState: DailyDetailFeature.State()) {
+            DailyDetailFeature()
+                ._printChanges()
+        } withDependencies: {
+            $0.swiftDataClient = .live(modelContext: DataModel.shared.modelContainer.mainContext)
+            $0.healthKitClient = .liveValue
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
-            DailyDetailView(store: Store(initialState: DailyDetailFeature.State()) {
-                DailyDetailFeature()
-            } withDependencies: {
-                $0.repositoryClient = .live(modelContext: modelContainer.mainContext)
-            })
-            .modelContainer(modelContainer)
+            DailyDetailView(store: store)
+                .modelContainer(modelContainer)
         }
     }
 }

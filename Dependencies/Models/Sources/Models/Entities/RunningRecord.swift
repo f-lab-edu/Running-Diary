@@ -9,7 +9,7 @@ import Foundation
 
 public struct RunningRecord: Identifiable, Equatable, Sendable {
     public let id: UUID
-    public let date: Date
+    public let yearMonthDay: YearMonthDay
     public let distanceInKilometers: Double
     public let durationInSeconds: TimeInterval  // seconds
     public let averagePace: String  // min/km
@@ -23,8 +23,8 @@ public struct RunningRecord: Identifiable, Equatable, Sendable {
     public let difficultyLevel: DifficultyLevel?
     public let routeData: Data?  // HealthKit route data
     public let hasMap: Bool
-    public let startTime: Date?
-    public let endTime: Date?
+    public let startTime: Date
+    public let endTime: Date
 
     public var distanceInMiles: Double {
         durationInSeconds * 0.621371
@@ -44,7 +44,7 @@ public struct RunningRecord: Identifiable, Equatable, Sendable {
     
     public init(
         id: UUID = UUID(),
-        date: Date,
+        yearMonthDay: YearMonthDay,
         distanceInKilometers: Double,
         durationInSeconds: TimeInterval,
         averagePace: String,
@@ -58,11 +58,11 @@ public struct RunningRecord: Identifiable, Equatable, Sendable {
         difficultyLevel: DifficultyLevel? = nil,
         routeData: Data? = nil,
         hasMap: Bool = false,
-        startTime: Date? = nil,
-        endTime: Date? = nil
+        startTime: Date,
+        endTime: Date
     ) {
         self.id = id
-        self.date = date
+        self.yearMonthDay = yearMonthDay
         self.distanceInKilometers = distanceInKilometers
         self.durationInSeconds = durationInSeconds
         self.averagePace = averagePace

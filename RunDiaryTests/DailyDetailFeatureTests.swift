@@ -2,7 +2,7 @@
 //  DailyDetailFeatureTests.swift
 //  RunDiaryTests
 //
-//  Created by Claude on 10/21/25.
+//  Created by Claude on 11/27/25.
 //
 
 import ComposableArchitecture
@@ -13,675 +13,768 @@ import Testing
 
 @testable import RunDiary
 
-@Suite("DailyDetail Feature")
+@Suite("DailyDetailFeature")
 struct DailyDetailFeatureTests {
 
-    // MARK: - Test Helpers
+    // MARK: - Initialization Tests
 
-    /// 특정 날짜들로 캐시 Dictionary 생성
-    private func makeCachedRecords(dates: [Date], records: [Date: RunningRecord]) -> [Date: RunningRecord?] {
-        var cache: [Date: RunningRecord?] = [:]
-        let calendar = Calendar.current
-        for date in dates {
-            let normalizedDate = calendar.startOfDay(for: date)
-            cache[normalizedDate] = records[normalizedDate]
+    @Test("앱 시작 시 빈 currentWeekDates로 주 날짜 초기화 및 fetch 트리거")
+    func onAppearInitializesDatesAndFetchesWeekRecords() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let mockHealthKit = makeHealthKitWorkout(yearMonthDay: testDate)
+        let mockRecord = makeRunningRecord(yearMonthDay: testDate)
+        let weekDates = makeWeekDates(containing: testDate)
+        let expectedDailyRecords = makeExpectedDailyRecords(
+            forWeekContaining: testDate,
+            healthKitWorkouts: [testDate: [mockHealthKit]],
+            runningRecords: [testDate: [mockRecord]]
+        )
+
+        let store = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
         }
-        return cache
+
+        // When
+        await store.send(.onAppear) {
+            // Then
+            $0.currentWeekDates = weekDates
+        }
+
+        await store.receive(\.fetchWeekRecords) {
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetched) {
+            $0.isLoading = false
+            $0.dailyRecords = expectedDailyRecords
+        }
     }
 
-    /// 테스트용 RunningRecord 생성
-    private func makeMockRecord(date: Date, distance: Double = 5.0) -> RunningRecord {
+    // MARK: - Date Selection Tests
+
+    @Test("날짜 선택 시 캐시 미스면 주 단위 기록 조회")
+    func dateSelectionWithCacheMissTriggersWeekFetch() async {
+        // Given
+        let selectedDate = makeTodayYearMonthDay()
+        let mockHealthKit = makeHealthKitWorkout(yearMonthDay: selectedDate)
+        let mockRecord = makeRunningRecord(yearMonthDay: selectedDate)
+        let expectedDailyRecords = makeExpectedDailyRecords(
+            forWeekContaining: selectedDate,
+            healthKitWorkouts: [selectedDate: [mockHealthKit]],
+            runningRecords: [selectedDate: [mockRecord]]
+        )
+
+        var initialState = DailyDetailFeature.State()
+        initialState.currentWeekDates = makeWeekDates(containing: selectedDate)
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
+        }
+
+        // When
+        await store.send(.fetchWeekRecords) {
+            // Then
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetched) {
+            $0.isLoading = false
+            $0.dailyRecords = expectedDailyRecords
+        }
+    }
+
+    @Test("날짜 선택 시 캐시 히트면 fetch 생략")
+    func dateSelectionWithCacheHitSkipsFetch() async {
+        // Given
+        let initialDate = makeTodayYearMonthDay()
+        let weekDates = DateHelper.getWeekDates(for: initialDate.toDate()).map { YearMonthDay(date: $0) }
+        // selectedDate는 weekDates 중 하나를 선택 (캐시에 존재하도록)
+        let selectedDate = weekDates[3] // 중간 날짜 선택
+
+        let records = weekDates.map {
+            let dailyRecord = DailyRecord(yearMonthDay: $0, healthKitWorkouts: [], savedRecords: [])
+            return ($0, dailyRecord)
+        }
+        let cachedRecords = Dictionary(uniqueKeysWithValues: records)
+
+        var initialState = DailyDetailFeature.State(selectedDate: initialDate)
+        initialState.currentWeekDates = weekDates
+        initialState.dailyRecords = cachedRecords
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        }
+
+        // When & Then - 캐시 히트이므로 추가 액션 없음
+        await store.send(.dateSelected(selectedDate)) {
+            $0.selectedDate = selectedDate
+        }
+    }
+
+    // MARK: - Week Navigation Tests
+
+    @Test("주 변경 시 캐시 미스로 다음 주 이동 및 fetch 발생")
+    func weekChangedForwardWithCacheMissTriggersWeekFetch() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let currentWeekDates = makeWeekDates(containing: testDate)
+        let nextWeekStart = DateHelper.addWeeks(1, to: currentWeekDates.first!.toDate())
+        let nextWeekDates = DateHelper.getWeekDates(for: nextWeekStart).map { YearMonthDay(date: $0) }
+        let nextWeekRecord = makeRunningRecord(yearMonthDay: nextWeekDates.first!)
+        let expectedDailyRecords = makeExpectedDailyRecords(
+            forWeekContaining: nextWeekDates.first!,
+            runningRecords: [nextWeekDates.first!: [nextWeekRecord]]
+        )
+
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.currentWeekDates = currentWeekDates
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
+        }
+
+        // When
+        await store.send(.weekChanged(offset: 1)) {
+            // Then
+            $0.currentWeekDates = nextWeekDates
+
+            let calendar = Calendar.current
+            let currentWeekday = calendar.component(.weekday, from: testDate.toDate())
+            if let newSelectedDate = nextWeekDates.first(where: {
+                calendar.component(.weekday, from: $0.toDate()) == currentWeekday
+            }) {
+                $0.selectedDate = newSelectedDate
+            } else {
+                $0.selectedDate = nextWeekDates.first!
+            }
+        }
+
+        await store.receive(\.fetchWeekRecords) {
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetched) {
+            $0.isLoading = false
+            $0.dailyRecords = expectedDailyRecords
+        }
+    }
+
+    @Test("주 변경 시 캐시 히트로 fetch 생략")
+    func weekChangedWithCacheHitSkipsFetch() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let currentWeekDates = makeWeekDates(containing: testDate)
+        let nextWeekStart = DateHelper.addWeeks(1, to: currentWeekDates.first!.toDate())
+        let nextWeekDates = DateHelper.getWeekDates(for: nextWeekStart).map { YearMonthDay(date: $0) }
+
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.currentWeekDates = currentWeekDates
+
+        for date in currentWeekDates {
+            initialState.dailyRecords[date] = DailyRecord(
+                yearMonthDay: date,
+                healthKitWorkouts: [],
+                savedRecords: []
+            )
+        }
+        for date in nextWeekDates {
+            initialState.dailyRecords[date] = DailyRecord(
+                yearMonthDay: date,
+                healthKitWorkouts: [],
+                savedRecords: []
+            )
+        }
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        }
+
+        // When & Then
+        await store.send(.weekChanged(offset: 1)) {
+            $0.currentWeekDates = nextWeekDates
+
+            let calendar = Calendar.current
+            let currentWeekday = calendar.component(.weekday, from: testDate.toDate())
+            if let newSelectedDate = nextWeekDates.first(where: {
+                calendar.component(.weekday, from: $0.toDate()) == currentWeekday
+            }) {
+                $0.selectedDate = newSelectedDate
+            } else {
+                $0.selectedDate = nextWeekDates.first!
+            }
+        }
+    }
+
+    @Test("주 변경 시 선택된 날짜가 같은 요일로 이동")
+    func weekChangedPreservesWeekday() async {
+        // Given
+        let testDate = makeYearMonthDay(year: 2025, month: 11, day: 27)
+        let currentWeekDates = makeWeekDates(containing: testDate)
+        let nextWeekStart = DateHelper.addWeeks(1, to: currentWeekDates.first!.toDate())
+        let nextWeekDates = DateHelper.getWeekDates(for: nextWeekStart).map { YearMonthDay(date: $0) }
+
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.currentWeekDates = currentWeekDates
+
+        for date in nextWeekDates {
+            initialState.dailyRecords[date] = DailyRecord(
+                yearMonthDay: date,
+                healthKitWorkouts: [],
+                savedRecords: []
+            )
+        }
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        }
+
+        // When
+        await store.send(.weekChanged(offset: 1)) {
+            // Then
+            $0.currentWeekDates = nextWeekDates
+
+            let calendar = Calendar.current
+            let currentWeekday = calendar.component(.weekday, from: testDate.toDate())
+            if let newSelectedDate = nextWeekDates.first(where: {
+                calendar.component(.weekday, from: $0.toDate()) == currentWeekday
+            }) {
+                $0.selectedDate = newSelectedDate
+                let newWeekday = calendar.component(.weekday, from: newSelectedDate.toDate())
+                #expect(newWeekday == currentWeekday)
+            }
+        }
+    }
+
+    // MARK: - Data Fetching Tests
+
+    @Test("주 단위 기록 조회 성공 시 HealthKit과 RunningRecord 모두 fetch")
+    func fetchWeekRecordsSuccessFetchesBothDataSources() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let weekDates = makeWeekDates(containing: testDate)
+        let mockHealthKit = makeHealthKitWorkout(yearMonthDay: testDate)
+        let mockRunningRecord = makeRunningRecord(yearMonthDay: testDate)
+        let groupedHealthKitWorkout = makeGroupedHealthKitWorkout([(testDate, mockHealthKit)])
+        let groupedRunningRecord = makeGroupedRunningRecords([(testDate, mockRunningRecord)])
+        let expectedDailyRecords = makeDailyRecords(
+            healthKitWorkouts: groupedHealthKitWorkout,
+            runningRecords: groupedRunningRecord,
+            weekDates: weekDates
+        )
+
+        var initialState = DailyDetailFeature.State()
+        initialState.currentWeekDates = weekDates
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
+        }
+
+        // When
+        await store.send(.fetchWeekRecords) {
+            // Then
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetched) {
+            $0.isLoading = false
+            $0.dailyRecords = expectedDailyRecords
+        }
+    }
+
+    @Test("주 단위 기록 조회 시 빈 currentWeekDates면 에러 발생")
+    func fetchWeekRecordsWithEmptyCurrentWeekDatesFails() async {
+        // Given
+        let store = TestStore(initialState: DailyDetailFeature.State()) {
+            DailyDetailFeature()
+        }
+
+        // When
+        await store.send(.fetchWeekRecords)
+
+        // Then
+        await store.receive(\.weekRecordsFetchFailed) {
+            $0.isLoading = false
+            $0.error = .emptyWeekDates
+        }
+    }
+
+    @Test("주 단위 기록 조회 실패 시 에러 상태 설정")
+    func fetchWeekRecordsFailureSetsErrorState() async {
+        // Given
+        struct TestError: Error, LocalizedError {
+            var errorDescription: String? { "Test network error" }
+        }
+
+        var initialState = DailyDetailFeature.State()
+        initialState.currentWeekDates = makeWeekDates(containing: makeTodayYearMonthDay())
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in
+                throw TestError()
+            }
+        }
+
+        // When
+        await store.send(.fetchWeekRecords) {
+            // Then
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetchFailed) {
+            $0.isLoading = false
+            $0.error = .fetchFailed(underlyingError: "Test network error")
+        }
+    }
+
+    // MARK: - AddRecord Integration Tests
+
+    @Test("createRecord는 AddRecord를 추가 모드로 표시")
+    func createRecordOpensAddRecordInAddMode() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let healthKitWorkout = makeHealthKitWorkout(yearMonthDay: testDate)
+
+        let store = TestStore(
+            initialState: DailyDetailFeature.State(selectedDate: testDate)
+        ) {
+            DailyDetailFeature()
+        }
+
+        store.exhaustivity = .off
+
+        // When
+        await store.send(.createRecord(healthKitWorkout))
+
+        // Then
+        #expect(store.state.addRecord != nil)
+        #expect(store.state.addRecord?.existingRecord == nil)
+        #expect(store.state.addRecord?.healthKitWorkout.data == healthKitWorkout)
+    }
+
+    @Test("editRecord는 AddRecord를 편집 모드로 표시")
+    func editRecordOpensAddRecordInEditMode() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let runningRecord = makeRunningRecord(yearMonthDay: testDate)
+
+        let store = TestStore(
+            initialState: DailyDetailFeature.State(selectedDate: testDate)
+        ) {
+            DailyDetailFeature()
+        }
+
+        // When & Then
+        await store.send(.editRecord(runningRecord)) {
+            $0.addRecord = AddRecordFeature.State(
+                existingRecord: runningRecord,
+                healthKitWorkout: nil
+            )
+        }
+    }
+
+    @Test("addRecord dismiss 시 시트 닫힘")
+    func addRecordDismissClosesSheet() async {
+        // Given
+        var initialState = DailyDetailFeature.State()
+        initialState.addRecord = AddRecordFeature.State(
+            existingRecord: nil,
+            healthKitWorkout: nil
+        )
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        }
+
+        // When & Then
+        await store.send(.addRecord(.dismiss)) {
+            $0.addRecord = nil
+        }
+    }
+
+    @Test("addRecord recordSaved 시 주 단위 새로고침")
+    func addRecordSavedRefetchesWeek() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let weekDates = makeWeekDates(containing: testDate)
+        let runningRecord = makeRunningRecord(yearMonthDay: testDate)
+        let groupedRunningRecords = makeGroupedRunningRecords([(testDate, runningRecord)])
+        let expectedDailyRecords = makeDailyRecords(
+            healthKitWorkouts: [:],
+            runningRecords: groupedRunningRecords,
+            weekDates: weekDates
+        )
+
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.currentWeekDates = makeWeekDates(containing: testDate)
+        initialState.addRecord = AddRecordFeature.State(
+            existingRecord: nil,
+            healthKitWorkout: nil
+        )
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
+        }
+
+        // When
+        await store.send(.addRecord(.presented(.recordSaved))) {
+            // Then
+            $0.addRecord = nil
+        }
+
+        await store.receive(\.fetchWeekRecords) {
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetched) {
+            $0.isLoading = false
+            $0.dailyRecords = expectedDailyRecords
+        }
+    }
+
+    // MARK: - Calendar Integration Tests
+
+    @Test("calendarButtonTapped 시 Calendar 시트 표시")
+    func calendarButtonTappedOpensCalendarSheet() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+
+        let store = TestStore(
+            initialState: DailyDetailFeature.State(selectedDate: testDate)
+        ) {
+            DailyDetailFeature()
+        }
+
+        // When & Then
+        await store.send(.calendarButtonTapped) {
+            $0.calendar = CalendarFeature.State(selectedDate: testDate)
+        }
+    }
+
+    @Test("calendar dismiss 시 시트 닫힘")
+    func calendarDismissClosesSheet() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.calendar = CalendarFeature.State(selectedDate: testDate)
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        }
+
+        // When & Then
+        await store.send(.calendar(.dismiss)) {
+            $0.calendar = nil
+        }
+    }
+
+    @Test("calendar navigateToDiary 시 주와 날짜 변경 및 캐시 미스면 fetch")
+    func calendarNavigateToDiaryChangesWeekAndDateWithCacheMiss() async {
+        // Given
+        let currentDate = makeYearMonthDay(year: 2025, month: 11, day: 27)
+        let selectedDate = makeYearMonthDay(year: 2025, month: 12, day: 10)
+        let expectedDailyRecords = makeExpectedDailyRecords(
+            forWeekContaining: selectedDate,
+            healthKitWorkouts: [:],
+            runningRecords: [:]
+        )
+
+        var initialState = DailyDetailFeature.State(selectedDate: currentDate)
+        initialState.currentWeekDates = makeWeekDates(containing: currentDate)
+        initialState.calendar = CalendarFeature.State(selectedDate: selectedDate)
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
+        }
+
+        // When
+        await store.send(.calendar(.presented(.navigateToDiary))) {
+            // Then
+            $0.calendar = nil
+            $0.currentWeekDates = makeWeekDates(containing: selectedDate)
+            $0.selectedDate = selectedDate
+        }
+
+        await store.receive(\.fetchWeekRecords) {
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetched) {
+            $0.isLoading = false
+            $0.dailyRecords = expectedDailyRecords
+        }
+    }
+
+    // MARK: - Computed Properties Tests
+
+    @Test("currentDailyRecord는 선택된 날짜의 기록 반환")
+    func currentDailyRecordReturnsCorrectRecord() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let expectedDailyRecord = DailyRecord(
+            yearMonthDay: testDate,
+            healthKitWorkouts: [],
+            savedRecords: []
+        )
+
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.dailyRecords = [testDate: expectedDailyRecord]
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        }
+
+        // When & Then
+        #expect(store.state.currentDailyRecord == expectedDailyRecord)
+    }
+
+    @Test("currentDailyRecord는 캐시되지 않은 날짜면 nil 반환")
+    func currentDailyRecordReturnsNilWhenNotCached() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+
+        let initialState = DailyDetailFeature.State(selectedDate: testDate)
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        }
+
+        // When & Then
+        #expect(store.state.currentDailyRecord == nil)
+    }
+
+    // MARK: - Error Handling Tests
+
+    @Test("weekRecordsFetchFailed 시 에러 상태 설정")
+    func weekRecordsFetchFailedSetsErrorState() async {
+        // Given
+        let expectedError = DailyDetailError.fetchFailed(underlyingError: "Network error")
+
+        let store = TestStore(initialState: DailyDetailFeature.State(isLoading: true)) {
+            DailyDetailFeature()
+        }
+
+        // When & Then
+        await store.send(.weekRecordsFetchFailed(expectedError)) {
+            $0.isLoading = false
+            $0.error = expectedError
+        }
+    }
+
+    @Test("조회 실패 시 캐시가 손상되지 않음")
+    func fetchFailureDoesNotCorruptCache() async {
+        // Given
+        struct TestError: Error, LocalizedError {
+            var errorDescription: String? { "Test error" }
+        }
+
+        let testDate = makeTodayYearMonthDay()
+        let existingRecord = DailyRecord(
+            yearMonthDay: testDate,
+            healthKitWorkouts: [],
+            savedRecords: []
+        )
+
+        var initialState = DailyDetailFeature.State()
+        initialState.currentWeekDates = makeWeekDates(containing: testDate)
+        initialState.dailyRecords = [testDate: existingRecord]
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in
+                throw TestError()
+            }
+        }
+
+        // When
+        await store.send(.fetchWeekRecords) {
+            // Then
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetchFailed) {
+            $0.isLoading = false
+            $0.error = .fetchFailed(underlyingError: "Test error")
+            #expect($0.dailyRecords[testDate] == existingRecord)
+        }
+    }
+}
+
+// MARK: - Test Helpers
+
+private extension DailyDetailFeatureTests {
+    /// 오늘 날짜의 YearMonthDay 반환
+    func makeTodayYearMonthDay() -> YearMonthDay {
+        YearMonthDay(date: Date())
+    }
+
+    /// YearMonthDay 생성 헬퍼
+    /// - Parameters:
+    ///   - year: 연도 (기본값: 현재 연도)
+    ///   - month: 월 (기본값: 1)
+    ///   - day: 일 (기본값: 1)
+    /// - Returns: 지정된 날짜의 YearMonthDay
+    func makeYearMonthDay(
+        year: Int? = nil,
+        month: Int = 1,
+        day: Int = 1
+    ) -> YearMonthDay {
+        let calendar = Calendar.current
+        let currentYear = year ?? calendar.component(.year, from: Date())
+        return YearMonthDay(year: currentYear, month: month, day: day)
+    }
+
+    /// 랜덤한 날짜의 YearMonthDay 반환
+    /// - Parameter excluding: 제외할 날짜 목록 (옵셔널)
+    /// - Returns: excluding에 포함되지 않은 랜덤 YearMonthDay
+    func makeRandomYearMonthDay(excluding: [YearMonthDay]? = nil) -> YearMonthDay {
+        let calendar = Calendar.current
+        let currentYear = calendar.component(.year, from: Date())
+
+        // 현재 연도 ± 2년 범위에서 랜덤 날짜 생성
+        let year = Int.random(in: (currentYear - 2)...(currentYear + 2))
+        let month = Int.random(in: 1...12)
+
+        // 해당 월의 일수 계산
+        let dateComponents = DateComponents(year: year, month: month)
+        guard let date = calendar.date(from: dateComponents),
+              let range = calendar.range(of: .day, in: .month, for: date) else {
+            return YearMonthDay(year: year, month: month, day: 1)
+        }
+
+        let maxDay = range.count
+        var attempts = 0
+        let maxAttempts = 100
+
+        while attempts < maxAttempts {
+            let day = Int.random(in: 1...maxDay)
+            let randomDate = YearMonthDay(year: year, month: month, day: day)
+
+            // excluding이 nil이거나, excluding에 포함되지 않은 경우 반환
+            if excluding == nil || !(excluding!.contains(randomDate)) {
+                return randomDate
+            }
+
+            attempts += 1
+        }
+
+        // maxAttempts에 도달한 경우 제외 조건 무시하고 반환
+        return YearMonthDay(year: year, month: month, day: Int.random(in: 1...maxDay))
+    }
+
+    /// HealthKitWorkout 생성 헬퍼
+    func makeHealthKitWorkout(
+        yearMonthDay: YearMonthDay,
+        distance: Double = 5.0,
+        startOffset: TimeInterval = 0
+    ) -> HealthKitWorkout {
+        let startDate = yearMonthDay.toDate().addingTimeInterval(startOffset)
+        return HealthKitWorkout(
+            distance: distance,
+            duration: 1800,
+            averagePace: "6'00\"",
+            averageHeartRate: 150,
+            averageCadence: 170,
+            routeData: nil,
+            startDate: startDate,
+            endDate: startDate.addingTimeInterval(1800)
+        )
+    }
+
+    /// RunningRecord 생성 헬퍼
+    func makeRunningRecord(
+        yearMonthDay: YearMonthDay,
+        distance: Double = 5.0,
+        startOffset: TimeInterval = 0
+    ) -> RunningRecord {
+        let startTime = yearMonthDay.toDate().addingTimeInterval(startOffset)
         return RunningRecord(
-            date: date,
+            yearMonthDay: yearMonthDay,
             distanceInKilometers: distance,
             durationInSeconds: 1800,
             averagePace: "6'00\"",
             averageHeartRate: 150,
             averageCadence: 170,
             runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false)
+            startTime: startTime,
+            endTime: startTime.addingTimeInterval(1800)
         )
     }
 
-    // MARK: - Tests
-
-    @Test("앱 시작 시 날짜 배열 초기화 및 주 단위 기록 조회")
-    func onAppearInitializesDatesAndFetchesWeekRecords() async {
-        let testDate = Date()
-        let mockRecord = RunningRecord(
-            date: testDate,
-            distanceInKilometers: 5.0,
-            durationInSeconds: 1800,
-            averagePace: "6'00\"",
-            averageHeartRate: 150,
-            averageCadence: 170,
-            runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false)
-        )
-        
-        let store = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
-            DailyDetailFeature()
-        } withDependencies: {
-            $0.repositoryClient.fetchRecords = { _, _ in [mockRecord] }
-        }
-        
-        await store.send(.onAppear) {
-            $0.currentWeekDates = DateHelper.getWeekDates(for: Date())
-        }
-        
-        await store.receive(\.fetchWeekRecords) {
-            $0.isLoading = true
-            $0.error = nil
-        }
-        
-        await store.receive(\.weekRecordsFetchedSuccess) {
-            $0.isLoading = false
-            // currentWeekDates의 모든 날짜가 캐시에 저장됨
-            let calendar = Calendar.current
-            let recordsByDate = [calendar.startOfDay(for: mockRecord.date): mockRecord]
-            for date in $0.currentWeekDates {
-                let normalizedDate = calendar.startOfDay(for: date)
-                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
-            }
-            $0.error = nil
-        }
+    /// 그룹화된 HealthKit 데이터 생성 헬퍼
+    func makeGroupedHealthKitWorkout(
+        _ data: [(YearMonthDay, HealthKitWorkout)]
+    ) -> [YearMonthDay: [HealthKitWorkout]] {
+        Dictionary(grouping: data.map { $1 }, by: { $0.yearMonthDay })
     }
-    
-    @Test("날짜 선택 시 캐시 미스면 주 단위 기록 조회")
-    func dateSelectionWithCacheMissTriggersWeekFetch() async {
-        let calendar = Calendar.current
-        let selectedDate = calendar.date(byAdding: .day, value: 1, to: Date())!
-        let mockRecord = RunningRecord(
-            date: selectedDate,
-            distanceInKilometers: 3.0,
-            durationInSeconds: 1200,
-            averagePace: "6'40\"",
-            averageHeartRate: 145,
-            averageCadence: 165,
-            runningStyle: .forefoot,
-            condition: RunningCondition(meal: true, alcohol: false)
-        )
-        
-        var initialState = DailyDetailFeature.State()
-        initialState.currentWeekDates = DateHelper.getWeekDates(for: selectedDate)
-        
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        } withDependencies: {
-            $0.repositoryClient.fetchRecords = { _, _ in [mockRecord] }
-        }
-        
-        await store.send(.dateSelected(selectedDate)) {
-            $0.selectedDate = selectedDate
-        }
-        
-        await store.receive(\.fetchWeekRecords) {
-            $0.isLoading = true
-            $0.error = nil
-        }
-        
-        await store.receive(\.weekRecordsFetchedSuccess) {
-            $0.isLoading = false
-            // currentWeekDates의 모든 날짜가 캐시에 저장됨
-            let recordsByDate = [calendar.startOfDay(for: mockRecord.date): mockRecord]
-            for date in $0.currentWeekDates {
-                let normalizedDate = calendar.startOfDay(for: date)
-                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
-            }
-            $0.error = nil
-        }
+
+    /// 그룹화된 RunningRecord 생성 헬퍼
+    func makeGroupedRunningRecords(
+        _ records: [(YearMonthDay, RunningRecord)]
+    ) -> [YearMonthDay: [RunningRecord]] {
+        Dictionary(grouping: records.map { $1 }, by: { $0.yearMonthDay })
     }
-    
-    @Test("날짜 선택 시 캐시 히트면 fetch 생략")
-    func dateSelectionWithCacheHitSkipsFetch() async {
-        let calendar = Calendar.current
-        let selectedDate = Date()
-        let normalizedDate = calendar.startOfDay(for: selectedDate)
-        let mockRecord = RunningRecord(
-            date: selectedDate,
-            distanceInKilometers: 3.0,
-            durationInSeconds: 1200,
-            averagePace: "6'40\"",
-            averageHeartRate: 145,
-            averageCadence: 165,
-            runningStyle: .forefoot,
-            condition: RunningCondition(meal: true, alcohol: false)
-        )
-        
-        var initialState = DailyDetailFeature.State()
-        initialState.cachedRecords = [normalizedDate: .some(mockRecord)]
 
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-        
-        // 캐시에 이미 있으므로 fetch가 발생하지 않음
-        await store.send(.dateSelected(selectedDate)) {
-            $0.selectedDate = selectedDate
-        }
+    /// 주 날짜 배열 생성 헬퍼
+    func makeWeekDates(containing date: YearMonthDay) -> [YearMonthDay] {
+        DateHelper.getWeekDates(for: date.toDate()).map { YearMonthDay(date: $0) }
     }
-    
-    @Test("주 단위 기록 조회 성공 시 캐시 업데이트")
-    func weekRecordsFetchSuccessUpdatesCache() async {
-        let calendar = Calendar.current
-        let testDate = Date()
-        let mockRecord = RunningRecord(
-            date: testDate,
-            distanceInKilometers: 10.0,
-            durationInSeconds: 3000,
-            averagePace: "5'00\"",
-            averageHeartRate: 160,
-            averageCadence: 180,
-            runningStyle: .midfoot,
-            condition: RunningCondition(sleep: 7, meal: true, alcohol: false)
-        )
 
-        var initialState = DailyDetailFeature.State(isLoading: true)
-        initialState.currentWeekDates = DateHelper.getWeekDates(for: testDate)
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-        
-        await store.send(.weekRecordsFetchedSuccess([mockRecord])) {
-            $0.isLoading = false
-            // currentWeekDates의 모든 날짜가 캐시에 저장됨
-            let recordsByDate = [calendar.startOfDay(for: mockRecord.date): mockRecord]
-            for date in $0.currentWeekDates {
-                let normalizedDate = calendar.startOfDay(for: date)
-                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
-            }
-            $0.error = nil
-        }
-    }
-    
-    @Test("주 단위 기록 조회 실패 시 에러 메시지 표시")
-    func weekRecordsFetchFailureDisplaysError() async {
-        let underlyingErrorMessage = "네트워크 연결 실패"
-        let error = DailyDetailError.fetchFailed(underlyingError: underlyingErrorMessage)
-
-        let store = TestStore(initialState: DailyDetailFeature.State(isLoading: true)) {
-            DailyDetailFeature()
-        }
-
-        await store.send(.weekRecordsFetchedFailure(error)) {
-            $0.isLoading = false
-            $0.error = error
-        }
-    }
-    
-    @Test("기록 없을 때 추가 모드로 화면 표시")
-    func showAddRecordWithNoExistingRecordUsesAddMode() async {
-        let testDate = Date()
-        
-        let store = TestStore(
-            initialState: DailyDetailFeature.State(
-                selectedDate: testDate
+    func makeDailyRecords(
+        healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]],
+        runningRecords: [YearMonthDay: [RunningRecord]],
+        weekDates: [YearMonthDay]
+    ) -> [YearMonthDay: DailyRecord] {
+        var dailyRecords: [YearMonthDay: DailyRecord] = [:]
+        for weekDate in weekDates {
+            let runningRecord = runningRecords[weekDate] ?? []
+            let healthKitWorkout = healthKitWorkouts[weekDate] ?? []
+            let filteredHealthKitWorkout = healthKitWorkout.filter { data in !runningRecord.contains(where: { $0.startTime == data.startDate }) }
+            let dailyRecord = DailyRecord(
+                yearMonthDay: weekDate,
+                healthKitWorkouts: filteredHealthKitWorkout,
+                savedRecords: runningRecords[weekDate] ?? []
             )
-        ) {
-            DailyDetailFeature()
+            dailyRecords.updateValue(dailyRecord, forKey: weekDate)
         }
-        
-        await store.send(.showAddRecord) {
-            $0.addRecord = AddRecordFeature.State(
-                date: testDate
-            )
-        }
+        return dailyRecords
     }
-    
-    @Test("기록 있을 때 편집 모드로 화면 표시")
-    func showAddRecordWithExistingRecordUsesEditMode() async {
-        let calendar = Calendar.current
-        let testDate = Date()
-        let normalizedDate = calendar.startOfDay(for: testDate)
-        let mockRecord = RunningRecord(
-            date: testDate,
-            distanceInKilometers: 5.0,
-            durationInSeconds: 1500,
-            averagePace: "5'00\"",
-            averageHeartRate: 155,
-            averageCadence: 175,
-            runningStyle: .forefoot,
-            condition: RunningCondition(meal: false, alcohol: false)
+
+    /// ExpectedValue 생성 간소화 헬퍼 - 주어진 데이터로부터 예상되는 DailyRecords를 자동으로 생성
+    func makeExpectedDailyRecords(
+        forWeekContaining date: YearMonthDay,
+        healthKitWorkouts: [YearMonthDay: [HealthKitWorkout]] = [:],
+        runningRecords: [YearMonthDay: [RunningRecord]] = [:]
+    ) -> [YearMonthDay: DailyRecord] {
+        let weekDates = makeWeekDates(containing: date)
+        return makeDailyRecords(
+            healthKitWorkouts: healthKitWorkouts,
+            runningRecords: runningRecords,
+            weekDates: weekDates
         )
-        
-        let store = TestStore(
-            initialState: DailyDetailFeature.State(
-                selectedDate: testDate,
-                cachedRecords: [normalizedDate: .some(mockRecord)]
-            )
-        ) {
-            DailyDetailFeature()
-        }
-        
-        await store.send(.showAddRecord) {
-            $0.addRecord = AddRecordFeature.State(
-                date: testDate,
-                existingRecord: mockRecord
-            )
-        }
-    }
-    
-    @Test("기록 저장 후 캐시 무효화 및 주 단위 새로고침")
-    func addRecordSaveClearsCacheAndRefetchesWeek() async {
-        let calendar = Calendar.current
-        let testDate = Date()
-        let savedRecord = RunningRecord(
-            date: testDate,
-            distanceInKilometers: 8.0,
-            durationInSeconds: 2400,
-            averagePace: "5'00\"",
-            averageHeartRate: 158,
-            averageCadence: 178,
-            runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false)
-        )
-        
-        var initialState = DailyDetailFeature.State(
-            selectedDate: testDate,
-            addRecord: AddRecordFeature.State(date: testDate)
-        )
-        initialState.currentWeekDates = DateHelper.getWeekDates(for: testDate)
-        
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        } withDependencies: {
-            $0.repositoryClient.fetchRecords = { _, _ in [savedRecord] }
-        }
-        
-        await store.send(.addRecord(.presented(.recordSaved(savedRecord)))) {
-            $0.addRecord = nil
-            $0.cachedRecords.removeAll()
-        }
-        
-        await store.receive(\.fetchWeekRecords) {
-            $0.isLoading = true
-            $0.error = nil
-        }
-        
-        await store.receive(\.weekRecordsFetchedSuccess) {
-            $0.isLoading = false
-            // currentWeekDates의 모든 날짜가 캐시에 저장됨
-            let recordsByDate = [calendar.startOfDay(for: savedRecord.date): savedRecord]
-            for date in $0.currentWeekDates {
-                let normalizedDate = calendar.startOfDay(for: date)
-                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
-            }
-            $0.error = nil
-        }
-    }
-
-    @Test("nil 값이 캐시되어 있으면 fetch 생략")
-    func dateSelectionWithNilCacheHitSkipsFetch() async {
-        let calendar = Calendar.current
-        let selectedDate = Date()
-        let normalizedDate = calendar.startOfDay(for: selectedDate)
-
-        var initialState = DailyDetailFeature.State()
-        // nil 값을 명시적으로 캐시에 저장 (기록이 없는 날짜)
-        initialState.cachedRecords = [normalizedDate: nil]
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-
-        // 캐시에 nil로 저장되어 있으므로 fetch가 발생하지 않음
-        await store.send(.dateSelected(selectedDate)) {
-            $0.selectedDate = selectedDate
-        }
-
-        // fetchWeekRecords가 발생하지 않음을 확인
-        // (추가 액션을 받지 않음)
-    }
-
-    @Test("주 단위 조회 시 일부 날짜만 기록 있을 때 전체 날짜 캐싱")
-    func weekRecordsFetchWithPartialRecordsUpdatesAllDates() async {
-        let calendar = Calendar.current
-        let today = Date()
-
-        let currentWeekDates = DateHelper.getWeekDates(for: today)
-
-        var initialState = DailyDetailFeature.State(isLoading: true)
-        initialState.currentWeekDates = currentWeekDates
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-
-        // 7일 중 2개만 레코드가 있는 경우
-        guard let first = currentWeekDates.first, let last = currentWeekDates.last else { return }
-        let record1 = makeMockRecord(date: first, distance: 5.0)
-        let record2 = makeMockRecord(date: last, distance: 7.0)
-
-        await store.send(.weekRecordsFetchedSuccess([record1, record2])) {
-            $0.isLoading = false
-
-            // currentWeekDates의 모든 날짜(7일)가 캐시에 저장됨
-            let recordsByDate: [Date: RunningRecord] = [
-                calendar.startOfDay(for: first): record1,
-                calendar.startOfDay(for: last): record2
-            ]
-
-            for date in $0.currentWeekDates {
-                let normalizedDate = calendar.startOfDay(for: date)
-                // 레코드가 있는 날짜는 값 저장, 없는 날짜는 nil 저장
-                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
-            }
-
-            $0.error = nil
-        }
-
-        // 캐시에 7개 날짜 모두 저장되었는지 확인
-        #expect(store.state.cachedRecords.count == 7)
-
-        // 레코드가 있는 날짜는 값이 있고
-        let firstKey = calendar.startOfDay(for: first)
-        #expect(store.state.cachedRecords[firstKey] == record1)
-
-        // 레코드가 없는 날짜는 nil로 저장됨 (키는 존재하지만 값은 nil)
-        let firstNextDate = calendar.date(byAdding: .day, value: 1, to: first)!
-        let firstNextDateKey = calendar.startOfDay(for: firstNextDate)
-        #expect(store.state.cachedRecords.keys.contains(firstNextDateKey))
-        // Double optional: dictionary returns RunningRecord??, unwrap outer to check inner nil
-        if let wrappedValue = store.state.cachedRecords[firstNextDateKey] {
-            #expect(wrappedValue == nil)
-        } else {
-            Issue.record("Expected key to exist in cache")
-        }
-    }
-
-    @Test("주 변경 시 캐시 미스로 fetch 발생")
-    func weekChangedWithCacheMissTriggersWeekFetch() async {
-        let calendar = Calendar.current
-        let testDate = Date()
-
-        // 현재 주 데이터 미리 캐싱
-        let currentWeekDates = DateHelper.getWeekDates(for: testDate)
-        let mockRecord = makeMockRecord(date: testDate)
-
-        var initialState = DailyDetailFeature.State(selectedDate: testDate)
-        initialState.currentWeekDates = currentWeekDates
-        initialState.cachedRecords = makeCachedRecords(
-            dates: currentWeekDates,
-            records: [calendar.startOfDay(for: testDate): mockRecord]
-        )
-
-        // 다음 주 데이터를 반환할 mock
-        let nextWeekStart = DateHelper.addWeeks(1, to: currentWeekDates.first!)
-        let nextWeekDates = DateHelper.getWeekDates(for: nextWeekStart)
-        let nextWeekRecord = makeMockRecord(date: nextWeekStart)
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        } withDependencies: {
-            $0.repositoryClient.fetchRecords = { _, _ in [nextWeekRecord] }
-        }
-
-        // 다음 주로 이동
-        await store.send(.weekChanged(offset: 1)) {
-            $0.currentWeekDates = nextWeekDates
-
-            // selectedDate가 같은 요일로 이동
-            let currentWeekday = calendar.component(.weekday, from: testDate)
-            if let newSelectedDate = nextWeekDates.first(where: {
-                calendar.component(.weekday, from: $0) == currentWeekday
-            }) {
-                $0.selectedDate = newSelectedDate
-            } else {
-                $0.selectedDate = nextWeekStart
-            }
-        }
-
-        // 캐시 미스로 fetch 발생
-        await store.receive(\.fetchWeekRecords) {
-            $0.isLoading = true
-            $0.error = nil
-        }
-
-        await store.receive(\.weekRecordsFetchedSuccess) {
-            $0.isLoading = false
-            let recordsByDate = [calendar.startOfDay(for: nextWeekStart): nextWeekRecord]
-            for date in $0.currentWeekDates {
-                let normalizedDate = calendar.startOfDay(for: date)
-                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
-            }
-            $0.error = nil
-        }
-    }
-
-    @Test("주 변경 시 캐시 히트로 fetch 생략")
-    func weekChangedWithCacheHitSkipsFetch() async {
-        let calendar = Calendar.current
-        let testDate = Date()
-
-        // 현재 주와 다음 주 데이터를 모두 미리 캐싱
-        let currentWeekDates = DateHelper.getWeekDates(for: testDate)
-        let nextWeekStart = DateHelper.addWeeks(1, to: currentWeekDates.first!)
-        let nextWeekDates = DateHelper.getWeekDates(for: nextWeekStart)
-
-        let currentWeekRecord = makeMockRecord(date: testDate)
-        let nextWeekRecord = makeMockRecord(date: nextWeekStart)
-
-        var initialState = DailyDetailFeature.State(selectedDate: testDate)
-        initialState.currentWeekDates = currentWeekDates
-
-        // 현재 주와 다음 주 모두 캐싱
-        var allRecords: [Date: RunningRecord] = [:]
-        allRecords[calendar.startOfDay(for: testDate)] = currentWeekRecord
-        allRecords[calendar.startOfDay(for: nextWeekStart)] = nextWeekRecord
-
-        // 현재 주 캐싱
-        initialState.cachedRecords = makeCachedRecords(dates: currentWeekDates, records: allRecords)
-        // 다음 주도 캐싱
-        for date in nextWeekDates {
-            let normalizedDate = calendar.startOfDay(for: date)
-            initialState.cachedRecords[normalizedDate] = allRecords[normalizedDate]
-        }
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-
-        // 다음 주로 이동
-        await store.send(.weekChanged(offset: 1)) {
-            $0.currentWeekDates = nextWeekDates
-
-            // selectedDate가 같은 요일로 이동
-            let currentWeekday = calendar.component(.weekday, from: testDate)
-            if let newSelectedDate = nextWeekDates.first(where: {
-                calendar.component(.weekday, from: $0) == currentWeekday
-            }) {
-                $0.selectedDate = newSelectedDate
-            } else {
-                $0.selectedDate = nextWeekStart
-            }
-        }
-
-        // 캐시 히트로 fetch가 발생하지 않음
-        // (추가 액션을 받지 않음)
-    }
-
-    @Test("여러 주를 이동하며 캐시가 누적됨")
-    func multipleWeekNavigationAccumulatesCache() async {
-        let calendar = Calendar.current
-        let testDate = Date()
-
-        // 현재 주 데이터
-        let currentWeekDates = DateHelper.getWeekDates(for: testDate)
-        let currentWeekRecord = makeMockRecord(date: testDate)
-
-        // 다음 주 데이터
-        let nextWeekStart = DateHelper.addWeeks(1, to: currentWeekDates.first!)
-        let nextWeekDates = DateHelper.getWeekDates(for: nextWeekStart)
-        let nextWeekRecord = makeMockRecord(date: nextWeekStart, distance: 7.0)
-
-        var initialState = DailyDetailFeature.State(selectedDate: testDate)
-        initialState.currentWeekDates = currentWeekDates
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        } withDependencies: {
-            $0.repositoryClient.fetchRecords = { start, end in
-                // 현재 주 조회
-                if calendar.isDate(start, inSameDayAs: currentWeekDates.first!) {
-                    return [currentWeekRecord]
-                }
-                // 다음 주 조회
-                else if calendar.isDate(start, inSameDayAs: nextWeekDates.first!) {
-                    return [nextWeekRecord]
-                }
-                return []
-            }
-        }
-
-        // 1단계: 현재 주 조회
-        await store.send(.fetchWeekRecords) {
-            $0.isLoading = true
-            $0.error = nil
-        }
-
-        await store.receive(\.weekRecordsFetchedSuccess) {
-            $0.isLoading = false
-            let recordsByDate = [calendar.startOfDay(for: testDate): currentWeekRecord]
-            for date in $0.currentWeekDates {
-                let normalizedDate = calendar.startOfDay(for: date)
-                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
-            }
-            $0.error = nil
-        }
-
-        // 캐시에 7개 날짜 저장됨
-        #expect(store.state.cachedRecords.count == 7)
-
-        // 2단계: 다음 주로 이동
-        await store.send(.weekChanged(offset: 1)) {
-            $0.currentWeekDates = nextWeekDates
-            let currentWeekday = calendar.component(.weekday, from: testDate)
-            if let newSelectedDate = nextWeekDates.first(where: {
-                calendar.component(.weekday, from: $0) == currentWeekday
-            }) {
-                $0.selectedDate = newSelectedDate
-            } else {
-                $0.selectedDate = nextWeekStart
-            }
-        }
-
-        await store.receive(\.fetchWeekRecords) {
-            $0.isLoading = true
-            $0.error = nil
-        }
-
-        await store.receive(\.weekRecordsFetchedSuccess) {
-            $0.isLoading = false
-            let recordsByDate = [calendar.startOfDay(for: nextWeekStart): nextWeekRecord]
-            for date in $0.currentWeekDates {
-                let normalizedDate = calendar.startOfDay(for: date)
-                $0.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
-            }
-            $0.error = nil
-        }
-
-        // 캐시에 14개 날짜 누적됨 (현재 주 7개 + 다음 주 7개)
-        #expect(store.state.cachedRecords.count == 14)
-
-        // 3단계: 현재 주로 복귀 (fetch 없이 캐시 사용)
-        await store.send(.weekChanged(offset: -1)) {
-            $0.currentWeekDates = currentWeekDates
-            let currentWeekday = calendar.component(.weekday, from: $0.selectedDate)
-            if let newSelectedDate = currentWeekDates.first(where: {
-                calendar.component(.weekday, from: $0) == currentWeekday
-            }) {
-                $0.selectedDate = newSelectedDate
-            } else {
-                $0.selectedDate = currentWeekDates.first!
-            }
-        }
-
-        // fetch가 발생하지 않음 (캐시 히트)
-    }
-
-    @Test("currentRecord가 nil 캐시를 올바르게 처리")
-    func currentRecordReturnsNilForNilCache() async {
-        let calendar = Calendar.current
-        let testDate = Date()
-        let normalizedDate = calendar.startOfDay(for: testDate)
-
-        var initialState = DailyDetailFeature.State(selectedDate: testDate)
-        // nil 값을 명시적으로 캐시에 저장
-        initialState.cachedRecords = [normalizedDate: nil]
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-
-        // currentRecord가 nil을 안전하게 반환하는지 확인
-        #expect(store.state.currentRecord == nil)
-
-        // 캐시에는 키가 존재함
-        #expect(store.state.cachedRecords.keys.contains(normalizedDate))
-    }
-
-    @Test("시간이 다른 같은 날짜는 동일하게 처리됨")
-    func dateNormalizationWorksCorrectly() async {
-        let calendar = Calendar.current
-
-        // 같은 날짜, 다른 시간
-        let morningDate = calendar.date(from: DateComponents(year: 2025, month: 10, day: 30, hour: 9, minute: 0))!
-        let eveningDate = calendar.date(from: DateComponents(year: 2025, month: 10, day: 30, hour: 21, minute: 30))!
-
-        let mockRecord = makeMockRecord(date: morningDate)
-        let normalizedDate = calendar.startOfDay(for: morningDate)
-
-        var initialState = DailyDetailFeature.State(selectedDate: morningDate)
-        // 아침 시간으로 레코드 캐싱
-        initialState.cachedRecords = [normalizedDate: .some(mockRecord)]
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        }
-
-        // 저녁 시간으로 같은 날짜 선택 시 캐시 히트
-        await store.send(.dateSelected(eveningDate)) {
-            $0.selectedDate = eveningDate
-        }
-
-        // fetch가 발생하지 않음 (정규화로 인해 캐시 히트)
-        // currentRecord는 아침에 저장한 레코드를 반환
-        #expect(store.state.currentRecord == mockRecord)
-    }
-
-    @Test("조회 실패 시 캐시가 손상되지 않음")
-    func fetchFailureDoesNotCorruptCache() async {
-        let calendar = Calendar.current
-        let testDate = Date()
-
-        // 빈 캐시에서 시작
-        var initialState = DailyDetailFeature.State(selectedDate: testDate)
-        initialState.currentWeekDates = DateHelper.getWeekDates(for: testDate)
-
-        struct TestError: Error, LocalizedError {
-            var errorDescription: String? { "Test network error" }
-        }
-
-        let store = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        } withDependencies: {
-            $0.repositoryClient.fetchRecords = { _, _ in
-                throw TestError()
-            }
-        }
-
-        // fetch 시도 (실패)
-        await store.send(.fetchWeekRecords) {
-            $0.isLoading = true
-            $0.error = nil
-        }
-
-        await store.receive(\.weekRecordsFetchedFailure) {
-            $0.isLoading = false
-            $0.error = .fetchFailed(underlyingError: "Test network error")
-        }
-
-        // 실패 시 캐시는 비어있어야 함 (손상되지 않음)
-        #expect(store.state.cachedRecords.isEmpty)
     }
 }

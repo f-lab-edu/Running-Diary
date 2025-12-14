@@ -15,22 +15,32 @@ struct DailyDetailFeature {
 
     @ObservableState
     struct State: Equatable {
-        var selectedDate: Date = Calendar.current.startOfDay(for: Date())
-        var currentWeekDates: [Date] = []
-        var cachedRecords: [Date: RunningRecord?] = [:]
+        var selectedDate: YearMonthDay
+        var currentWeekDates: [YearMonthDay]
+        var dailyRecords: [YearMonthDay: DailyRecord]
         var isLoading: Bool = false
-        var error: DailyDetailError?
+        var error: DailyDetailError? = nil
         @Presents var addRecord: AddRecordFeature.State?
         @Presents var calendar: CalendarFeature.State?
 
-        /// 선택된 날짜의 기록을 캐시에서 조회
-        var currentRecord: RunningRecord? {
-            let normalizedDate = Calendar.current.startOfDay(for: selectedDate)
-            // cachedRecords[normalizedDate]는 RunningRecord?? 타입이므로 flatMap으로 unwrap
-            if let value = cachedRecords[normalizedDate] {
-                return value
-            }
-            return nil
+        var currentDailyRecord: DailyRecord? {
+            return dailyRecords[selectedDate]
+        }
+
+        init(
+            selectedDate: YearMonthDay = .today,
+            currentWeekDates: [YearMonthDay] = [],
+            cachedRecords: [YearMonthDay: DailyRecord] = [:],
+            isLoading: Bool = false,
+            addRecord: AddRecordFeature.State? = nil,
+            calendar: CalendarFeature.State? = nil
+        ) {
+            self.selectedDate = selectedDate
+            self.currentWeekDates = currentWeekDates
+            self.dailyRecords = cachedRecords
+            self.isLoading = isLoading
+            self.addRecord = addRecord
+            self.calendar = calendar
         }
     }
 
@@ -38,12 +48,13 @@ struct DailyDetailFeature {
 
     enum Action {
         case onAppear
-        case dateSelected(Date)
+        case dateSelected(YearMonthDay)
         case weekChanged(offset: Int)
         case fetchWeekRecords
-        case weekRecordsFetchedSuccess([RunningRecord])
-        case weekRecordsFetchedFailure(DailyDetailError)
-        case showAddRecord
+        case weekRecordsFetched([YearMonthDay: DailyRecord])
+        case weekRecordsFetchFailed(DailyDetailError)
+        case createRecord(HealthKitWorkout)
+        case editRecord(RunningRecord)
         case addRecord(PresentationAction<AddRecordFeature.Action>)
         case calendarButtonTapped
         case calendar(PresentationAction<CalendarFeature.Action>)
@@ -51,7 +62,7 @@ struct DailyDetailFeature {
 
     // MARK: - Dependency
 
-    @Dependency(\.repositoryClient) var repositoryClient
+    @Dependency(\.runningRecordClient) var runningRecordClient
 
     // MARK: - Reducer
 
@@ -62,9 +73,8 @@ struct DailyDetailFeature {
                 AppLogger.dailyDetail.debug("onAppear - 화면 표시됨")
                 // 현재 주의 날짜들로 초기화
                 if state.currentWeekDates.isEmpty {
-                    let today = Date()
-                    state.currentWeekDates = DateHelper.getWeekDates(for: today)
-                    AppLogger.dailyDetail.info("주간 날짜 초기화 완료 - 시작일: \(state.currentWeekDates.first?.description ?? "nil")")
+                    state.currentWeekDates = DateHelper.getWeekDates(for: state.selectedDate.toDate()).map { YearMonthDay(date: $0) }
+                    AppLogger.dailyDetail.info("주간 날짜 초기화 완료 - 시작일: \(state.currentWeekDates.first ?? nil)")
                 }
                 return .send(.fetchWeekRecords)
 
@@ -73,124 +83,106 @@ struct DailyDetailFeature {
                 AppLogger.dailyDetail.debug("dateSelected - 선택된 날짜: \(date)")
 
                 // 캐시 히트 확인
-                let calendar = Calendar.current
-                let normalizedDate = calendar.startOfDay(for: date)
-                if state.cachedRecords.keys.contains(normalizedDate) {
+                if state.dailyRecords[date] != nil {
                     // 캐시 히트: fetch 생략
-                    AppLogger.dailyDetail.info("캐시 히트 - 날짜: \(normalizedDate), fetch 생략")
+                    AppLogger.dailyDetail.info("캐시 히트 - 날짜: \(date), fetch 생략")
                     return .none
                 } else {
                     // 캐시 미스: 주 단위 fetch
-                    AppLogger.dailyDetail.notice("캐시 미스 - 날짜: \(normalizedDate), 주 단위 fetch 시작")
+                    AppLogger.dailyDetail.notice("캐시 미스 - 날짜: \(date), 주 단위 fetch 시작")
                     return .send(.fetchWeekRecords)
                 }
 
             case let .weekChanged(offset):
                 AppLogger.dailyDetail.debug("weekChanged - offset: \(offset)")
+                
                 // 현재 주에서 N주 이동
                 let calendar = Calendar.current
                 let currentWeekStart = state.currentWeekDates.first ?? state.selectedDate
-                let newWeekStart = DateHelper.addWeeks(offset, to: currentWeekStart)
-                state.currentWeekDates = DateHelper.getWeekDates(for: newWeekStart)
+                let newWeekStart = DateHelper.addWeeks(offset, to: currentWeekStart.toDate())
+                state.currentWeekDates = DateHelper.getWeekDates(for: newWeekStart).map { YearMonthDay(date: $0) }
                 AppLogger.dailyDetail.info("주 변경 완료 - 새 시작일: \(newWeekStart)")
 
                 // 선택된 날짜를 새 주의 같은 요일로 이동
-                if let selectedDateWeekday = calendar.dateComponents([.weekday], from: state.selectedDate).weekday,
+                if let selectedDateWeekday = calendar.dateComponents([.weekday], from: state.selectedDate.toDate()).weekday,
                    let newSelectedDate = state.currentWeekDates.first(where: {
-                       calendar.dateComponents([.weekday], from: $0).weekday == selectedDateWeekday
+                       calendar.dateComponents([.weekday], from: $0.toDate()).weekday == selectedDateWeekday
                    }) {
                     state.selectedDate = newSelectedDate
                 } else {
                     // 같은 요일이 없으면 새 주의 첫날(월요일)로 이동
-                    state.selectedDate = newWeekStart
+                    state.selectedDate = YearMonthDay(date: newWeekStart)
                 }
 
                 // 새 주의 선택된 날짜가 캐시에 있는지 확인
-                let normalizedDate = calendar.startOfDay(for: state.selectedDate)
-                if state.cachedRecords.keys.contains(normalizedDate) {
+                if state.dailyRecords[state.selectedDate] != nil {
                     // 캐시 히트: fetch 생략
-                    AppLogger.dailyDetail.info("캐시 히트 - 날짜: \(normalizedDate), fetch 생략")
+                    AppLogger.dailyDetail.info("캐시 히트 - 날짜: \(state.selectedDate), fetch 생략")
                     return .none
                 } else {
                     // 캐시 미스: 주 단위 fetch
-                    AppLogger.dailyDetail.notice("캐시 미스 - 날짜: \(normalizedDate), 주 단위 fetch 시작")
+                    AppLogger.dailyDetail.notice("캐시 미스 - 날짜: \(state.selectedDate), 주 단위 fetch 시작")
                     return .send(.fetchWeekRecords)
                 }
 
             case .fetchWeekRecords:
                 guard let weekStart = state.currentWeekDates.first,
                       let weekEnd = state.currentWeekDates.last else {
-                    AppLogger.dailyDetail.warning("fetchWeekRecords 실패 - currentWeekDates가 비어있음")
-                    return .none
+                    return .send(.weekRecordsFetchFailed(.emptyWeekDates))
                 }
 
                 state.isLoading = true
                 state.error = nil
-                AppLogger.dailyDetail.debug("fetchWeekRecords 시작 - weekStart: \(weekStart), weekEnd: \(weekEnd)")
+                AppLogger.dailyDetail.debug("fetchWeekRecords 시작")
 
                 return .run { send in
-                    let startTime = Date()
                     do {
-                        // 주 단위 범위 조회
-                        let records = try await repositoryClient.fetchRecords(weekStart, weekEnd)
-                        let elapsed = Date().timeIntervalSince(startTime)
-                        AppLogger.dailyDetail.info("fetchWeekRecords 성공 - count: \(records.count), elapsed: \(String(format: "%.3f", elapsed))s")
-                        await send(.weekRecordsFetchedSuccess(records))
+                        let dailyRecords = try await runningRecordClient.fetchData(
+                            from: weekStart,
+                            to: weekEnd
+                        )
+                        await send(.weekRecordsFetched(dailyRecords))
                     } catch {
-                        let elapsed = Date().timeIntervalSince(startTime)
                         let errorMessage = error.localizedDescription
-                        AppLogger.dailyDetail.error("fetchWeekRecords 실패 - error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
-                        await send(.weekRecordsFetchedFailure(.fetchFailed(underlyingError: errorMessage)))
+                        await send(.weekRecordsFetchFailed(.fetchFailed(underlyingError: errorMessage)))
                     }
                 }
 
-            case let .weekRecordsFetchedSuccess(records):
+            case let .weekRecordsFetched(dailyRecords):
+                state.dailyRecords.merge(dailyRecords) { _, new in new }
                 state.isLoading = false
-                state.error = nil
-
-                // 캐시 업데이트: fetch한 기간의 모든 날짜를 캐시에 저장
-                let calendar = Calendar.current
-
-                // records를 날짜별로 매핑
-                let recordsByDate = Dictionary(uniqueKeysWithValues: records.map { record in
-                    (calendar.startOfDay(for: record.date), record)
-                })
-
-                // currentWeekDates의 모든 날짜에 대해 캐시 업데이트
-                for date in state.currentWeekDates {
-                    let normalizedDate = calendar.startOfDay(for: date)
-                    state.cachedRecords[normalizedDate] = recordsByDate[normalizedDate]
-                }
-
-                AppLogger.dailyDetail.info("weekRecordsFetchedSuccess - \(records.count)개 레코드 캐시에 저장 완료, 총 캐시 크기: \(state.cachedRecords.count)")
-
+                AppLogger.dailyDetail.info("weekRecordsFetched 완료 - 총 캐시 크기: \(state.dailyRecords.count)")
                 return .none
 
-            case let .weekRecordsFetchedFailure(error):
+            case let .weekRecordsFetchFailed(error):
                 state.isLoading = false
                 state.error = error
                 let errorMessage = error.localizedDescription
-                AppLogger.dailyDetail.error("weekRecordsFetchedFailure - error: \(errorMessage)")
+                AppLogger.dailyDetail.error("weekRecordsFetchFailed - error: \(errorMessage)")
                 return .none
 
-            case .showAddRecord:
-                let mode = state.currentRecord != nil ? "편집" : "추가"
-                AppLogger.dailyDetail.debug("showAddRecord - mode: \(mode), date: \(state.selectedDate)")
+            case let .createRecord(healthKitWorkout):
+                AppLogger.dailyDetail.debug("showAddRecord - mode: 추가, date: \(state.selectedDate), healthKitWorkout: \(healthKitWorkout)")
                 state.addRecord = AddRecordFeature.State(
-                    date: state.selectedDate,
-                    existingRecord: state.currentRecord
+                    existingRecord: nil,
+                    healthKitWorkout: healthKitWorkout
+                )
+                return .none
+
+            case let .editRecord(runningRecord):
+                AppLogger.dailyDetail.debug("showAddRecord - mode: 수정, date: \(state.selectedDate), runningRecord: \(runningRecord)")
+                state.addRecord = AddRecordFeature.State(
+                    existingRecord: runningRecord,
+                    healthKitWorkout: nil
                 )
                 return .none
 
             case .addRecord(.presented(.recordSaved)):
-                // 레코드 저장 후 닫힘 - 캐시 무효화 및 새로고침
-                AppLogger.dailyDetail.info("recordSaved - 캐시 무효화 및 새로고침 시작")
+                AppLogger.dailyDetail.info("recordSaved - 새로고침 시작")
                 state.addRecord = nil
-                state.cachedRecords.removeAll()
                 return .send(.fetchWeekRecords)
 
             case .addRecord(.dismiss):
-                // 닫기
                 AppLogger.dailyDetail.debug("addRecord dismiss - 기록 추가/편집 화면 닫힘")
                 state.addRecord = nil
                 return .none
@@ -200,13 +192,46 @@ struct DailyDetailFeature {
 
             case .calendarButtonTapped:
                 AppLogger.dailyDetail.debug("calendarButtonTapped - 캘린더 화면 표시")
-                state.calendar = CalendarFeature.State()
+                state.calendar = CalendarFeature.State(selectedDate: state.selectedDate)
                 return .none
 
             case .calendar(.dismiss):
                 AppLogger.dailyDetail.debug("calendar dismiss - 캘린더 화면 닫힘")
                 state.calendar = nil
                 return .none
+
+            case let .calendar(.presented(.delegate(.dailyRecordSaved(dailyRecords)))):
+                for (yearMonthDay, dailyRecord) in dailyRecords {
+                    state.dailyRecords.updateValue(dailyRecord, forKey: yearMonthDay)
+                }
+                return .none
+
+            case .calendar(.presented(.navigateToDiary)):
+                guard let selectedYearMonthDay = state.calendar?.selectedDate else {
+                    AppLogger.dailyDetail.error("navigateToDiary - selectedDate가 없음")
+                    state.calendar = nil
+                    return .none
+                }
+
+                let selectedDate = selectedYearMonthDay
+                AppLogger.dailyDetail.info("navigateToDiary - \(selectedYearMonthDay) 날짜로 이동")
+
+                // 선택된 날짜가 속한 주로 즉시 전환
+                let newWeekDates = DateHelper.getWeekDates(for: selectedDate.toDate()).map { YearMonthDay(date: $0) }
+                state.currentWeekDates = newWeekDates
+                state.selectedDate = selectedDate
+
+                // 캘린더 시트 닫기
+                state.calendar = nil
+
+                // 캐시 확인 후 필요시 fetch
+                if state.dailyRecords[selectedDate] != nil {
+                    AppLogger.dailyDetail.debug("navigateToDiary - 캐시 히트, fetch 생략")
+                    return .none
+                } else {
+                    AppLogger.dailyDetail.debug("navigateToDiary - 캐시 미스, 주 단위 fetch 시작")
+                    return .send(.fetchWeekRecords)
+                }
 
             case .calendar:
                 return .none

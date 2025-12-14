@@ -14,33 +14,107 @@ struct LoggerWrapper {
     init(subsystem: String, category: String) {
         self.logger = Logger(subsystem: subsystem, category: category)
     }
-    
-    func info(_ message: String) {
-        logger.info("\(message)")
+
+    func info(
+        _ message: String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let fileName = (file as NSString).lastPathComponent
+        logger.info("[\(fileName):\(line)] \(message)")
     }
     
-    func debug(_ message: String) {
-        logger.debug("\(message)")
+    func debug(
+        _ message: String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let fileName = (file as NSString).lastPathComponent
+        logger.debug("[\(fileName):\(line)] \(message)")
+    }
+
+    func error(
+        _ message: String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let fileName = (file as NSString).lastPathComponent
+        logger.error("[\(fileName):\(line)] \(message)")
     }
     
-    func error(_ message: String) {
-        logger.error("\(message)")
+    func warning(
+        _ message: String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let fileName = (file as NSString).lastPathComponent
+        logger.warning("[\(fileName):\(line)] \(message)")
     }
     
-    func warning(_ message: String) {
-        logger.warning("\(message)")
+    func notice(
+        _ message: String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let fileName = (file as NSString).lastPathComponent
+        logger.notice("[\(fileName):\(line)] \(message)")
     }
     
-    func notice(_ message: String) {
-        logger.notice("\(message)")
+    func critical(
+        _ message: String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let fileName = (file as NSString).lastPathComponent
+        logger.critical("[\(fileName):\(line)] \(message)")
     }
     
-    func critical(_ message: String) {
-        logger.critical("\(message)")
+    func fault(
+        _ message: String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let fileName = (file as NSString).lastPathComponent
+        logger.fault("[\(fileName):\(line)] \(message)")
     }
-    
-    func fault(_ message: String) {
-        logger.fault("\(message)")
+
+    @discardableResult
+    func measure<T>(
+        _ message: String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line,
+        block: () -> T
+    ) -> T {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let result = block()
+        let duration = CFAbsoluteTimeGetCurrent() - startTime
+        let fileName = (file as NSString).lastPathComponent
+        logger.debug("[\(fileName):\(line)] \(String(format: "%.4f", duration))s - \(message)")
+        return result
+    }
+
+    @discardableResult
+    func measureAsync<T>(
+        _ message: String,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line,
+        block: () async throws -> T
+    ) async rethrows -> T {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        let result = try await block()
+        let duration = CFAbsoluteTimeGetCurrent() - startTime
+        let fileName = (file as NSString).lastPathComponent
+        logger.debug("[\(fileName):\(line)] \(String(format: "%.4f", duration))s - \(message)")
+        return result
     }
 }
 
@@ -88,5 +162,11 @@ enum AppLogger {
     static let general = LoggerWrapper(
         subsystem: subsystem,
         category: "General"
+    )
+
+    /// App 수준 로거
+    static let app = LoggerWrapper(
+        subsystem: subsystem,
+        category: "App"
     )
 }

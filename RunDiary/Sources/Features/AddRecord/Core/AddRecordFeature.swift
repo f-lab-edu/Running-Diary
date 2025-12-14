@@ -10,7 +10,7 @@ import CoreLocation
 import Foundation
 import Models
 
-enum RecordMode: Equatable {
+nonisolated enum RecordMode: Equatable {
     case add
     case edit
 }
@@ -20,25 +20,22 @@ struct AddRecordFeature {
     @ObservableState
     struct State: Equatable {
         var mode: RecordMode {
-            existingRecord == nil ? .add : .edit
+            guard existingRecord == nil else { return .edit }
+            return healthKitWorkout.data != nil ? .add : .edit
         }
 
-        let date: Date
         var existingRecord: RunningRecord?
-        var healthKitData: HealthKitDataFeature.State
+        var healthKitWorkout: HealthKitWorkoutFeature.State
         var condition: RunningConditionFeature.State
         var selectedDifficultyLevel: DifficultyLevel?
 
         var weather: WeatherData?
 
         var isLoading: Bool = false
-        var errorMessage: String?
-        @Presents var authorizationAlert: AlertState<AlertAction>?
-        @Presents var emptyHealthKitDataAlert: AlertState<EmptyHealthKitDataAlertAction>?
+        var errorMassage: String?
 
-        /// 메모를 제외한 모든 필수 데이터가 입력되었는지 확인
         var isFormValid: Bool {
-            guard healthKitData.data != nil else { return false }
+            guard healthKitWorkout.data != nil else { return false }
             guard condition.selectedShoe != nil else { return false }
             guard condition.selectedRunningStyle != nil else { return false }
             guard !condition.sleepHours.isEmpty,
@@ -49,43 +46,34 @@ struct AddRecordFeature {
             return true
         }
 
-        init(date: Date, existingRecord: RunningRecord? = nil) {
-            self.date = date
+        init(
+            existingRecord: RunningRecord? = nil,
+            healthKitWorkout: HealthKitWorkout? = nil
+        ) {
             self.existingRecord = existingRecord
-            self.healthKitData = HealthKitDataFeature.State()
-            self.condition = RunningConditionFeature.State()
+            self.healthKitWorkout = HealthKitWorkoutFeature.State(data: healthKitWorkout)
+            self.condition = RunningConditionFeature.State(existingRecord: existingRecord)
         }
     }
 
     enum Action {
         case onAppear
-        case healthKitData(HealthKitDataFeature.Action)
+        case healthKitWorkout(HealthKitWorkoutFeature.Action)
         case condition(RunningConditionFeature.Action)
         case updateSelectedDifficultyLevel(DifficultyLevel?)
         case saveRecord
         case weatherFetched(WeatherData?)
-        case recordSaved(RunningRecord)
+        case recordSaved
         case recordSaveFailed(String)
-        case authorizationAlert(PresentationAction<AlertAction>)
-        case emptyHealthKitDataAlert(PresentationAction<EmptyHealthKitDataAlertAction>)
     }
 
-    enum AlertAction: Equatable {
-        case openSettings
-        case goBack
-    }
-
-    enum EmptyHealthKitDataAlertAction: Equatable {
-        case goBack
-    }
-
-    @Dependency(\.repositoryClient) var repositoryClient
+    @Dependency(\.runningRecordClient) var runningRecordClient
     @Dependency(\.weatherClient) var weatherClient
     @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
-        Scope(state: \.healthKitData, action: \.healthKitData) {
-            HealthKitDataFeature()
+        Scope(state: \.healthKitWorkout, action: \.healthKitWorkout) {
+            HealthKitWorkoutFeature()
         }
 
         Scope(state: \.condition, action: \.condition) {
@@ -95,47 +83,13 @@ struct AddRecordFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                if state.mode == .edit, let record = state.existingRecord {
-                    // edit mode: load existing record into child features
+                if let record = state.existingRecord {
                     state.weather = record.weather
                     state.selectedDifficultyLevel = record.difficultyLevel
-                    return .merge(
-                        .send(.healthKitData(.loadFromRecord(record))),
-                        .send(.condition(.loadFromRecord(record))),
-                    )
-                } else {
-                    // add mode: HealthKit
-                    return .send(.healthKitData(.loadData(state.date)))
                 }
+                return .none
 
-            case .healthKitData(let healthKitDataAction):
-                switch healthKitDataAction {
-                case .healthStoreAuthorizationDenied:
-                    state.authorizationAlert = AlertState {
-                        TextState("건강 데이터 접근 거부됨")
-                    } actions: {
-                        ButtonState(action: .openSettings) {
-                            TextState("설정으로 이동")
-                        }
-                        ButtonState(action: .goBack) {
-                            TextState("뒤로 가기")
-                        }
-                    } message: {
-                        TextState("러닝 데이터를 가져오기 위해 설정에서 접근을 허용해주세요.")
-                    }
-                case .dataLoadFailed(let message):
-                    state.emptyHealthKitDataAlert = AlertState {
-                        TextState("피트니스 데이터 가져오기 실패")
-                    } actions: {
-                        ButtonState(action: .goBack) {
-                            TextState("뒤로 가기")
-                        }
-                    } message: {
-                        TextState(message)
-                    }
-                default:
-                    break
-                }
+            case .healthKitWorkout:
                 return .none
 
             case .condition:
@@ -146,33 +100,26 @@ struct AddRecordFeature {
                 return .none
 
             case .saveRecord:
-                guard let healthKitData = state.healthKitData.data else { return .none }
+                guard let healthKitWorkout = state.healthKitWorkout.data else { return .none }
                 state.isLoading = true
-                state.errorMessage = nil
+                state.errorMassage = nil
 
-                let location = extractLocationFromRoute(healthKitData.routeData)
-                let date = state.date
+                let location = extractLocationFromRoute(healthKitWorkout.routeData)
+                let yearMonthDay = YearMonthDay(date: healthKitWorkout.startDate)
                 let condition = state.condition
                 let existingRecordId = state.existingRecord?.id
                 let mode = state.mode
                 let difficultyLevel = state.selectedDifficultyLevel
 
-                // 중간 시간 계산
-                let middleTime: Date?
-                if let startDate = healthKitData.startDate, let endDate = healthKitData.endDate {
-                    let startInterval = startDate.timeIntervalSince1970
-                    let endInterval = endDate.timeIntervalSince1970
-                    let middleInterval = (startInterval + endInterval) / 2.0
-                    middleTime = Date(timeIntervalSince1970: middleInterval)
-                } else {
-                    middleTime = nil
-                }
+                let startInterval = healthKitWorkout.startDate.timeIntervalSince1970
+                let endInterval = healthKitWorkout.endDate.timeIntervalSince1970
+                let middleInterval = (startInterval + endInterval) / 2.0
+                let middleTime = Date(timeIntervalSince1970: middleInterval)
 
                 return .run { send in
                     do {
-                        // Fetch weather using middle time and middle location
                         let weather: WeatherData?
-                        if let middleTime = middleTime, let location = location {
+                        if let location = location {
                             do {
                                 weather = try await weatherClient.fetchWeather(middleTime, location)
                                 await send(.weatherFetched(weather))
@@ -185,18 +132,14 @@ struct AddRecordFeature {
                             weather = nil
                         }
 
-                        // Encode route data before saving
-                        let encodedRouteData = try? DataMapper.encode(from: healthKitData.routeData)
-
-                        // Create record
                         let record = await RunningRecord(
                             id: existingRecordId ?? UUID(),
-                            date: date,
-                            distanceInKilometers: healthKitData.distance,
-                            durationInSeconds: healthKitData.durationInSeconds,
-                            averagePace: healthKitData.averagePace,
-                            averageHeartRate: healthKitData.averageHeartRate,
-                            averageCadence: healthKitData.averageCadence,
+                            yearMonthDay: yearMonthDay,
+                            distanceInKilometers: healthKitWorkout.distance,
+                            durationInSeconds: healthKitWorkout.duration,
+                            averagePace: healthKitWorkout.averagePace,
+                            averageHeartRate: healthKitWorkout.averageHeartRate,
+                            averageCadence: healthKitWorkout.averageCadence,
                             painAreas: Array(condition.selectedPainAreas),
                             runningStyle: condition.selectedRunningStyle,
                             condition: RunningCondition(
@@ -205,25 +148,28 @@ struct AddRecordFeature {
                                 alcohol: condition.hadAlcohol,
                                 memo: condition.memo.isEmpty ? nil : condition.memo
                             ),
-                            shoes: condition.selectedShoe,
+                            shoes: condition.selectedShoe?.id ?? "",
                             weather: weather,
                             difficultyLevel: difficultyLevel,
-                            routeData: encodedRouteData,
-                            hasMap: healthKitData.routeData != nil,
-                            startTime: healthKitData.startDate,
-                            endTime: healthKitData.endDate
+                            routeData: healthKitWorkout.routeData,
+                            hasMap: healthKitWorkout.routeData != nil,
+                            startTime: healthKitWorkout.startDate,
+                            endTime: healthKitWorkout.endDate
                         )
 
-                        // Save or update
                         if mode == .add {
-                            try await repositoryClient.save(record)
+                            try await runningRecordClient.saveRecord(record)
                         } else {
-                            try await repositoryClient.update(record)
+                            try await runningRecordClient.updateRecord(record)
                         }
 
-                        await send(.recordSaved(record))
+                        await send(.recordSaved)
                     } catch {
-                        await send(.recordSaveFailed(error.localizedDescription))
+                        if let runningRecordError = error as? SwiftDataError {
+                            await send(.recordSaveFailed(runningRecordError.errorDescription ?? runningRecordError.localizedDescription))
+                        } else {
+                            await send(.recordSaveFailed(error.localizedDescription))
+                        }
                     }
                 }
 
@@ -237,42 +183,21 @@ struct AddRecordFeature {
                     await dismiss()
                 }
 
-            case .recordSaveFailed(let error):
+            case .recordSaveFailed(let errorMassage):
                 state.isLoading = false
-                state.errorMessage = "\(L10n.Record.Error.saveContext): \(error)"
-                return .none
-
-            case .authorizationAlert(.presented(.openSettings)):
-                URLOpener.openSettings()
-                return .none
-
-            case .authorizationAlert(.presented(.goBack)):
-                return .run { _ in
-                    await dismiss()
-                }
-
-            case .authorizationAlert:
-                return .none
-
-            case .emptyHealthKitDataAlert(.presented(.goBack)):
-                return .run { _ in
-                    await dismiss()
-                }
-
-            case .emptyHealthKitDataAlert:
+                state.errorMassage = errorMassage
                 return .none
             }
         }
-        .ifLet(\.$authorizationAlert, action: \.authorizationAlert)
-        .ifLet(\.$emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert)
     }
 
-    private func extractLocationFromRoute(_ coordinates: [HealthKitCoordinateData]?) -> CLLocationCoordinate2D? {
-        guard let coordinates = coordinates, !coordinates.isEmpty else {
+    private func extractLocationFromRoute(_ routeData: Data?) -> CLLocationCoordinate2D? {
+        guard let routeData = routeData,
+              let coordinates = try? JSONDecoder().decode([Location].self, from: routeData),
+              !coordinates.isEmpty else {
             return nil
         }
 
-        // 시작점과 끝점의 중간 지점 계산
         let first = coordinates.first!
         let last = coordinates.last!
         let midLatitude = (first.latitude + last.latitude) / 2.0

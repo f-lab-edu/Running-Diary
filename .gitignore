@@ -23,7 +23,6 @@ DerivedData/
 .build/
 .swiftpm/
 Packages/
-Package.resolved
 
 ### App packaging ###
 

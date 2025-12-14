@@ -6,6 +6,7 @@
 //
 
 import ComposableArchitecture
+import CommonFoundation
 import SwiftUI
 import Models
 
@@ -14,62 +15,15 @@ struct AddRecordView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if store.healthKitData.isLoading {
-                    ProgressView(L10n.Healthkit.Data.loading)
-                        .progressViewStyle(.circular)
-                } else {
-                    FormContentView(store: store)
-                }
-            }
-            .navigationTitle(store.mode == .add ? L10n.Record.add : L10n.Record.edit)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(L10n.UI.cancel) {
-                        dismiss()
-                    }
-                    .foregroundStyle(.gray500)
-                }
-
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(L10n.UI.save) {
-                        store.send(.saveRecord)
-                    }
-                    .foregroundStyle(store.isLoading || !store.isFormValid ? .blue300.opacity(0.3) : .blue300)
-                    .disabled(store.isLoading || !store.isFormValid)
-                }
-            }
-            .task {
-                store.send(.onAppear)
-            }
-            .alert($store.scope(state: \.authorizationAlert, action: \.authorizationAlert))
-            .alert($store.scope(state: \.emptyHealthKitDataAlert, action: \.emptyHealthKitDataAlert))
-            .overlay {
-                if store.isLoading {
-                    ProgressView()
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Form Content
-
-private struct FormContentView: View {
-    @Bindable var store: StoreOf<AddRecordFeature>
-
-    var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 // HealthKit 데이터 섹션
                 HealthKitSectionView(
-                    distance: store.healthKitData.data?.formattedDistance ?? "",
-                    duration: store.healthKitData.data?.formattedDuration ?? "",
-                    averagePace: store.healthKitData.data?.averagePace ?? "",
-                    averageHeartRate: store.healthKitData.data?.formattedAverageHeartRate ?? "",
-                    averageCadence: store.healthKitData.data?.formattedAverageCadence ?? ""
+                    distance: store.healthKitWorkout.data?.formattedDistance ?? "",
+                    duration: store.healthKitWorkout.data?.formattedDuration ?? "",
+                    averagePace: store.healthKitWorkout.data?.averagePace ?? "",
+                    averageHeartRate: store.healthKitWorkout.data?.formattedAverageHeartRate ?? "",
+                    averageCadence: store.healthKitWorkout.data?.formattedAverageCadence ?? ""
                 )
 
                 // 신발 섹션
@@ -138,396 +92,77 @@ private struct FormContentView: View {
         }
         .background(Color.gray50)
         .scrollDismissesKeyboard(.interactively)
-        .simultaneousGesture(
-            TapGesture().onEnded {
-                hideKeyboard()
-            }
-        )
+        .hideKeyboardOnTapOutside()
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button(L10n.UI.done) {
+                Button(L10n.uiDone.value) {
                     hideKeyboard()
                 }
             }
         }
-    }
-
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-}
-
-// MARK: - Section Views
-
-private struct HealthKitSectionView: View {
-    let distance: String
-    let duration: String
-    let averagePace: String
-    let averageHeartRate: String
-    let averageCadence: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.fitnessData)
-                .font(.headline)
-                .foregroundStyle(.blue700)
-                .padding(.bottom, 4)
-
-            VStack(spacing: 12) {
-                HStack {
-                    Text(L10n.Record.Field.distance)
-                        .foregroundColor(.gray500)
-                    Spacer()
-                    Text(distance)
-                        .foregroundStyle(.blue700)
-                    Text(L10n.Unit.km)
-                        .foregroundColor(.gray)
+        .navigationTitle(store.mode == .add ? L10n.recordAdd.value : L10n.recordEdit.value)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(L10n.uiCancel.value) {
+                    dismiss()
                 }
+                .foregroundStyle(.gray500)
+            }
 
-                HStack {
-                    Text(L10n.Record.Field.duration)
-                        .foregroundColor(.gray500)
-                    Spacer()
-                    Text(duration)
-                        .foregroundStyle(.blue700)
+            ToolbarItem(placement: .confirmationAction) {
+                Button(L10n.uiSave.value) {
+                    hideKeyboard()
+                    store.send(.saveRecord)
                 }
-
-                HStack {
-                    Text(L10n.Record.Field.pace)
-                        .foregroundColor(.gray500)
-                    Spacer()
-                    Text(averagePace)
-                        .foregroundStyle(.blue700)
-                }
-
-                HStack {
-                    Text(L10n.Record.Field.heartRate)
-                        .foregroundColor(.gray500)
-                    Spacer()
-                    Text(averageHeartRate)
-                        .foregroundStyle(.blue700)
-                    Text(L10n.Unit.bpm)
-                        .foregroundColor(.gray)
-                }
-
-                HStack {
-                    Text(L10n.Record.Field.cadence)
-                        .foregroundColor(.gray500)
-                    Spacer()
-                    Text(averageCadence)
-                        .foregroundStyle(.blue700)
-                    Text(L10n.Unit.spm)
-                        .foregroundColor(.gray500)
-                }
+                .foregroundStyle(store.isLoading || !store.isFormValid ? .blue300.opacity(0.3) : .blue300)
+                .disabled(store.isLoading || !store.isFormValid)
             }
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-    }
-}
-
-private struct PainAreasSectionView: View {
-    @Binding var selectedPainAreas: Set<PainArea>
-    let painAreaOptions: [PainArea]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.painAreas)
-                .font(.headline)
-                .padding(.bottom, 4)
-
-            DynamicGridLayout(items: painAreaOptions) { area in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        if selectedPainAreas.contains(area) {
-                            selectedPainAreas.remove(area)
-                        } else {
-                            selectedPainAreas.insert(area)
-                        }
-                    }
-                } label: {
-                    Text(area.rawValue)
-                        .font(.subheadline)
-                        .bold(selectedPainAreas.contains(area))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 12)
-                }
-                .buttonStyle(PainAreaButtonStyle(isSelected: selectedPainAreas.contains(area)))
-            }
+        .task {
+            store.send(.onAppear)
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-    }
-}
-
-private struct RunningStyleSectionView: View {
-    @Binding var selectedStyle: RunninStyle?
-    let styleOptions: [RunninStyle]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.runningStyle)
-                .font(.headline)
-                .padding(.bottom, 4)
-
-            Menu {
-                ForEach(styleOptions, id: \.self) { style in
-                    Button(style.rawValue) {
-                        selectedStyle = style
-                    }
-                }
-            } label: {
-                HStack {
-                    Text(selectedStyle?.rawValue ?? "어떤 주법으로 달렸나요?")
-                        .foregroundColor(selectedStyle == nil ? .gray : .primary)
-                    Spacer()
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
-                }
-                .padding(.vertical, 8)
-            }
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-    }
-}
-
-private struct DifficultyLevelSectionView: View {
-    @Binding var selectedLevel: DifficultyLevel?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.intensity)
-                .font(.headline)
-                .padding(.bottom, 4)
-
-            Menu {
-                ForEach(DifficultyLevel.allCases, id: \.self) { level in
-                    Button(level.displayName) {
-                        selectedLevel = level
-                    }
-                }
-            } label: {
-                HStack {
-                    Text(selectedLevel?.displayName ?? "운동 강도를 선택해주세요!")
-                        .foregroundColor(selectedLevel == nil ? .gray : .primary)
-                    Spacer()
-                    if let level = selectedLevel {
-                        HStack(spacing: 2) {
-                            ForEach(1...5, id: \.self) { index in
-                                Image(systemName: index <= level.rawValue ? "star.fill" : "star")
-                                    .foregroundColor(index <= level.rawValue ? .yellow : .gray)
-                                    .font(.caption)
-                            }
-                        }
-                    }
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
-                }
-                .padding(.vertical, 8)
-            }
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-    }
-}
-
-private struct ConditionSectionView: View {
-    @Binding var sleepHours: String
-    @Binding var hadMeal: Bool
-    @Binding var hadAlcohol: Bool
-    @Binding var memo: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.condition)
-                .font(.headline)
-                .padding(.bottom, 4)
-
-            VStack(spacing: 12) {
-                HStack {
-                    Text(L10n.Record.Field.sleepDuration)
-                        .foregroundColor(.gray)
-                    Spacer()
-                    TextField("8", text: $sleepHours)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .onChange(of: sleepHours) { oldValue, newValue in
-                            // 빈 값 허용 (입력 전/전체 삭제)
-                            if newValue.isEmpty {
-                                return
-                            }
-
-                            // 정수 변환 및 범위 검증
-                            if let value = Int(newValue) {
-                                if value < 1 {
-                                    // 1 미만 → 1로 자동 보정
-                                    sleepHours = "1"
-                                } else if value > 24 {
-                                    // 24 초과 → 24로 자동 보정
-                                    sleepHours = "24"
-                                }
-                                // 1~24 범위는 그대로 유지
-                            } else {
-                                // 숫자가 아닌 경우 → 이전 값으로 되돌림
-                                sleepHours = oldValue
-                            }
-                        }
-                    Text(L10n.Unit.hours)
-                        .foregroundColor(.gray)
-                }
-
-                HStack {
-                    Text(L10n.Record.Field.hasMeal)
-                        .foregroundColor(.gray)
-                    Spacer()
-                    CheckboxView(isChecked: $hadMeal)
-                }
-
-                HStack {
-                    Text(L10n.Record.Field.wasDrinking)
-                        .foregroundColor(.gray)
-                    Spacer()
-                    CheckboxView(isChecked: $hadAlcohol)
-                }
-            }
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-    }
-}
-
-private struct ShoesSectionView: View {
-    @State private var isMenuOpen = false
-
-    @Binding var selectedShoe: String?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.shoes)
-                .font(.headline)
-                .padding(.bottom, 4)
-
-            Menu {
-                ForEach(ShoeStorage.shared.shoes, id: \.id) { shoe in
-                    Button(shoe.name) {
-                        selectedShoe = shoe.name
-                    }
-                }
-            } label: {
-                HStack {
-                    Text(selectedShoe ?? "어떤 신발을 착용하셨나요?")
-                        .foregroundColor(selectedShoe == nil ? .gray : .primary)
-                    Spacer()
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
-                }
-            }
-            .menuStyle(.button)
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-    }
-}
-
-private struct MemoSectionView: View {
-    @Binding var memo: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.Record.Field.memo)
-                .font(.headline)
-                .padding(.bottom, 4)
-
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: $memo)
-                    .frame(minHeight: 150)
-                    .padding(4)
-                    .background(Color(.systemBackground))
-                    .cornerRadius(8)
-
-                if memo.isEmpty {
-                    Text(L10n.Record.Field.memoPlaceholder)
-                        .foregroundColor(.gray)
-                        .padding(.top, 12)
-                        .padding(.leading, 9)
-                        .allowsHitTesting(false)
-                }
-            }
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-    }
-}
-
-// MARK: - Checkbox Component
-
-private struct CheckboxView: View {
-    @Binding var isChecked: Bool
-
-    var body: some View {
-        Button(action: {
-            isChecked.toggle()
-        }) {
-            Image(systemName: isChecked ? "checkmark.square.fill" : "square")
-                .foregroundColor(isChecked ? .blue : .gray)
-                .font(.title2)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Pain Area Button Style
-
-private struct PainAreaButtonStyle: ButtonStyle {
-    let isSelected: Bool
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundColor(isSelected ? .white : .gray500)
-            .background(isSelected ? Color.blue700 : Color.white)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule()
-                    .stroke(isSelected ? Color.blue700 : Color.gray100, lineWidth: 1)
-            )
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+        .loadingIndicatorIfNeeded(store.isLoading)
     }
 }
 
 // MARK: - Preview
 
 #Preview("Add Mode", traits: .sampleData) {
-    AddRecordView(
-        store: Store(
-            initialState: AddRecordFeature.State(
-                date: Date()
-            )
-        ) {
-            AddRecordFeature()
-        }
-    )
+    NavigationStack {
+        AddRecordView(
+            store: Store(
+                initialState: AddRecordFeature.State(
+                    healthKitWorkout: HealthKitWorkout(
+                        distance: 5.2,
+                        duration: 3665,  // 1시간 1분 5초
+                        averagePace: "5'30\"",
+                        averageHeartRate: 155,
+                        averageCadence: 180,
+                        routeData: nil,
+                        startDate: .now,
+                        endDate: .now
+                    )
+                )
+            ) {
+                AddRecordFeature()
+            }
+        )
+    }
 }
 
 #Preview("Edit Mode", traits: .sampleData) {
-    AddRecordView(
-        store: Store(
-            initialState: AddRecordFeature.State(
-                date: Date(),
-                existingRecord: RunningRecordModel.preview.toDomain()
-            )
-        ) {
-            AddRecordFeature()
-        }
-    )
+    NavigationStack {
+        AddRecordView(
+            store: Store(
+                initialState: AddRecordFeature.State(
+                    existingRecord: RunningRecordPersistenceModel.preview.toDomain()
+                )
+            ) {
+                AddRecordFeature()
+            }
+        )
+    }
 }
