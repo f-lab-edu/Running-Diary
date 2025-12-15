@@ -22,6 +22,7 @@ struct DailyDetailFeature {
         var error: DailyDetailError? = nil
         @Presents var addRecord: AddRecordFeature.State?
         @Presents var calendar: CalendarFeature.State?
+        @Presents var settings: SettingsFeature.State?
 
         var currentDailyRecord: DailyRecord? {
             return dailyRecords[selectedDate]
@@ -33,7 +34,8 @@ struct DailyDetailFeature {
             cachedRecords: [YearMonthDay: DailyRecord] = [:],
             isLoading: Bool = false,
             addRecord: AddRecordFeature.State? = nil,
-            calendar: CalendarFeature.State? = nil
+            calendar: CalendarFeature.State? = nil,
+            settings: SettingsFeature.State? = nil
         ) {
             self.selectedDate = selectedDate
             self.currentWeekDates = currentWeekDates
@@ -41,6 +43,7 @@ struct DailyDetailFeature {
             self.isLoading = isLoading
             self.addRecord = addRecord
             self.calendar = calendar
+            self.settings = settings
         }
     }
 
@@ -58,6 +61,8 @@ struct DailyDetailFeature {
         case addRecord(PresentationAction<AddRecordFeature.Action>)
         case calendarButtonTapped
         case calendar(PresentationAction<CalendarFeature.Action>)
+        case settingsButtonTapped
+        case settings(PresentationAction<SettingsFeature.Action>)
     }
 
     // MARK: - Dependency
@@ -235,6 +240,19 @@ struct DailyDetailFeature {
 
             case .calendar:
                 return .none
+
+            case .settingsButtonTapped:
+                AppLogger.dailyDetail.debug("settingsButtonTapped - 설정 화면 표시")
+                state.settings = SettingsFeature.State()
+                return .none
+
+            case .settings(.dismiss):
+                AppLogger.dailyDetail.debug("settings dismiss - 설정 화면 닫힘")
+                state.settings = nil
+                return .none
+
+            case .settings:
+                return .none
             }
         }
         .ifLet(\.$addRecord, action: \.addRecord) {
@@ -242,6 +260,9 @@ struct DailyDetailFeature {
         }
         .ifLet(\.$calendar, action: \.calendar) {
             CalendarFeature()
+        }
+        .ifLet(\.$settings, action: \.settings) {
+            SettingsFeature()
         }
     }
 }

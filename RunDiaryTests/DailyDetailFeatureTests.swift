@@ -527,6 +527,45 @@ struct DailyDetailFeatureTests {
         }
     }
 
+    // MARK: - Settings Tests
+
+    @Test("settingsButtonTapped 시 Settings 화면 표시")
+    func settingsButtonTappedOpensSettings() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+
+        let store = TestStore(
+            initialState: DailyDetailFeature.State(selectedDate: testDate)
+        ) {
+            DailyDetailFeature()
+        }
+
+        store.exhaustivity = .off
+
+        // When & Then
+        await store.send(.settingsButtonTapped) {
+            $0.settings = SettingsFeature.State()
+        }
+    }
+
+    @Test("settings dismiss 시 화면 닫힘")
+    func settingsDismissClosesSettings() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.settings = SettingsFeature.State()
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        }
+
+        // When & Then
+        await store.send(.settings(.dismiss)) {
+            $0.settings = nil
+        }
+    }
+
     // MARK: - Computed Properties Tests
 
     @Test("currentDailyRecord는 선택된 날짜의 기록 반환")

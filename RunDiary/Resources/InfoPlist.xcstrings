@@ -39,8 +39,20 @@
     },
     "NSHealthShareUsageDescription" : {
       "comment" : "Privacy - Health Share Usage Description",
-      "extractionState" : "extracted_with_value",
+      "extractionState" : "stale",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit data access is required to load running records."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランニング記録を読み込むには、HealthKitデータへのアクセスが必要です。"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "new",
@@ -51,8 +63,20 @@
     },
     "NSHealthUpdateUsageDescription" : {
       "comment" : "Privacy - Health Update Usage Description",
-      "extractionState" : "extracted_with_value",
+      "extractionState" : "stale",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HealthKit data write permission is required to save running records."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランニング記録を保存するには、HealthKitデータへの書き込み権限が必要です。"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "new",

@@ -16,9 +16,15 @@ struct DailyDetailView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                YearAndMonthSection(yearMonthDay: store.selectedDate) {
-                    store.send(.calendarButtonTapped)
-                }
+                YearAndMonthSection(
+                    yearMonthDay: store.selectedDate,
+                    onCalendarTap: {
+                        store.send(.calendarButtonTapped)
+                    },
+                    onSettingsTap: {
+                        store.send(.settingsButtonTapped)
+                    }
+                )
 
                 DateCarouselSection(store: store)
 
@@ -28,6 +34,9 @@ struct DailyDetailView: View {
             }
             .navigationDestination(store: store.scope(state: \.$addRecord, action: \.addRecord)) { addRecordStore in
                 AddRecordView(store: addRecordStore)
+            }
+            .navigationDestination(store: store.scope(state: \.$settings, action: \.settings)) { settingsStore in
+                SettingsView(store: settingsStore)
             }
             .task {
                 store.send(.onAppear)
@@ -47,10 +56,12 @@ struct DailyDetailView: View {
 struct YearAndMonthSection: View {
     let title: String
     let onCalendarTap: () -> Void
+    let onSettingsTap: () -> Void
 
-    init(yearMonthDay: YearMonthDay, onCalendarTap: @escaping () -> Void) {
+    init(yearMonthDay: YearMonthDay, onCalendarTap: @escaping () -> Void, onSettingsTap: @escaping () -> Void) {
         self.title = DateHelper.formattedYearMonth(year: yearMonthDay.year, month: yearMonthDay.month)
         self.onCalendarTap = onCalendarTap
+        self.onSettingsTap = onSettingsTap
     }
 
     var body: some View {
@@ -71,7 +82,17 @@ struct YearAndMonthSection: View {
             }
 
             Spacer()
+
+            Button {
+                onSettingsTap()
+            } label: {
+                Image(systemName: "gearshape")
+                    .foregroundStyle(.blue700)
+                    .font(.title3)
+                    .padding(.trailing, 14)
+            }
         }
+        .frame(height: 48)
     }
 }
 

@@ -139,7 +139,13 @@ enum AppLogger {
         subsystem: subsystem,
         category: "Calendar"
     )
-    
+
+    /// Settings 기능 관련 로거
+    static let settings = LoggerWrapper(
+        subsystem: subsystem,
+        category: "Settings"
+    )
+
     /// HealthKit 관련 로거
     static let healthKit = LoggerWrapper(
         subsystem: subsystem,

@@ -437,8 +437,6 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = RunDiary/Sources/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "달림일기";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "러닝 기록을 불러오기 위해 HealthKit 데이터 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "러닝 기록을 저장하기 위해 HealthKit 데이터 쓰기 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -478,8 +476,6 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = RunDiary/Sources/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "달림일기";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "러닝 기록을 불러오기 위해 HealthKit 데이터 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "러닝 기록을 저장하기 위해 HealthKit 데이터 쓰기 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
