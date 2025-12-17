@@ -14,6 +14,7 @@ import WeatherKitService
 @DependencyClient
 struct WeatherClient {
     var fetchWeather: @MainActor @Sendable (Date, CLLocationCoordinate2D?) async throws -> WeatherData
+    var fetchTrademark: @MainActor @Sendable () async throws -> WeatherTrademark
 }
 
 extension WeatherClient: DependencyKey {
@@ -23,12 +24,16 @@ extension WeatherClient: DependencyKey {
         return WeatherClient(
             fetchWeather: { date, location in
                 try await manager.fetchWeather(for: date, location: location)
+            },
+            fetchTrademark: {
+                try await manager.fetchTrademark()
             }
         )
     }()
 
     static let testValue = WeatherClient(
-        fetchWeather: unimplemented("\(Self.self).fetchWeather")
+        fetchWeather: unimplemented("\(Self.self).fetchWeather"),
+        fetchTrademark: unimplemented("\(Self.self).fetchTrademark")
     )
 
     static let previewValue = WeatherClient(
@@ -38,6 +43,9 @@ extension WeatherClient: DependencyKey {
                 humidity: 60,
                 windSpeed: 2.3
             )
+        },
+        fetchTrademark: {
+            WeatherTrademark(imageURL: nil, legalPageURL: nil)
         }
     )
 }

@@ -42,4 +42,12 @@ public final class WeatherKitManager: WeatherManagerProtocol {
             windSpeed: weather.wind.speed.value
         )
     }
+
+    public func fetchTrademark() async throws -> WeatherTrademark {
+        let attribution = try await weatherService.attribution
+        return WeatherTrademark(
+            imageURL: attribution.combinedMarkLightURL,
+            legalPageURL: attribution.legalPageURL
+        )
+    }
 }

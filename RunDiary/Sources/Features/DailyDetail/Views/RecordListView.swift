@@ -29,7 +29,13 @@ struct RecordListView: View {
                     RunningRecordCard(record: record, onEdit: { store.send(.editRecord(record)) })
                 }
 
-                if !dailyRecord.savedRecords.isEmpty && !dailyRecord.healthKitWorkouts.isEmpty {
+                if dailyRecord.hasSavedRecord, let trademark = store.weatherTrademark {
+                    WeatherTrademarkView(trademark: trademark)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.top, 8)
+                }
+
+                if dailyRecord.hasSavedRecord && dailyRecord.hasHealthKitWorkout {
                     Divider()
                         .padding(.vertical, 10)
                 }
