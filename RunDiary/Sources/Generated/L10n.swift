@@ -310,6 +310,13 @@ enum L10n {
     static let weatherFieldTemperature: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.temperature")
     /// Wind Speed
     static let weatherFieldWindSpeed: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.wind_speed")
+
+    // MARK: - Settings
+
+    /// Privacy Policy
+    static let settingsPrivacyPolicy: LocalizableKey<LocalizableParameterCount0> = .init(key: "settings.privacy_policy")
+    /// Terms of Service
+    static let settingsTermsOfService: LocalizableKey<LocalizableParameterCount0> = .init(key: "settings.terms_of_service")
 }
 
 // MARK: - Helper

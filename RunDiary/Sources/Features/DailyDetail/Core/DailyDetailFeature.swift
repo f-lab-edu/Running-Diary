@@ -20,6 +20,7 @@ struct DailyDetailFeature {
         var dailyRecords: [YearMonthDay: DailyRecord]
         var isLoading: Bool = false
         var error: DailyDetailError? = nil
+        var weatherTrademark: WeatherTrademark? = nil
         @Presents var addRecord: AddRecordFeature.State?
         @Presents var calendar: CalendarFeature.State?
         @Presents var settings: SettingsFeature.State?
@@ -56,6 +57,8 @@ struct DailyDetailFeature {
         case fetchWeekRecords
         case weekRecordsFetched([YearMonthDay: DailyRecord])
         case weekRecordsFetchFailed(DailyDetailError)
+        case fetchWeatherTrademark
+        case weatherTrademarkFetched(WeatherTrademark)
         case createRecord(HealthKitWorkout)
         case editRecord(RunningRecord)
         case addRecord(PresentationAction<AddRecordFeature.Action>)
@@ -68,6 +71,7 @@ struct DailyDetailFeature {
     // MARK: - Dependency
 
     @Dependency(\.runningRecordClient) var runningRecordClient
+    @Dependency(\.weatherClient) var weatherClient
 
     // MARK: - Reducer
 
@@ -81,6 +85,15 @@ struct DailyDetailFeature {
                     state.currentWeekDates = DateHelper.getWeekDates(for: state.selectedDate.toDate()).map { YearMonthDay(date: $0) }
                     AppLogger.dailyDetail.info("주간 날짜 초기화 완료 - 시작일: \(state.currentWeekDates.first ?? nil)")
                 }
+
+                // Fetch trademark only if not already loaded
+                if state.weatherTrademark == nil {
+                    return .merge(
+                        .send(.fetchWeekRecords),
+                        .send(.fetchWeatherTrademark)
+                    )
+                }
+
                 return .send(.fetchWeekRecords)
 
             case let .dateSelected(date):
@@ -164,6 +177,19 @@ struct DailyDetailFeature {
                 state.error = error
                 let errorMessage = error.localizedDescription
                 AppLogger.dailyDetail.error("weekRecordsFetchFailed - error: \(errorMessage)")
+                return .none
+
+            case .fetchWeatherTrademark:
+                AppLogger.dailyDetail.debug("fetchWeatherTrademark 시작")
+
+                return .run { send in
+                    let trademark = try await weatherClient.fetchTrademark()
+                    await send(.weatherTrademarkFetched(trademark))
+                }
+
+            case let .weatherTrademarkFetched(trademark):
+                state.weatherTrademark = trademark
+                AppLogger.dailyDetail.info("weatherTrademarkFetched 완료 - imageURL: \(trademark.imageURL != nil), legalURL: \(trademark.legalPageURL != nil)")
                 return .none
 
             case let .createRecord(healthKitWorkout):

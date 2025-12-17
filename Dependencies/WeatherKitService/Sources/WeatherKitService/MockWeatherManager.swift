@@ -25,4 +25,8 @@ public final class MockWeatherManager: WeatherManagerProtocol {
             windSpeed: Double.random(in: 0.5...5.0)
         )
     }
+
+    public func fetchTrademark() async -> WeatherTrademark {
+        return WeatherTrademark(imageURL: nil, legalPageURL: nil)
+    }
 }

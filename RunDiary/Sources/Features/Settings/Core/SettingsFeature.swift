@@ -33,8 +33,8 @@ struct SettingsFeature {
 
         var displayName: String {
             switch self {
-            case .privacyPolicy: return "개인정보처리방침"
-            case .termsOfService: return "이용약관"
+            case .privacyPolicy: return L10n.settingsPrivacyPolicy.value
+            case .termsOfService: return L10n.settingsTermsOfService.value
             }
         }
 

@@ -11,4 +11,5 @@ import Models
 
 public protocol WeatherManagerProtocol {
     func fetchWeather(for date: Date, location: CLLocationCoordinate2D?) async throws -> WeatherData
+    func fetchTrademark() async throws -> WeatherTrademark
 }

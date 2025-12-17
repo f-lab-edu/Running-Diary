@@ -30,8 +30,12 @@ struct DailyDetailFeatureTests {
             healthKitWorkouts: [testDate: [mockHealthKit]],
             runningRecords: [testDate: [mockRecord]]
         )
+        let mockTrademark = WeatherTrademark(imageURL: nil, legalPageURL: nil)
 
-        let store = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.weatherTrademark = mockTrademark
+
+        let store = TestStore(initialState: initialState) {
             DailyDetailFeature()
         } withDependencies: {
             $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
@@ -602,6 +606,147 @@ struct DailyDetailFeatureTests {
 
         // When & Then
         #expect(store.state.currentDailyRecord == nil)
+    }
+
+    // MARK: - Weather Attribution Tests
+
+    @Test("onAppear 시 weatherTrademark이 nil이면 fetch 트리거")
+    func onAppearWithoutTrademarkFetchesTrademark() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let expectedTrademark = WeatherTrademark(
+            imageURL: URL(string: "https://example.com/icon.png"),
+            legalPageURL: URL(string: "https://example.com/legal")
+        )
+        let expectedDailyRecords = makeExpectedDailyRecords(
+            forWeekContaining: testDate,
+            healthKitWorkouts: [:],
+            runningRecords: [:]
+        )
+
+        let store = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
+            $0.weatherClient.fetchTrademark = {
+                expectedTrademark
+            }
+        }
+
+        // When
+        await store.send(.onAppear) {
+            // Then
+            $0.currentWeekDates = makeWeekDates(containing: testDate)
+        }
+
+        await store.receive(\.fetchWeekRecords) {
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.fetchWeatherTrademark)
+
+        await store.receive(\.weekRecordsFetched) {
+            $0.isLoading = false
+            $0.dailyRecords = expectedDailyRecords
+        }
+
+        await store.receive(\.weatherTrademarkFetched) {
+            $0.weatherTrademark = expectedTrademark
+        }
+    }
+
+    @Test("onAppear 시 weatherTrademark이 이미 있으면 fetch 생략")
+    func onAppearWithExistingTrademarkSkipsFetch() async {
+        // Given
+        let testDate = makeTodayYearMonthDay()
+        let existingTrademark = WeatherTrademark(
+            imageURL: URL(string: "https://example.com/icon.png"),
+            legalPageURL: URL(string: "https://example.com/legal")
+        )
+        let expectedDailyRecords = makeExpectedDailyRecords(
+            forWeekContaining: testDate,
+            healthKitWorkouts: [:],
+            runningRecords: [:]
+        )
+
+        var initialState = DailyDetailFeature.State(selectedDate: testDate)
+        initialState.weatherTrademark = existingTrademark
+
+        let store = TestStore(initialState: initialState) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.runningRecordClient.fetchData = { _, _ in expectedDailyRecords }
+        }
+
+        // When
+        await store.send(.onAppear) {
+            // Then
+            $0.currentWeekDates = makeWeekDates(containing: testDate)
+        }
+
+        await store.receive(\.fetchWeekRecords) {
+            $0.isLoading = true
+            $0.error = nil
+        }
+
+        await store.receive(\.weekRecordsFetched) {
+            $0.isLoading = false
+            $0.dailyRecords = expectedDailyRecords
+        }
+
+        // No weatherTrademarkFetched action should be received
+        #expect(store.state.weatherTrademark == existingTrademark)
+    }
+
+    @Test("fetchWeatherTrademark 성공 시 State에 trademark 저장")
+    func fetchWeatherTrademarkSuccessSavesTrademark() async {
+        // Given
+        let expectedTrademark = WeatherTrademark(
+            imageURL: URL(string: "https://example.com/icon.png"),
+            legalPageURL: URL(string: "https://example.com/legal")
+        )
+
+        let store = TestStore(initialState: DailyDetailFeature.State()) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.weatherClient.fetchTrademark = {
+                expectedTrademark
+            }
+        }
+
+        // When
+        await store.send(.fetchWeatherTrademark)
+
+        // Then
+        await store.receive(\.weatherTrademarkFetched) {
+            $0.weatherTrademark = expectedTrademark
+        }
+    }
+
+    @Test("fetchTrademark가 nil 값 반환 시에도 정상 처리")
+    func fetchWeatherTrademarkHandlesNilValues() async {
+        // Given
+        let expectedTrademark = WeatherTrademark(
+            imageURL: nil,
+            legalPageURL: nil
+        )
+
+        let store = TestStore(initialState: DailyDetailFeature.State()) {
+            DailyDetailFeature()
+        } withDependencies: {
+            $0.weatherClient.fetchTrademark = {
+                expectedTrademark
+            }
+        }
+
+        // When
+        await store.send(.fetchWeatherTrademark)
+
+        // Then
+        await store.receive(\.weatherTrademarkFetched) {
+            $0.weatherTrademark = expectedTrademark
+        }
     }
 
     // MARK: - Error Handling Tests
