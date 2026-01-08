@@ -18,6 +18,8 @@ struct SwiftDataClient {
     var save: @MainActor @Sendable (RunningRecord) async throws -> Void
     var update: @MainActor @Sendable (RunningRecord) async throws -> Void
     var delete: @MainActor @Sendable (RunningRecord) async throws -> Void
+    var clearCache: @MainActor @Sendable () -> Void
+    var clearCacheForMonth: @MainActor @Sendable (YearMonth) -> Void
 }
 
 extension SwiftDataClient: DependencyKey {
@@ -36,6 +38,12 @@ extension SwiftDataClient: DependencyKey {
         },
         delete: { _ in
             fatalError("RepositoryClient.delete must be overridden with live implementation")
+        },
+        clearCache: {
+            fatalError("RepositoryClient.clearCache must be overridden with live implementation")
+        },
+        clearCacheForMonth: { _ in
+            fatalError("RepositoryClient.clearCacheForMonth must be overridden with live implementation")
         }
     )
 
@@ -44,7 +52,9 @@ extension SwiftDataClient: DependencyKey {
         fetchRecords: unimplemented("\(Self.self).fetchRecords"),
         save: unimplemented("\(Self.self).save"),
         update: unimplemented("\(Self.self).update"),
-        delete: unimplemented("\(Self.self).delete")
+        delete: unimplemented("\(Self.self).delete"),
+        clearCache: unimplemented("\(Self.self).clearCache"),
+        clearCacheForMonth: unimplemented("\(Self.self).clearCacheForMonth")
     )
 
     static let previewValue = SwiftDataClient(
@@ -63,7 +73,9 @@ extension SwiftDataClient: DependencyKey {
         },
         save: { _ in },
         update: { _ in },
-        delete: { _ in }
+        delete: { _ in },
+        clearCache: { },
+        clearCacheForMonth: { _ in }
     )
 }
 
@@ -95,6 +107,12 @@ extension SwiftDataClient {
             },
             delete: { record in
                 try await repository.deleteRunningRecord(record)
+            },
+            clearCache: {
+                repository.clearCache()
+            },
+            clearCacheForMonth: { yearMonth in
+                repository.clearCache(for: yearMonth)
             }
         )
     }

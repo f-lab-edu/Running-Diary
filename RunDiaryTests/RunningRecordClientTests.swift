@@ -495,23 +495,9 @@ private extension RunningRecordClientTests {
             $0.swiftDataClient.save = { _ in }
             $0.swiftDataClient.update = { _ in }
         } operation: {
-            // Create a fresh LiveRunningRecordClient instance for each test
-            // This ensures test isolation and uses the mocked dependencies from withDependencies
-            let cache = LiveRunningRecordClient()
-            return RunningRecordClient(
-                fetchData: { from, to in
-                    try await cache.fetchData(from: from, to: to)
-                },
-                saveRecord: { record in
-                    try await cache.saveRecord(record)
-                },
-                updateRecord: { record in
-                    try await cache.updateRecord(record)
-                },
-                clearCache: {
-                    cache.clearCache()
-                }
-            )
+            // Use the live value with mocked dependencies
+            // This uses the new closure-based implementation
+            RunningRecordClient.liveValue
         }
     }
 }

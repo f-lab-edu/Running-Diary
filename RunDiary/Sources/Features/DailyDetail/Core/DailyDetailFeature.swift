@@ -66,12 +66,15 @@ struct DailyDetailFeature {
         case calendar(PresentationAction<CalendarFeature.Action>)
         case settingsButtonTapped
         case settings(PresentationAction<SettingsFeature.Action>)
+        case refreshCurrentWeek
+        case refreshCompleted
     }
 
     // MARK: - Dependency
 
     @Dependency(\.runningRecordClient) var runningRecordClient
     @Dependency(\.weatherClient) var weatherClient
+    @Dependency(\.swiftDataClient) var swiftDataClient
 
     // MARK: - Reducer
 
@@ -170,7 +173,7 @@ struct DailyDetailFeature {
                 state.dailyRecords.merge(dailyRecords) { _, new in new }
                 state.isLoading = false
                 AppLogger.dailyDetail.info("weekRecordsFetched 완료 - 총 캐시 크기: \(state.dailyRecords.count)")
-                return .none
+                return .send(.refreshCompleted)
 
             case let .weekRecordsFetchFailed(error):
                 state.isLoading = false
@@ -278,6 +281,25 @@ struct DailyDetailFeature {
                 return .none
 
             case .settings:
+                return .none
+
+            case .refreshCurrentWeek:
+                AppLogger.dailyDetail.info("refreshCurrentWeek - 수동 새로고침 시작")
+
+                // 1. Feature cache에서 현재 주 제거
+                for date in state.currentWeekDates {
+                    state.dailyRecords.removeValue(forKey: date)
+                }
+
+                // 2. SwiftData cache clear (Repository의 캐시 제거)
+                swiftDataClient.clearCache()
+                AppLogger.dailyDetail.debug("SwiftData cache cleared")
+
+                // 3. 다시 fetch (HealthKit은 자동으로 fresh fetch됨)
+                return .send(.fetchWeekRecords)
+
+            case .refreshCompleted:
+                // UI 피드백 (예: 햅틱, 토스트 등)
                 return .none
             }
         }

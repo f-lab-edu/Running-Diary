@@ -47,6 +47,9 @@ struct CalendarView: View {
                 }
             )
         }
+        .refreshable {
+            await store.send(.refreshAll).finish()
+        }
         .background(ignoresSafeAreaEdges: [.bottom])
         .onAppear {
             store.send(.onAppear)

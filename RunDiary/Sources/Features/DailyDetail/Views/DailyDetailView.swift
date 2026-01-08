@@ -32,6 +32,9 @@ struct DailyDetailView: View {
 
                 RecordContentSection(store: store)
             }
+            .refreshable {
+                await store.send(.refreshCurrentWeek).finish()
+            }
             .navigationDestination(store: store.scope(state: \.$addRecord, action: \.addRecord)) { addRecordStore in
                 AddRecordView(store: addRecordStore)
             }

@@ -18,23 +18,43 @@ struct RunningRecordClient {
 }
 
 extension RunningRecordClient: DependencyKey {
-    static let liveValue: RunningRecordClient = {
-        let cache = LiveRunningRecordClient()
-        return RunningRecordClient(
-            fetchData: { from, to in
-                try await cache.fetchData(from: from, to: to)
-            },
-            saveRecord: { record in
-                try await cache.saveRecord(record)
-            },
-            updateRecord: { record in
-                try await cache.updateRecord(record)
-            },
-            clearCache: {
-                cache.clearCache()
-            }
-        )
-    }()
+    static let liveValue: RunningRecordClient = RunningRecordClient(
+        fetchData: { from, to in
+            @Dependency(\.healthKitClient) var healthKitClient
+            @Dependency(\.swiftDataClient) var swiftDataClient
+
+            try await healthKitClient.ensureAuthorizationIfNeeded()
+
+            // 1. Fetch (캐싱은 Repository가 담당)
+            let healthKitWorkouts = try await healthKitClient.fetchRunningDataBetweenDates(
+                from.toDate(),
+                to.toDate()
+            )
+            let savedRecords = try await swiftDataClient.fetchRecords(
+                from.toDate(),
+                to.toDate()
+            )
+
+            // 2. Build (비즈니스 로직은 DailyRecord가 담당)
+            return DailyRecord.build(
+                from: healthKitWorkouts,
+                savedRecords: savedRecords,
+                dateRange: from...to
+            )
+        },
+        saveRecord: { record in
+            @Dependency(\.swiftDataClient) var swiftDataClient
+            try await swiftDataClient.save(record)
+        },
+        updateRecord: { record in
+            @Dependency(\.swiftDataClient) var swiftDataClient
+            try await swiftDataClient.update(record)
+        },
+        clearCache: {
+            @Dependency(\.swiftDataClient) var swiftDataClient
+            swiftDataClient.clearCache()
+        }
+    )
 
     static let testValue = RunningRecordClient(
         fetchData: unimplemented("\(Self.self).fetchData"),

@@ -14,4 +14,6 @@ protocol SwiftDataRepository {
     func saveRunningRecord(_ record: RunningRecord) async throws
     func updateRunningRecord(_ record: RunningRecord) async throws
     func deleteRunningRecord(_ record: RunningRecord) async throws
+    func clearCache()
+    func clearCache(for yearMonth: YearMonth)
 }

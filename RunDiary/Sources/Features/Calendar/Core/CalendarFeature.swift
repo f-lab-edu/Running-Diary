@@ -67,6 +67,7 @@ struct CalendarFeature {
         case selectDate(YearMonthDay)
         case navigateToDiary
         case delegate(Delegate)
+        case refreshAll
 
         enum Delegate {
             case dailyRecordSaved([YearMonthDay: DailyRecord])
@@ -76,6 +77,7 @@ struct CalendarFeature {
     // MARK: - Dependency
 
     @Dependency(\.runningRecordClient) var runningRecordClient
+    @Dependency(\.swiftDataClient) var swiftDataClient
 
     // MARK: - Reducer
 
@@ -163,6 +165,20 @@ struct CalendarFeature {
             case .navigateToDiary:
                 AppLogger.calendar.info("navigateToDiary - \(state.selectedDate) 날짜로 다이어리 이동")
                 return .none
+
+            case .refreshAll:
+                AppLogger.calendar.info("refreshAll - 전체 새로고침 시작")
+
+                // 1. Feature cache clear
+                state.dailyRecords.removeAll()
+                state.monthlyTotals.removeAll()
+
+                // 2. SwiftData cache clear (Repository의 캐시 제거)
+                swiftDataClient.clearCache()
+                AppLogger.calendar.debug("SwiftData cache cleared")
+
+                // 3. 현재 범위 다시 fetch (HealthKit은 자동으로 fresh fetch됨)
+                return .send(.fetchRecords(startDate: state.startDate, endDate: state.endDate))
 
             case .delegate:
                 return .none

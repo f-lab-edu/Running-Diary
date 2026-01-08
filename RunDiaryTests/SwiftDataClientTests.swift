@@ -60,7 +60,9 @@ struct SwiftDataClientTests {
       fetchRecords: { _, _ in [] },
       save: { _ in },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let result = try await client.fetch(testDate.toDate())
@@ -89,7 +91,9 @@ struct SwiftDataClientTests {
       fetchRecords: { _, _ in [] },
       save: { _ in },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let result = try await client.fetch(testDate.toDate())
@@ -110,7 +114,9 @@ struct SwiftDataClientTests {
       fetchRecords: { _, _ in [] },
       save: { _ in },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     await #expect(throws: TestError.fetchFailed) {
@@ -170,7 +176,9 @@ struct SwiftDataClientTests {
       },
       save: { _ in },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let result = try await client.fetchRecords(startDate, endDate)
@@ -193,7 +201,9 @@ struct SwiftDataClientTests {
       fetchRecords: { _, _ in [] },
       save: { _ in },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let result = try await client.fetchRecords(startDate, endDate)
@@ -261,7 +271,9 @@ struct SwiftDataClientTests {
       },
       save: { _ in },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let result = try await client.fetchRecords(startDate, endDate)
@@ -286,7 +298,9 @@ struct SwiftDataClientTests {
       },
       save: { _ in },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let startDate = makeDate()
@@ -328,7 +342,9 @@ struct SwiftDataClientTests {
         savedRecord = record
       },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     try await client.save(newRecord)
@@ -372,7 +388,9 @@ struct SwiftDataClientTests {
         savedRecord = record
       },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     try await client.save(newRecord)
@@ -397,7 +415,9 @@ struct SwiftDataClientTests {
         throw TestError.saveFailed
       },
       update: { _ in },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let yearMonthDay = makeYearMonthDay()
@@ -452,7 +472,9 @@ struct SwiftDataClientTests {
       update: { record in
         updated = record
       },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     try await client.update(updatedRecord)
@@ -499,7 +521,9 @@ struct SwiftDataClientTests {
       update: { record in
         updated = record
       },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     try await client.update(updatedRecord)
@@ -524,7 +548,9 @@ struct SwiftDataClientTests {
       update: { _ in
         throw TestError.updateFailed
       },
-      delete: { _ in }
+      delete: { _ in },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let yearMonthDay = makeYearMonthDay()
@@ -580,7 +606,9 @@ struct SwiftDataClientTests {
       update: { _ in },
       delete: { record in
         deletedRecord = record
-      }
+      },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     try await client.delete(recordToDelete)
@@ -604,7 +632,9 @@ struct SwiftDataClientTests {
       update: { _ in },
       delete: { _ in
         throw TestError.deleteFailed
-      }
+      },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let yearMonthDay = makeYearMonthDay()
@@ -668,7 +698,9 @@ struct SwiftDataClientTests {
       },
       delete: { record in
         storage.removeValue(forKey: record.id)
-      }
+      },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let fetched = try await client.fetch(testDate)
@@ -736,7 +768,9 @@ struct SwiftDataClientTests {
       },
       delete: { record in
         storage.removeValue(forKey: record.id)
-      }
+      },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let record1 = RunningRecord(
@@ -797,7 +831,9 @@ struct SwiftDataClientTests {
       },
       delete: { record in
         storage.removeValue(forKey: record.id)
-      }
+      },
+      clearCache: { },
+      clearCacheForMonth: { _ in }
     )
 
     let newRecord = RunningRecord(

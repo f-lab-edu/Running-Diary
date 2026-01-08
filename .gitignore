@@ -34,3 +34,6 @@ Packages/
 
 .claude/
 .serena/
+
+.gemini/
+gha-creds-*.json
