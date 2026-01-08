@@ -53,6 +53,10 @@ extension HealthKitClient: DependencyKey {
                     averagePace: "5'30\"",
                     averageHeartRate: 155,
                     averageCadence: 180,
+                    activeEnergyBurned: 450.0,
+                    runningVerticalOscillation: 8.2,
+                    runningGroundContactTime: 240.0,
+                    walkingStepLength: 1.1,
                     routeData: nil,
                     startDate: Calendar.current.date(byAdding: .second, value: -3665, to: .now)!,
                     endDate: .now
@@ -70,6 +74,10 @@ extension HealthKitClient: DependencyKey {
                     averagePace: "5'30\"",
                     averageHeartRate: Int.random(in: 140...170),
                     averageCadence: Int.random(in: 170...185),
+                    activeEnergyBurned: Double.random(in: 300...600),
+                    runningVerticalOscillation: Double.random(in: 7.0...9.0),
+                    runningGroundContactTime: Double.random(in: 230...260),
+                    walkingStepLength: Double.random(in: 0.9...1.2),
                     routeData: nil,
                     startDate: Calendar.current.date(byAdding: .second, value: Int(-duration), to: .now)!,
                     endDate: .now

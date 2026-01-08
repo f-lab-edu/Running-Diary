@@ -20,6 +20,9 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         HKObjectType.quantityType(forIdentifier: .runningSpeed)!,
         HKObjectType.quantityType(forIdentifier: .stepCount)!,
         HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
+        HKObjectType.quantityType(forIdentifier: .runningVerticalOscillation)!,
+        HKObjectType.quantityType(forIdentifier: .runningGroundContactTime)!,
+        HKObjectType.quantityType(forIdentifier: .walkingStepLength)!,
         HKSeriesType.workoutRoute(),
     ]
 
@@ -94,6 +97,12 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
                   let averageHeartRate = try await fetchAverageHeartRate(for: workout),
                   let averageCadence = try await fetchAverageCadence(for: workout)
             else { continue }
+            
+            let activeEnergyBurned = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
+            let runningVerticalOscillation = try await fetchAverageVerticalOscillation(for: workout) ?? 0
+            let runningGroundContactTime = try await fetchAverageGroundContactTime(for: workout) ?? 0
+            let walkingStepLength = try await fetchAverageStepLength(for: workout) ?? 0
+            
             let routeData = try? await fetchRouteData(for: workout)
 
             let healthKitWorkout = HealthKitWorkout(
@@ -102,6 +111,10 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
                 averagePace: averagePace,
                 averageHeartRate: averageHeartRate,
                 averageCadence: averageCadence,
+                activeEnergyBurned: activeEnergyBurned,
+                runningVerticalOscillation: runningVerticalOscillation,
+                runningGroundContactTime: runningGroundContactTime,
+                walkingStepLength: walkingStepLength,
                 routeData: routeData,
                 startDate: workout.startDate,
                 endDate: workout.endDate
@@ -201,6 +214,42 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         let cadence = totalSteps / durationInMinutes
 
         return Int(cadence)
+    }
+
+    private func fetchAverageVerticalOscillation(for workout: HKWorkout) async throws -> Double? {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .runningVerticalOscillation) else { return nil }
+        return try await fetchAverageQuantity(for: workout, type: type, unit: .meterUnit(with: .centi))
+    }
+
+    private func fetchAverageGroundContactTime(for workout: HKWorkout) async throws -> Double? {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .runningGroundContactTime) else { return nil }
+        return try await fetchAverageQuantity(for: workout, type: type, unit: .secondUnit(with: .milli))
+    }
+
+    private func fetchAverageStepLength(for workout: HKWorkout) async throws -> Double? {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .walkingStepLength) else { return nil }
+        return try await fetchAverageQuantity(for: workout, type: type, unit: .meter())
+    }
+
+    private func fetchAverageQuantity(for workout: HKWorkout, type: HKQuantityType, unit: HKUnit) async throws -> Double? {
+        let predicate = HKQuery.predicateForSamples(withStart: workout.startDate, end: workout.endDate, options: .strictStartDate)
+
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Double?, Error>) in
+            let query = HKStatisticsQuery(
+                quantityType: type,
+                quantitySamplePredicate: predicate,
+                options: .discreteAverage
+            ) { _, statistics, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                let average = statistics?.averageQuantity()?.doubleValue(for: unit)
+                continuation.resume(returning: average)
+            }
+            healthStore.execute(query)
+        }
     }
 
     private func fetchRouteData(for workout: HKWorkout) async throws -> Data? {

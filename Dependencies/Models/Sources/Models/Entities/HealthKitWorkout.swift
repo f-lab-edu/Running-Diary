@@ -16,6 +16,10 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
     public let averagePace: String      // min/km
     public let averageHeartRate: Int    // bpm
     public let averageCadence: Int      // spm
+    public let activeEnergyBurned: Double // kcal
+    public let runningVerticalOscillation: Double // cm
+    public let runningGroundContactTime: Double // ms
+    public let walkingStepLength: Double // m
     public let routeData: Data?
     public let startDate: Date
     public let endDate: Date
@@ -50,6 +54,10 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         averagePace: String,
         averageHeartRate: Int,
         averageCadence: Int,
+        activeEnergyBurned: Double,
+        runningVerticalOscillation: Double,
+        runningGroundContactTime: Double,
+        walkingStepLength: Double,
         routeData: Data?,
         startDate: Date,
         endDate: Date
@@ -60,6 +68,10 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         self.averagePace = averagePace
         self.averageHeartRate = averageHeartRate
         self.averageCadence = averageCadence
+        self.activeEnergyBurned = activeEnergyBurned
+        self.runningVerticalOscillation = runningVerticalOscillation
+        self.runningGroundContactTime = runningGroundContactTime
+        self.walkingStepLength = walkingStepLength
         self.routeData = routeData
         self.startDate = startDate
         self.endDate = endDate
