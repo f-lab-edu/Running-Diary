@@ -141,6 +141,10 @@ struct AddRecordView: View {
                         averagePace: "5'30\"",
                         averageHeartRate: 155,
                         averageCadence: 180,
+                        activeEnergyBurned: 450.0,
+                        runningVerticalOscillation: 8.2,
+                        runningGroundContactTime: 240.0,
+                        walkingStepLength: 1.1,
                         routeData: nil,
                         startDate: .now,
                         endDate: .now

@@ -22,6 +22,10 @@ public struct RunningRecord: Identifiable, Equatable, Sendable {
     public let weather: WeatherData?
     public let difficultyLevel: DifficultyLevel?
     public let routeData: Data?  // HealthKit route data
+    public let activeEnergyBurned: Double?          // kcal
+    public let runningVerticalOscillation: Double?  // cm
+    public let runningGroundContactTime: Double?    // ms
+    public let walkingStepLength: Double?           // m
     public let hasMap: Bool
     public let startTime: Date
     public let endTime: Date
@@ -57,6 +61,10 @@ public struct RunningRecord: Identifiable, Equatable, Sendable {
         weather: WeatherData? = nil,
         difficultyLevel: DifficultyLevel? = nil,
         routeData: Data? = nil,
+        activeEnergyBurned: Double? = nil,
+        runningVerticalOscillation: Double? = nil,
+        runningGroundContactTime: Double? = nil,
+        walkingStepLength: Double? = nil,
         hasMap: Bool = false,
         startTime: Date,
         endTime: Date
@@ -75,6 +83,10 @@ public struct RunningRecord: Identifiable, Equatable, Sendable {
         self.weather = weather
         self.difficultyLevel = difficultyLevel
         self.routeData = routeData
+        self.activeEnergyBurned = activeEnergyBurned
+        self.runningVerticalOscillation = runningVerticalOscillation
+        self.runningGroundContactTime = runningGroundContactTime
+        self.walkingStepLength = walkingStepLength
         self.hasMap = hasMap
         self.startTime = startTime
         self.endTime = endTime

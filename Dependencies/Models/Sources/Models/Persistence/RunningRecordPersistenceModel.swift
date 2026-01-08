@@ -30,6 +30,10 @@ public final class RunningRecordPersistenceModel {
     public var windSpeed: Double?
     public var difficultyLevelRaw: Int?
     public var routeData: Data?
+    public var activeEnergyBurned: Double?
+    public var runningVerticalOscillation: Double?
+    public var runningGroundContactTime: Double?
+    public var walkingStepLength: Double?
     public var hasMap: Bool
     public var startTime: Date
     public var endTime: Date
@@ -54,6 +58,10 @@ public final class RunningRecordPersistenceModel {
         windSpeed: Double? = nil,
         difficultyLevelRaw: Int? = nil,
         routeData: Data? = nil,
+        activeEnergyBurned: Double? = nil,
+        runningVerticalOscillation: Double? = nil,
+        runningGroundContactTime: Double? = nil,
+        walkingStepLength: Double? = nil,
         hasMap: Bool = false,
         startTime: Date,
         endTime: Date
@@ -76,6 +84,10 @@ public final class RunningRecordPersistenceModel {
         self.windSpeed = windSpeed
         self.difficultyLevelRaw = difficultyLevelRaw
         self.routeData = routeData
+        self.activeEnergyBurned = activeEnergyBurned
+        self.runningVerticalOscillation = runningVerticalOscillation
+        self.runningGroundContactTime = runningGroundContactTime
+        self.walkingStepLength = walkingStepLength
         self.hasMap = hasMap
         self.startTime = startTime
         self.endTime = endTime
@@ -126,6 +138,10 @@ public extension RunningRecordPersistenceModel {
             weather: weather,
             difficultyLevel: difficultyLevel,
             routeData: routeData,
+            activeEnergyBurned: activeEnergyBurned,
+            runningVerticalOscillation: runningVerticalOscillation,
+            runningGroundContactTime: runningGroundContactTime,
+            walkingStepLength: walkingStepLength,
             hasMap: hasMap,
             startTime: startTime,
             endTime: endTime
@@ -153,6 +169,10 @@ public extension RunningRecordPersistenceModel {
             windSpeed: record.weather?.windSpeed,
             difficultyLevelRaw: record.difficultyLevel?.rawValue,
             routeData: record.routeData,
+            activeEnergyBurned: record.activeEnergyBurned,
+            runningVerticalOscillation: record.runningVerticalOscillation,
+            runningGroundContactTime: record.runningGroundContactTime,
+            walkingStepLength: record.walkingStepLength,
             hasMap: record.hasMap,
             startTime: record.startTime,
             endTime: record.endTime
@@ -194,6 +214,10 @@ public extension RunningRecordPersistenceModel {
             windSpeed: 3.2,
             difficultyLevelRaw: 4,
             routeData: nil,
+            activeEnergyBurned: 450.0,
+            runningVerticalOscillation: 8.2,
+            runningGroundContactTime: 240.0,
+            walkingStepLength: 1.1,
             hasMap: true,
             startTime: .now,
             endTime: Calendar.current.date(byAdding: .second, value: 1800, to: .now)!
@@ -222,6 +246,10 @@ public extension RunningRecordPersistenceModel {
                 windSpeed: 2.1,
                 difficultyLevelRaw: 4,
                 routeData: nil,
+                activeEnergyBurned: 380.0,
+                runningVerticalOscillation: 8.0,
+                runningGroundContactTime: 235.0,
+                walkingStepLength: 1.0,
                 hasMap: true,
                 startTime: date(year: 2025, month: 10, day: 15),
                 endTime: Calendar.current.date(byAdding: .second, value: 1780, to: date(year: 2025, month: 10, day: 15))!
@@ -246,6 +274,10 @@ public extension RunningRecordPersistenceModel {
                 windSpeed: 3.4,
                 difficultyLevelRaw: 5,
                 routeData: nil,
+                activeEnergyBurned: 620.0,
+                runningVerticalOscillation: 8.5,
+                runningGroundContactTime: 230.0,
+                walkingStepLength: 1.2,
                 hasMap: true,
                 startTime: date(year: 2025, month: 10, day: 18),
                 endTime: Calendar.current.date(byAdding: .second, value: 2600, to: date(year: 2025, month: 10, day: 18))!
@@ -269,6 +301,10 @@ public extension RunningRecordPersistenceModel {
                 windSpeed: 2.8,
                 difficultyLevelRaw: 2,
                 routeData: nil,
+                activeEnergyBurned: 280.0,
+                runningVerticalOscillation: 7.5,
+                runningGroundContactTime: 250.0,
+                walkingStepLength: 0.95,
                 hasMap: false,
                 startTime: .now,
                 endTime: Calendar.current.date(byAdding: .second, value: 1200, to: .now)!

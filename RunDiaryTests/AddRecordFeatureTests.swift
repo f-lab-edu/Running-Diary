@@ -320,6 +320,10 @@ private extension AddRecordFeatureTests {
         averagePace: String = "6'00\"",
         averageHeartRate: Int = 150,
         averageCadence: Int = 170,
+        activeEnergyBurned: Double = 300,
+        runningVerticalOscillation: Double = 8,
+        runningGroundContactTime: Double = 250,
+        walkingStepLength: Double = 1.0,
         routeData: Data? = nil
     ) -> HealthKitWorkout {
         let testDate = Date.now
@@ -329,6 +333,10 @@ private extension AddRecordFeatureTests {
             averagePace: averagePace,
             averageHeartRate: averageHeartRate,
             averageCadence: averageCadence,
+            activeEnergyBurned: activeEnergyBurned,
+            runningVerticalOscillation: runningVerticalOscillation,
+            runningGroundContactTime: runningGroundContactTime,
+            walkingStepLength: walkingStepLength,
             routeData: routeData,
             startDate: testDate,
             endDate: testDate.addingTimeInterval(duration)

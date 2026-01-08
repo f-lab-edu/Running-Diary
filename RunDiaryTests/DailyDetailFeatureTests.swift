@@ -899,6 +899,10 @@ private extension DailyDetailFeatureTests {
             averagePace: "6'00\"",
             averageHeartRate: 150,
             averageCadence: 170,
+            activeEnergyBurned: 350.0,
+            runningVerticalOscillation: 8.0,
+            runningGroundContactTime: 240.0,
+            walkingStepLength: 1.0,
             routeData: nil,
             startDate: startDate,
             endDate: startDate.addingTimeInterval(1800)

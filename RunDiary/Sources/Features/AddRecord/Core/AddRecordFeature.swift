@@ -152,6 +152,10 @@ struct AddRecordFeature {
                             weather: weather,
                             difficultyLevel: difficultyLevel,
                             routeData: healthKitWorkout.routeData,
+                            activeEnergyBurned: healthKitWorkout.activeEnergyBurned,
+                            runningVerticalOscillation: healthKitWorkout.runningVerticalOscillation,
+                            runningGroundContactTime: healthKitWorkout.runningGroundContactTime,
+                            walkingStepLength: healthKitWorkout.walkingStepLength,
                             hasMap: healthKitWorkout.routeData != nil,
                             startTime: healthKitWorkout.startDate,
                             endTime: healthKitWorkout.endDate
