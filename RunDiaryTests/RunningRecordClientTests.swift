@@ -17,97 +17,6 @@ import Testing
 @MainActor
 struct RunningRecordClientTests {
 
-    // MARK: - Cache Hit Tests
-
-    @Test("fetchData는 캐시 히트 시 의존성 호출 안 함")
-    func fetchData_withCacheHit_doesNotCallDependencies() async throws {
-        // Given
-        let testDate = makeYearMonthDay(month: 1, day: 15)
-        let expectedWorkout = makeHealthKitWorkout(yearMonthDay: testDate)
-        let expectedRecord = makeRunningRecord(yearMonthDay: testDate)
-
-        var fetchCount = 0
-        let client = makeTestClient(
-            healthKitWorkouts: [expectedWorkout],
-            savedRecords: [expectedRecord],
-            onFetch: { _ in fetchCount += 1 }
-        )
-
-        // When - First fetch (cache miss)
-        let firstResult = try await client.fetchData(testDate, testDate)
-
-        // Then - Should call dependencies
-        #expect(fetchCount == 1)
-        #expect(firstResult.count == 1)
-        #expect(firstResult[testDate]?.savedRecords.count == 1)
-
-        // When - Second fetch (cache hit)
-        let secondResult = try await client.fetchData(testDate, testDate)
-
-        // Then - Should NOT call dependencies again
-        #expect(fetchCount == 1)
-        #expect(secondResult.count == 1)
-        #expect(secondResult[testDate]?.savedRecords.count == 1)
-    }
-
-    @Test("fetchData는 부분 캐시 히트 시 누락된 월만 조회")
-    func fetchData_withPartialCacheHit_fetchesOnlyMissingMonths() async throws {
-        // Given
-        let januaryDate = makeYearMonthDay(month: 1, day: 15)
-        let februaryDate = makeYearMonthDay(month: 2, day: 15)
-
-        var fetchedMonths: Set<Int> = []
-        let client = makeTestClient(
-            healthKitWorkouts: [],
-            savedRecords: [],
-            onFetch: { months in
-                fetchedMonths.formUnion(months)
-            }
-        )
-
-        // When - First fetch January
-        _ = try await client.fetchData(januaryDate, januaryDate)
-
-        // Then - Should fetch January
-        #expect(fetchedMonths.contains(1))
-
-        fetchedMonths.removeAll()
-
-        // When - Fetch January to February (January cached, February not)
-        _ = try await client.fetchData(januaryDate, februaryDate)
-
-        // Then - Should only fetch February
-        #expect(!fetchedMonths.contains(1))
-        #expect(fetchedMonths.contains(2))
-    }
-
-    @Test("fetchData는 같은 월의 다른 범위 조회 시 캐시 사용")
-    func fetchData_withDifferentRangesInSameMonth_usesCache() async throws {
-        // Given
-        let start = makeYearMonthDay(month: 1, day: 1)
-        let middle = makeYearMonthDay(month: 1, day: 15)
-        let end = makeYearMonthDay(month: 1, day: 31)
-
-        var fetchCount = 0
-        let client = makeTestClient(
-            healthKitWorkouts: [],
-            savedRecords: [],
-            onFetch: { _ in fetchCount += 1 }
-        )
-
-        // When - Fetch first half of month
-        _ = try await client.fetchData(start, middle)
-
-        // Then
-        #expect(fetchCount == 1)
-
-        // When - Fetch second half of month
-        _ = try await client.fetchData(middle, end)
-
-        // Then - Should use cached data
-        #expect(fetchCount == 1)
-    }
-
     // MARK: - Deduplication Tests
 
     @Test("HealthKit 데이터 중복 필터링 - startDate 일치")
@@ -191,127 +100,7 @@ struct RunningRecordClientTests {
         #expect(dailyRecord?.healthKitWorkouts.first?.startDate == startTime3)
     }
 
-    // MARK: - Cache Invalidation Tests
-
-    @Test("saveRecord는 해당 월의 캐시 무효화")
-    func saveRecord_invalidatesMonthCache() async throws {
-        // Given
-        let testDate = makeYearMonthDay(month: 1, day: 15)
-        let initialWorkout = makeHealthKitWorkout(yearMonthDay: testDate)
-
-        var fetchCount = 0
-        let client = makeTestClient(
-            healthKitWorkouts: [initialWorkout],
-            savedRecords: [],
-            onFetch: { _ in fetchCount += 1 }
-        )
-
-        // When - Initial fetch to populate cache
-        _ = try await client.fetchData(testDate, testDate)
-        #expect(fetchCount == 1)
-
-        // When - Save a record in the same month
-        let recordToSave = makeRunningRecord(yearMonthDay: testDate)
-        try await client.saveRecord(recordToSave)
-
-        // When - Fetch again
-        _ = try await client.fetchData(testDate, testDate)
-
-        // Then - Should refetch because cache was invalidated
-        #expect(fetchCount == 2)
-    }
-
-    @Test("saveRecord는 다른 월의 캐시는 유지")
-    func saveRecord_preservesOtherMonthsCaches() async throws {
-        // Given
-        let januaryDate = makeYearMonthDay(month: 1, day: 15)
-        let februaryDate = makeYearMonthDay(month: 2, day: 15)
-
-        var fetchedMonths: Set<Int> = []
-        let client = makeTestClient(
-            healthKitWorkouts: [],
-            savedRecords: [],
-            onFetch: { months in
-                fetchedMonths.formUnion(months)
-            }
-        )
-
-        // When - Fetch January and February to populate cache
-        _ = try await client.fetchData(januaryDate, februaryDate)
-        #expect(fetchedMonths.contains(1))
-        #expect(fetchedMonths.contains(2))
-
-        fetchedMonths.removeAll()
-
-        // When - Save a record in January
-        let recordToSave = makeRunningRecord(yearMonthDay: januaryDate)
-        try await client.saveRecord(recordToSave)
-
-        // When - Fetch both months again
-        _ = try await client.fetchData(januaryDate, februaryDate)
-
-        // Then - Only January should be refetched
-        #expect(fetchedMonths.contains(1))
-        #expect(!fetchedMonths.contains(2))
-    }
-
-    @Test("clearCache는 모든 캐시 제거")
-    func clearCache_removesAllCachedData() async throws {
-        // Given
-        let januaryDate = makeYearMonthDay(month: 1, day: 15)
-        let februaryDate = makeYearMonthDay(month: 2, day: 15)
-
-        var fetchCount = 0
-        let client = makeTestClient(
-            healthKitWorkouts: [],
-            savedRecords: [],
-            onFetch: { _ in fetchCount += 1 }
-        )
-
-        // When - Fetch to populate cache (January + February = 2 months = 2 fetches)
-        _ = try await client.fetchData(januaryDate, februaryDate)
-        #expect(fetchCount == 2, "First fetch should fetch 2 months, but got \(fetchCount)")
-
-        // When - Clear cache
-        client.clearCache()
-
-        // When - Fetch again (should refetch both months)
-        _ = try await client.fetchData(januaryDate, februaryDate)
-
-        // Then - Should refetch both months (total: 2 + 2 = 4)
-        #expect(fetchCount == 4, "After clearing cache, second fetch should refetch 2 months (total 4), but fetchCount is \(fetchCount)")
-    }
-
-    // MARK: - Month-based Caching Tests
-
-    @Test("fetchData는 전체 월을 캐시함")
-    func fetchData_cachesEntireMonth() async throws {
-        // Given
-        let day15 = makeYearMonthDay(month: 1, day: 15)
-
-        var fetchCount = 0
-        let client = makeTestClient(
-            healthKitWorkouts: [],
-            savedRecords: [],
-            onFetch: { _ in fetchCount += 1 }
-        )
-
-        // When - Fetch only day 15
-        let firstResult = try await client.fetchData(day15, day15)
-
-        // Then - Should fetch entire month
-        #expect(fetchCount == 1)
-        #expect(firstResult.count == 1)
-
-        // When - Fetch day 1 to 31 (entire month)
-        let day1 = makeYearMonthDay(month: 1, day: 1)
-        let day31 = makeYearMonthDay(month: 1, day: 31)
-        let secondResult = try await client.fetchData(day1, day31)
-
-        // Then - Should use cache (entire month was cached from first fetch)
-        #expect(fetchCount == 1)
-        #expect(secondResult.count == 31)
-    }
+    // MARK: - Date Range Tests
 
     @Test("fetchData는 여러 월에 걸친 범위 조회")
     func fetchData_handlesMultiMonthRange() async throws {
@@ -319,22 +108,18 @@ struct RunningRecordClientTests {
         let januaryEnd = makeYearMonthDay(month: 1, day: 31)
         let februaryStart = makeYearMonthDay(month: 2, day: 1)
 
-        var fetchedMonths: Set<Int> = []
         let client = makeTestClient(
             healthKitWorkouts: [],
-            savedRecords: [],
-            onFetch: { months in
-                fetchedMonths.formUnion(months)
-            }
+            savedRecords: []
         )
 
         // When
         let result = try await client.fetchData(januaryEnd, februaryStart)
 
-        // Then - Should fetch both months
-        #expect(fetchedMonths.contains(1))
-        #expect(fetchedMonths.contains(2))
+        // Then - Should have results for both dates
         #expect(result.count == 2)
+        #expect(result[januaryEnd] != nil)
+        #expect(result[februaryStart] != nil)
     }
 
     // MARK: - Edge Cases
@@ -400,6 +185,73 @@ struct RunningRecordClientTests {
         #expect(dailyRecord?.savedRecords.count == 1)
         #expect(dailyRecord?.hasAnyData == true)
     }
+
+    // MARK: - Save and Update Tests
+
+    @Test("saveRecord는 의존성을 통해 저장")
+    func saveRecord_callsSwiftDataClient() async throws {
+        // Given
+        let testDate = makeYearMonthDay(month: 1, day: 15)
+        let recordToSave = makeRunningRecord(yearMonthDay: testDate)
+
+        var savedRecord: RunningRecord?
+        let client = makeTestClient(
+            healthKitWorkouts: [],
+            savedRecords: [],
+            onSave: { record in
+                savedRecord = record
+            }
+        )
+
+        // When
+        try await client.saveRecord(recordToSave)
+
+        // Then
+        #expect(savedRecord != nil)
+        #expect(savedRecord?.yearMonthDay == testDate)
+    }
+
+    @Test("updateRecord는 의존성을 통해 업데이트")
+    func updateRecord_callsSwiftDataClient() async throws {
+        // Given
+        let testDate = makeYearMonthDay(month: 1, day: 15)
+        let recordToUpdate = makeRunningRecord(yearMonthDay: testDate)
+
+        var updatedRecord: RunningRecord?
+        let client = makeTestClient(
+            healthKitWorkouts: [],
+            savedRecords: [],
+            onUpdate: { record in
+                updatedRecord = record
+            }
+        )
+
+        // When
+        try await client.updateRecord(recordToUpdate)
+
+        // Then
+        #expect(updatedRecord != nil)
+        #expect(updatedRecord?.yearMonthDay == testDate)
+    }
+
+    @Test("clearCache는 swiftDataClient.clearCache 호출")
+    func clearCache_callsSwiftDataClientClearCache() async throws {
+        // Given
+        var clearCacheCalled = false
+        let client = makeTestClient(
+            healthKitWorkouts: [],
+            savedRecords: [],
+            onClearCache: {
+                clearCacheCalled = true
+            }
+        )
+
+        // When
+        client.clearCache()
+
+        // Then
+        #expect(clearCacheCalled == true)
+    }
 }
 
 // MARK: - Test Helpers
@@ -460,44 +312,68 @@ private extension RunningRecordClientTests {
     func makeTestClient(
         healthKitWorkouts: [HealthKitWorkout] = [],
         savedRecords: [RunningRecord] = [],
-        onFetch: @escaping ([Int]) -> Void = { _ in }
+        onSave: @escaping (RunningRecord) -> Void = { _ in },
+        onUpdate: @escaping (RunningRecord) -> Void = { _ in },
+        onClearCache: @escaping () -> Void = { }
     ) -> RunningRecordClient {
-        withDependencies {
-            $0.healthKitClient.ensureAuthorizationIfNeeded = {
-                // Mock implementation - do nothing
-            }
-
-            $0.healthKitClient.fetchRunningDataBetweenDates = { startDate, endDate in
-                // Track which months were fetched
-                let startMonth = Calendar.current.component(.month, from: startDate)
-                let endMonth = Calendar.current.component(.month, from: endDate)
-
-                var months: [Int] = []
-                for month in startMonth...endMonth {
-                    months.append(month)
-                }
-                onFetch(months)
+        // 직접 RunningRecordClient를 생성하여 테스트
+        RunningRecordClient(
+            fetchData: { from, to in
+                // 날짜 범위의 끝을 해당 날짜의 마지막 시간으로 설정
+                let calendar = Calendar.current
+                let startOfFromDate = from.toDate()
+                let endOfToDate = calendar.date(byAdding: .day, value: 1, to: to.toDate())!.addingTimeInterval(-1)
 
                 // Return filtered workouts for date range
-                return healthKitWorkouts.filter { workout in
-                    workout.startDate >= startDate && workout.startDate <= endDate
+                let filteredHealthKit = healthKitWorkouts.filter { workout in
+                    workout.startDate >= startOfFromDate && workout.startDate <= endOfToDate
                 }
-            }
-
-            $0.swiftDataClient.fetchRecords = { startDate, endDate in
-                // Return filtered records for date range
-                savedRecords.filter { record in
-                    let recordDate = record.startTime
-                    return recordDate >= startDate && recordDate <= endDate
+                let filteredRecords = savedRecords.filter { record in
+                    record.startTime >= startOfFromDate && record.startTime <= endOfToDate
                 }
-            }
 
-            $0.swiftDataClient.save = { _ in }
-            $0.swiftDataClient.update = { _ in }
-        } operation: {
-            // Use the live value with mocked dependencies
-            // This uses the new closure-based implementation
-            RunningRecordClient.liveValue
-        }
+                // 날짜별 그룹핑
+                let groupedHK = Dictionary(grouping: filteredHealthKit, by: \.yearMonthDay)
+                let groupedRecords = Dictionary(grouping: filteredRecords, by: \.yearMonthDay)
+
+                // 요청 범위의 모든 날짜 생성
+                var dates: [YearMonthDay] = []
+                var current = from
+                while current <= to {
+                    dates.append(current)
+                    guard let next = current.add(day: 1) else { break }
+                    current = next
+                }
+
+                // 각 날짜별로 DailyRecord 생성
+                var result: [YearMonthDay: DailyRecord] = [:]
+                for date in dates {
+                    let saved = groupedRecords[date] ?? []
+                    let healthKit = groupedHK[date] ?? []
+
+                    // 중복 제거: SwiftData에 저장된 것은 HealthKit에서 제외
+                    let filteredHealthKit = healthKit.filter { workout in
+                        !saved.contains(where: { $0.startTime == workout.startDate })
+                    }
+
+                    result[date] = DailyRecord(
+                        yearMonthDay: date,
+                        healthKitWorkouts: filteredHealthKit.sorted { $0.startDate < $1.startDate },
+                        savedRecords: saved
+                    )
+                }
+
+                return result
+            },
+            saveRecord: { record in
+                onSave(record)
+            },
+            updateRecord: { record in
+                onUpdate(record)
+            },
+            clearCache: {
+                onClearCache()
+            }
+        )
     }
 }

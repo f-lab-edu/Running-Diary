@@ -56,6 +56,8 @@ struct DailyDetailFeatureTests {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
+
+        await store.receive(\.refreshCompleted)
     }
 
     // MARK: - Date Selection Tests
@@ -92,6 +94,8 @@ struct DailyDetailFeatureTests {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
+
+        await store.receive(\.refreshCompleted)
     }
 
     @Test("날짜 선택 시 캐시 히트면 fetch 생략")
@@ -171,6 +175,8 @@ struct DailyDetailFeatureTests {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
+
+        await store.receive(\.refreshCompleted)
     }
 
     @Test("주 변경 시 캐시 히트로 fetch 생략")
@@ -296,6 +302,8 @@ struct DailyDetailFeatureTests {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
+
+        await store.receive(\.refreshCompleted)
     }
 
     @Test("주 단위 기록 조회 시 빈 currentWeekDates면 에러 발생")
@@ -452,6 +460,8 @@ struct DailyDetailFeatureTests {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
+
+        await store.receive(\.refreshCompleted)
     }
 
     // MARK: - Calendar Integration Tests
@@ -529,6 +539,8 @@ struct DailyDetailFeatureTests {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
+
+        await store.receive(\.refreshCompleted)
     }
 
     // MARK: - Settings Tests
@@ -651,6 +663,8 @@ struct DailyDetailFeatureTests {
             $0.dailyRecords = expectedDailyRecords
         }
 
+        await store.receive(\.refreshCompleted)
+
         await store.receive(\.weatherTrademarkFetched) {
             $0.weatherTrademark = expectedTrademark
         }
@@ -694,6 +708,8 @@ struct DailyDetailFeatureTests {
             $0.isLoading = false
             $0.dailyRecords = expectedDailyRecords
         }
+
+        await store.receive(\.refreshCompleted)
 
         // No weatherTrademarkFetched action should be received
         #expect(store.state.weatherTrademark == existingTrademark)
